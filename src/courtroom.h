@@ -277,6 +277,12 @@ public:
   // name and the second is the char id of who played it
   void handle_song(QStringList p_contents);
 
+  // sets the music playback type when you play a song
+  void set_bgm_playback_type(BGMPlayback p_bgm_playback);
+
+  // return the current music playback type
+  BGMPlayback get_bgm_playback_type() { return bgm_playback; };
+
   // animates music text
   void set_music_text(QString p_text);
   void update_music_text_anim();
@@ -342,6 +348,7 @@ private:
   int m_tick_step = 0;
   bool is_ignore_next_letter = false;
   bool is_delay_next_letter = false;
+  bool is_pause = false;
   // used to determine how often blips sound
   int m_blip_step = 0;
   int m_rainbow_step = 0;
@@ -351,6 +358,8 @@ private:
   bool is_note_shown = false;
   bool contains_add_button = false;
 
+  // current BGM playback type
+  BGMPlayback bgm_playback = BGMPlayback_Standard;
 
   ChoiceDialog *pNotifyPopup = nullptr;
 
@@ -809,7 +818,6 @@ private slots:
 
   void on_music_list_clicked();
   void on_music_list_double_clicked(QModelIndex p_model);
-  void on_music_menu_play_triggered();
   void on_music_menu_insert_ooc_triggered();
   void on_music_search_edited(QString);
   void on_music_search_edited();

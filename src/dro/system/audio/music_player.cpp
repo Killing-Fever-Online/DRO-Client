@@ -28,7 +28,7 @@ void AOMusicPlayer::play(QString p_song, BGMPlayback playbackType)
   {
     newSong = m_family->create_url_stream(p_song);
   }
-  else
+  else if (!p_song.isEmpty())
   {
     newSong = m_family->create_stream(ao_app->get_music_path(p_song));
   }
@@ -71,11 +71,18 @@ void AOMusicPlayer::play(QString p_song, BGMPlayback playbackType)
       newSong->playSynced(mCurrentSong.data());
       break;
 
+    case BGMPlayback_CrossFade:
+      if (mCurrentSong)
+        mCurrentSong->fadeOut(3000);
+      newSong->fadeIn(3000);
+      newSong->play();
+      break;
+
     case BGMPlayback_Standard:
     default:
       if (mCurrentSong)
         mCurrentSong->fadeOut(3000);
-      newSong->fadeIn(3000);
+      // Standard playback shouldn't do a crossfade for the new track
       newSong->play();
       break;
   }

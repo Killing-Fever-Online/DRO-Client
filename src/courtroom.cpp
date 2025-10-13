@@ -2469,6 +2469,8 @@ void Courtroom::handle_song(QStringList p_contents)
     if (m_current_song == l_song && !l_restart)
       return;
   }
+  if (l_song == "~stop.mp3")
+    l_song = "";
   m_current_song = l_song;
 
   replays::recording::musicChange(l_song);
@@ -2478,7 +2480,14 @@ void Courtroom::handle_song(QStringList p_contents)
   {
     if(p_contents.length() > 4)
     {
-      audio::bgm::PlayMode(l_song.toStdString(), BGMPlayback(p_contents.at(4).toInt()));
+      if (l_song.isEmpty())
+      {
+        audio::bgm::PlayMode("", BGMPlayback(p_contents.at(4).toInt()));
+      }
+      else
+      {
+        audio::bgm::PlayMode(l_song.toStdString(), BGMPlayback(p_contents.at(4).toInt()));
+      }
     }
 
 
@@ -2489,11 +2498,19 @@ void Courtroom::handle_song(QStringList p_contents)
         l_showname = ao_app->get_showname(CharacterManager::get().mServerCharacters.at(l_chr_id).name);
       }
 
-      append_ic_text(l_showname, "has played a song: " + l_song_meta.title(), false, true, NoClientId, l_chr_id == metadata::user::GetCharacterId());
+      QString song_title = l_song_meta.title();
+      QString message = "has played a song: " + song_title;
+
+      if (l_song.isEmpty())
+      {
+        message = "has stopped a song.";
+      }
+
+      append_ic_text(l_showname, message, false, true, NoClientId, l_chr_id == metadata::user::GetCharacterId());
 
       if (ao_config->log_is_recording_enabled())
       {
-        save_textlog(l_showname + " has played a song: " + l_song_meta.filename());
+        save_textlog(l_showname + " " + message);
       }
     }
 
@@ -2503,6 +2520,11 @@ void Courtroom::handle_song(QStringList p_contents)
   }
 
 
+}
+
+void Courtroom::set_bgm_playback_type(BGMPlayback p_bgm_playback)
+{
+  bgm_playback = p_bgm_playback;
 }
 
 void Courtroom::handle_wtce(QString p_wtce)
@@ -2753,18 +2775,7 @@ void Courtroom::on_music_list_clicked()
 void Courtroom::on_music_list_double_clicked(QModelIndex p_model)
 {
   const QString l_song_name = ui_music_list->item(p_model.row())->data(Qt::UserRole).toString();
-  send_mc_packet(l_song_name);
-  ui_ic_chat_message_field->setFocus();
-}
-
-void Courtroom::on_music_menu_play_triggered()
-{
-  QListWidgetItem *l_item = ui_music_list->currentItem();
-  if (l_item)
-  {
-    const QString l_song = l_item->data(Qt::UserRole).toString();
-    send_mc_packet(l_song);
-  }
+  send_mc_packet(l_song_name, bgm_playback);
   ui_ic_chat_message_field->setFocus();
 }
 
