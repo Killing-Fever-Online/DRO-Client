@@ -2208,6 +2208,12 @@ void Courtroom::next_chat_letter()
     return;
   }
 
+  if (is_pause)
+  {
+    is_pause = false;
+    calculate_chat_tick_interval();
+  }
+
   // note: this is called fairly often(every 60 ms when char is talking)
   // do not perform heavy operations here
   QTextCharFormat vp_message_format = ui_vp_message->currentCharFormat();
@@ -2279,6 +2285,14 @@ void Courtroom::next_chat_letter()
       ui_vp_message->textCursor().insertText("\n", vp_message_format);
       advanceLetter();
       next_chat_letter();
+      return;
+
+    case 'p':
+      advanceLetter();
+      is_pause = true;
+      // TODO: use a constant instead of a magic number
+      m_tick_timer->setInterval(100);
+      m_tick_timer->start();
       return;
 
     default:
