@@ -944,9 +944,6 @@ void Courtroom::on_character_ini_changed()
 
 void Courtroom::on_ic_message_return_pressed()
 {
-  if (ui_ic_chat_message_field->text() == "")
-    return;
-
   if ((anim_state < 3 || text_state < 2) && m_shout_state == 0)
     return;
 
