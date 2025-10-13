@@ -473,7 +473,7 @@ void AOConfigPanel::refresh_packages_list()
   ui_packages_list->clear();
   //Parse through the stored packages
   QVector<QString> packageNames = FS::Packages::CachedNames();
-  QVector<QString> disabledPackages = FS::Packages::DisabledList();
+  QVector<QString> disabledPackages = FS::Packages::PackageConfig();
 
   for (const QString &package : packageNames)
   {
@@ -645,7 +645,7 @@ void AOConfigPanel::on_load_packages_clicked()
       disabledList.append(item->text());
     }
   }
-  FS::Packages::SetDisabled(disabledList);
+  FS::Packages::SetConfig(disabledList);
   ao_app->reload_packages();
   refresh_packages_list();
 }
