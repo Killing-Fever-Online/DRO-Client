@@ -628,6 +628,8 @@ private:
   QVector<bool> wtce_enabled;
   QVector<bool> free_blocks_enabled;
 
+  QMultiMap<int, DR::CommandData> command_map;
+
   CharMenu *p_CharacterContextMenu;
   RPButton *ui_change_character = nullptr;
 
@@ -775,7 +777,8 @@ private slots:
 
   void start_chat_timer();
   void stop_chat_timer();
-  void calculate_chat_tick_interval();
+  int calculate_chat_tick_interval(bool delay_next_letter = false);
+  void precalculate_ic_message();
   void next_chat_letter();
   void post_chatmessage();
 
