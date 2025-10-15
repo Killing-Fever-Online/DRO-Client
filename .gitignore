@@ -13,9 +13,7 @@ build/
 
 
 --- Project Excludes ---
-bin/*.exe
-bin/*.ilk
-bin/*.pdb
+bin/
 3rd/**/*.h
 3rd/**/*.hpp
 3rd/**/*.lib
