@@ -723,7 +723,9 @@ void Courtroom::filter_list_widget(QListWidget *p_list_widget, QString p_filter)
   for (int i = 0; i < p_list_widget->count(); i++)
   {
     QListWidgetItem *i_item = p_list_widget->item(i);
-    i_item->setHidden(!l_final_filter.isEmpty() && !i_item->text().contains(l_final_filter, Qt::CaseInsensitive));
+    bool check_title = i_item->text().contains(l_final_filter, Qt::CaseInsensitive);
+    bool check_file_name = i_item->data(Qt::UserRole).toString().contains(l_final_filter, Qt::CaseInsensitive);
+    i_item->setHidden(!l_final_filter.isEmpty() && !check_title && !check_file_name);
   }
 }
 
@@ -743,8 +745,14 @@ void Courtroom::list_music()
     DRAudiotrackMetadata l_track(i_song);
     QListWidgetItem *l_item = new QListWidgetItem(l_track.title(), ui_music_list);
     l_item->setData(Qt::UserRole, l_track.filename());
-    if (l_track.title() != l_track.filename())
-      l_item->setToolTip(l_track.filename());
+    if (l_track.title() == l_track.filename())
+    {
+      QString i_song_listname = i_song.left(i_song.lastIndexOf("."));
+      i_song_listname = i_song_listname.right(
+          i_song_listname.length() - (i_song_listname.lastIndexOf("/") + 1));
+      l_item->setText(i_song_listname);
+    }
+    l_item->setToolTip(l_track.filename());
     const QString l_song_path = ao_app->find_asset_path({ao_app->get_music_path(i_song)}, FS::Formats::SupportedAudio());
     l_item->setBackground(l_song_path.isEmpty() ? l_missing_song_brush : l_song_brush);
   }
