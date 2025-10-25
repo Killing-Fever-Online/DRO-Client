@@ -2333,11 +2333,8 @@ void Courtroom::next_chat_letter()
     return;
   }
   DR::CommandData command_data = message_components.at(m_tick_step);
-  qInfo() << m_tick_step << ": found command data of type" << int(command_data.type);
-
 
   auto insertChar = [&](QChar ch, const QTextCharFormat &format) {
-    qInfo() << m_tick_step << ": " <<  ch;
     // Reformat the chara at cursor position
     QTextCursor cursor = ui_vp_message->textCursor();
     cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
