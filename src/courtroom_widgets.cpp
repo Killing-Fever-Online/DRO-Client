@@ -366,7 +366,8 @@ void Courtroom::create_widgets()
     localization::getText("COLOR_BLUE"),
     localization::getText("COLOR_YELLOW"),
     localization::getText("COLOR_PURPLE"),
-    localization::getText("COLOR_PINK")
+    localization::getText("COLOR_PINK"),
+    localization::getText("COLOR_RAINBOW")
   };
 
   ui_text_color = setupComboBoxWidget(l_colorNames, "text_color", "[TEXT COLOR]");

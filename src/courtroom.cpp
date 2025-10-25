@@ -2255,9 +2255,9 @@ void Courtroom::precalculate_ic_message()
     // character specifically marked as a character that should not be
     // rendered.
     bool render_character = true;
-    if (m_chatmessage[CMTextColor].toInt() == DR::CRainbow)
+    if (f_character != ' ' && m_chatmessage[CMTextColor].toInt() == DR::CRainbow)
     {
-      static const QStringList rainbowColors = { "#BA1518", "#D55900", "#E7CE4E", "#65C856", "#1596C8" };
+      static const QStringList rainbowColors = { "#BA1518", "#D55900", "#E7CE4E", "#65C856", "#1596C8", "#2457ff", "#b226e9" };
       QColor color(rainbowColors[m_rainbow_step]);
       message_components.append(DR::CommandData(DR::MidLineCommand::ColorHighlight, color));
       render_character = true;
@@ -2633,13 +2633,6 @@ void Courtroom::on_ooc_message_return_pressed()
 
   LuaBridge::LuaEventCall("OnOOCMessageSend");
 
-  if (l_message.startsWith("/rainbow") && !is_rainbow_enabled)
-  {
-    ui_text_color->addItem(localization::getText("COLOR_RAINBOW"));
-    ui_ooc_chat_message->clear();
-    is_rainbow_enabled = true;
-    return;
-  }
   if (l_message.startsWith("/afk") && !m_isAfk)
   {
     m_lastActivityTimestamp = 1;
