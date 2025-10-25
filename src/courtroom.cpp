@@ -1807,8 +1807,6 @@ void Courtroom::handle_chatmessage_3()
     }
   }
 
-  m_tick_timer->setInterval(calculate_chat_tick_interval());
-
   LuaBridge::LuaEventCall("OnMessageStart");
   start_chat_timer();
   metadata::message::pair::disable();
@@ -2121,7 +2119,6 @@ void Courtroom::setup_chat()
 
   ui_vp_chatbox->show();
 
-  m_tick_speed = 0;
   m_tick_step = 0;
   is_ignore_next_letter = false;
   m_blip_step = 0;
@@ -2171,7 +2168,9 @@ void Courtroom::start_chat_timer()
   }
   // Pre-render the chat message into the box as transparent
   precalculate_ic_message();
-  m_tick_timer->start();
+  // Reset interval to default
+  m_tick_interval = calculate_chat_tick_interval();
+  m_tick_timer->start(m_tick_interval);
 }
 
 void Courtroom::stop_chat_timer()
@@ -2179,16 +2178,12 @@ void Courtroom::stop_chat_timer()
   m_tick_timer->stop();
 }
 
-int Courtroom::calculate_chat_tick_interval(bool delay_next_letter)
+int Courtroom::calculate_chat_tick_interval(int p_tick_speed)
 {
   double l_tick_rate = ao_config->chat_tick_interval();
   if (m_server_tick_rate.has_value())
     l_tick_rate = qMax(m_server_tick_rate.value(), 0);
-  l_tick_rate = qBound(0.0, l_tick_rate * (1.0 - qBound(-1.0, 0.4 * m_tick_speed, 1.0)), l_tick_rate * 2.0);
-  if(delay_next_letter)
-  {
-    return l_tick_rate + ao_config->punctuation_delay();
-  }
+  l_tick_rate = qBound(0.0, l_tick_rate * (1.0 - qBound(-1.0, 0.4 * p_tick_speed, 1.0)), l_tick_rate * 2.0);
   return l_tick_rate;
 }
 
@@ -2200,35 +2195,19 @@ void Courtroom::precalculate_ic_message()
   static const QList<QChar> punctuationCharacters = { '.', '!', '?', ',' };
 
   int message_length = f_message.length();
-
-  m_tick_speed = 0;
-  command_map.clear();
+  int m_tick_speed = 0;
+  message_components.clear();
 
   QTextCharFormat vp_message_blank = ui_vp_message->currentCharFormat();
   vp_message_blank.setForeground(Qt::GlobalColor::transparent);
 
   // This is the real tick position on the finalized, rendered text
-  int real_tick = 0;
   for (int render_pos = 0; render_pos < message_length; ++render_pos)
   {
     QTextCharFormat vp_message_format = ui_vp_message->currentCharFormat();
     vp_message_format.setTextOutline(m_chatbox_message_outline ? QPen(m_messageOutlineColor, m_messageOutlineSize) : Qt::NoPen);
 
     QChar f_character = f_message.at(render_pos);
-
-    if (punctuationCharacters.contains(f_character) && render_pos != message_length - 1)
-    {
-      if(!is_delay_next_letter)
-      {
-        is_delay_next_letter = true;
-        command_map.insert(real_tick, DR::CommandData(DR::MidLineCommand::SetInterval, calculate_chat_tick_interval(is_delay_next_letter)));
-      }
-    }
-    else if(is_delay_next_letter)
-    {
-      is_delay_next_letter = false;
-      command_map.insert(real_tick, DR::CommandData(DR::MidLineCommand::SetInterval, calculate_chat_tick_interval()));
-    }
 
     if(!is_ignore_next_letter)
     {
@@ -2237,10 +2216,10 @@ void Courtroom::precalculate_ic_message()
         is_ignore_next_letter = true;
         continue;
       }
-      else if ((f_character == Qt::Key_BraceLeft || f_character == Qt::Key_BraceRight))
+      if ((f_character == Qt::Key_BraceLeft || f_character == Qt::Key_BraceRight))
       {
         m_tick_speed = qBound(-3, m_tick_speed + (f_character == '}' ? 1 : -1), 3);
-        command_map.insert(real_tick, DR::CommandData(DR::MidLineCommand::SetInterval, calculate_chat_tick_interval()));
+        message_components.append(DR::CommandData(DR::MidLineCommand::SetInterval, calculate_chat_tick_interval(m_tick_speed)));
         continue;
       }
     }
@@ -2250,18 +2229,22 @@ void Courtroom::precalculate_ic_message()
       {
       case 's':
         // play_screenshake_anim();
-        command_map.insert(real_tick, DR::CommandData(DR::MidLineCommand::ScreenShake));
+        message_components.append(DR::CommandData(DR::MidLineCommand::ScreenShake));
         is_ignore_next_letter = false;
         continue;
       case 'f':
         // playEffect("effect_flash", "");
-        command_map.insert(real_tick, DR::CommandData(DR::MidLineCommand::ScreenFlash));
+        message_components.append(DR::CommandData(DR::MidLineCommand::ScreenFlash));
         is_ignore_next_letter = false;
         continue;
       case 'n':
         ui_vp_message->textCursor().insertText("\n", vp_message_format);
-        // Advance real tick because \n counts as a single character
-        ++real_tick;
+        message_components.append(DR::CommandData(DR::MidLineCommand::Chara, "\n"));
+        is_ignore_next_letter = false;
+        continue;
+      case 'p':
+        // TODO: allow redefining the pause duration
+        message_components.append(DR::CommandData(DR::MidLineCommand::Pause, 100));
         is_ignore_next_letter = false;
         continue;
       default:
@@ -2276,7 +2259,7 @@ void Courtroom::precalculate_ic_message()
     {
       static const QStringList rainbowColors = { "#BA1518", "#D55900", "#E7CE4E", "#65C856", "#1596C8" };
       QColor color(rainbowColors[m_rainbow_step]);
-      command_map.insert(real_tick, DR::CommandData(DR::MidLineCommand::ColorHighlight, color));
+      message_components.append(DR::CommandData(DR::MidLineCommand::ColorHighlight, color));
       render_character = true;
       m_rainbow_step = (m_rainbow_step + 1) % rainbowColors.size();
     }
@@ -2322,14 +2305,19 @@ void Courtroom::precalculate_ic_message()
       m_message_color_name = m_future_string_color;
       if (render_character)
       {
-        command_map.insert(real_tick, DR::CommandData(DR::MidLineCommand::ColorHighlight, text_color));
+        message_components.append(DR::CommandData(DR::MidLineCommand::ColorHighlight, text_color));
       }
     }
 
     if (render_character)
     {
       ui_vp_message->textCursor().insertText(f_character, vp_message_blank);
-      ++real_tick;
+      message_components.append(DR::CommandData(DR::MidLineCommand::Chara, f_character));
+    }
+    // Punctuation delay goes AFTER the displayed character, not BEFORE like pauses
+    if (!is_ignore_next_letter && punctuationCharacters.contains(f_character) && render_pos != message_length - 1)
+    {
+      message_components.append(DR::CommandData(DR::MidLineCommand::Pause, ao_config->punctuation_delay()));
     }
     is_ignore_next_letter = false;
   }
@@ -2339,23 +2327,14 @@ void Courtroom::precalculate_ic_message()
 
 void Courtroom::next_chat_letter()
 {
-  const QString &f_message = ui_vp_message->toPlainText();
-
-  int message_length = f_message.length();
-
-  if (m_tick_step >= message_length || ui_vp_chatbox->isHidden())
+  if (m_tick_step >= message_components.length())
   {
     post_chatmessage();
     return;
   }
-
-  // note: this is called fairly often(every 60 ms when char is talking)
-  // do not perform heavy operations here
-  QTextCharFormat vp_message_format = ui_vp_message->currentCharFormat();
-  vp_message_format.setTextOutline(m_chatbox_message_outline ? QPen(m_messageOutlineColor, m_messageOutlineSize) : Qt::NoPen);
+  DR::CommandData command_data = message_components.at(m_tick_step);
 
   auto insertChar = [&](QChar ch, const QTextCharFormat &format) {
-    qInfo() << ch;
     // Reformat the chara at cursor position
     QTextCursor cursor = ui_vp_message->textCursor();
     cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
@@ -2365,60 +2344,57 @@ void Courtroom::next_chat_letter()
     LuaBridge::LuaEventCall("OnMessageTick", QString(ch).toStdString());
   };
 
-  QChar f_character = f_message.at(m_tick_step);
-
-  if (command_map.contains(m_tick_step))
-  {
-    for (DR::CommandData command_data : command_map.values(m_tick_step))
-    {
-      qInfo() << "found command data of type" << int(command_data.type);
-      switch (command_data.type) {
-      case DR::MidLineCommand::ColorHighlight:
-        vp_message_format.setForeground(command_data.color);
-        break;
-      case DR::MidLineCommand::ScreenFlash:
-        playEffect("effect_flash", "");
-        break;
-      case DR::MidLineCommand::ScreenShake:
-        play_screenshake_anim();
-        break;
-      case DR::MidLineCommand::SetInterval:
-        m_tick_timer->setInterval(command_data.interval);
-        break;
-      default:
-        break;
-      }
-    }
-  }
-
-  insertChar(f_character, vp_message_format);
-
   QScrollBar *scroll = ui_vp_message->verticalScrollBar();
-  scroll->setValue(scroll->maximum());
 
-  if ((f_message.at(m_tick_step) != ' ' || ao_config->blank_blips_enabled()))
-  {
+  QTextCharFormat vp_message_format = ui_vp_message->currentCharFormat();
+  vp_message_format.setTextOutline(m_chatbox_message_outline ? QPen(m_messageOutlineColor, m_messageOutlineSize) : Qt::NoPen);
 
-    int overideBlipRate = audio::blip::getBlipRate();
-    overideBlipRate = overideBlipRate == -1 ? ao_config->blip_rate() : overideBlipRate;
-
-    if (m_blip_step % overideBlipRate == 0)
+  switch (command_data.type) {
+  case DR::MidLineCommand::Chara:
+    insertChar(command_data.chara, vp_message_format);
+    scroll->setValue(scroll->maximum());
+    // Play blip sound
+    if ((command_data.chara != ' ' || ao_config->blank_blips_enabled()))
     {
-      m_blip_step = 0;
-      if(!LuaBridge::LuaEventCall("BlipTickEvent"))
+      int overideBlipRate = audio::blip::getBlipRate();
+      overideBlipRate = overideBlipRate == -1 ? ao_config->blip_rate() : overideBlipRate;
+      if (m_blip_step % overideBlipRate == 0)
       {
-        audio::blip::Tick();
-        LuaBridge::LuaEventCall("OnBlipTick");
+        m_blip_step = 0;
+        if(!LuaBridge::LuaEventCall("BlipTickEvent"))
+        {
+          audio::blip::Tick();
+          LuaBridge::LuaEventCall("OnBlipTick");
+        }
       }
+      ++m_blip_step;
     }
-
-    ++m_blip_step;
+    ui_vp_message->repaint();
+    ++m_tick_step;
+    m_tick_timer->start(m_tick_interval);
+    return;
+  case DR::MidLineCommand::ColorHighlight:
+    vp_message_format.setForeground(command_data.color);
+    ui_vp_message->setCurrentCharFormat(vp_message_format);
+    break;
+  case DR::MidLineCommand::ScreenFlash:
+    playEffect("effect_flash", "");
+    break;
+  case DR::MidLineCommand::ScreenShake:
+    play_screenshake_anim();
+    break;
+  case DR::MidLineCommand::SetInterval:
+    m_tick_interval = command_data.interval;
+    break;
+  case DR::MidLineCommand::Pause:
+    m_tick_timer->start(command_data.interval);
+    ++m_tick_step;
+    return;
+  default:
+    break;
   }
-  ui_vp_message->repaint();
-
   ++m_tick_step;
-  is_ignore_next_letter = false;
-  m_tick_timer->start();
+  next_chat_letter();
 }
 
 void Courtroom::post_chatmessage()
