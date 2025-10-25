@@ -729,6 +729,18 @@ void Courtroom::filter_list_widget(QListWidget *p_list_widget, QString p_filter)
   }
 }
 
+void Courtroom::filter_tree_widget(QTreeWidget *p_tree_widget, QString p_filter)
+{
+  const QString l_final_filter = p_filter.simplified();
+  for (int i = 0; i < p_tree_widget->topLevelItemCount(); i++)
+  {
+    QTreeWidgetItem *i_item = p_tree_widget->topLevelItem(i);
+    bool check_title = i_item->text(0).contains(l_final_filter, Qt::CaseInsensitive);
+    bool check_file_name = i_item->data(0, Qt::UserRole).toString().contains(l_final_filter, Qt::CaseInsensitive);
+    i_item->setHidden(!l_final_filter.isEmpty() && !check_title && !check_file_name);
+  }
+}
+
 bool Courtroom::is_area_music_list_separated()
 {
   return ao_app->current_theme->read_config_bool("enable_music_and_area_list_separation");
@@ -740,23 +752,45 @@ void Courtroom::list_music()
   const QBrush l_missing_song_brush = ao_app->current_theme->get_widget_settings_color("music_list", "courtroom", "missing_song", "missing_song_color");
 
   ui_music_list->clear();
+  QTreeWidgetItem *parent = nullptr;
   for (const QString &i_song : qAsConst(m_music_list))
   {
+    // Grab a human-readable song name here by stripping out the category folder
+    // (if track title name is not defined)
+    QString i_song_listname = i_song.left(i_song.lastIndexOf("."));
+    i_song_listname = i_song_listname.right(
+        i_song_listname.length() - (i_song_listname.lastIndexOf("/") + 1));
+
     DRAudiotrackMetadata l_track(i_song);
-    QListWidgetItem *l_item = new QListWidgetItem(l_track.title(), ui_music_list);
-    l_item->setData(Qt::UserRole, l_track.filename());
-    if (l_track.title() == l_track.filename())
+    QTreeWidgetItem *l_item;
+    // If this song doesn't end on a file extension, doesn't contain folder path
+    // or we have a parent to assign to
+    if (i_song_listname != i_song &&
+        parent != nullptr)
+      l_item = new QTreeWidgetItem(parent);
+    else
+      l_item = new QTreeWidgetItem(ui_music_list);
+
+    // Not supposed to be a song to begin with - a category?
+    // Assign next song to this parent category
+    if (i_song_listname == i_song)
+      parent = l_item;
+
+    int column = 0;
+    l_item->setData(column, Qt::UserRole, l_track.filename());
+    if (l_track.title() != l_track.filename())
     {
-      QString i_song_listname = i_song.left(i_song.lastIndexOf("."));
-      i_song_listname = i_song_listname.right(
-          i_song_listname.length() - (i_song_listname.lastIndexOf("/") + 1));
-      l_item->setText(i_song_listname);
+      l_item->setText(column, l_track.title());
     }
-    l_item->setToolTip(l_track.filename());
+    else
+    {
+      l_item->setText(column, i_song_listname);
+    }
+    l_item->setToolTip(column, l_track.filename());
     const QString l_song_path = ao_app->find_asset_path({ao_app->get_music_path(i_song)}, FS::Formats::SupportedAudio());
-    l_item->setBackground(l_song_path.isEmpty() ? l_missing_song_brush : l_song_brush);
+    l_item->setBackground(column, l_song_path.isEmpty() ? l_missing_song_brush : l_song_brush);
   }
-  filter_list_widget(ui_music_list, ui_music_search->text());
+  filter_tree_widget(ui_music_list, ui_music_search->text());
 }
 
 void Courtroom::list_areas()
@@ -2791,17 +2825,17 @@ void Courtroom::on_music_list_clicked()
 
 void Courtroom::on_music_list_double_clicked(QModelIndex p_model)
 {
-  const QString l_song_name = ui_music_list->item(p_model.row())->data(Qt::UserRole).toString();
+  const QString l_song_name = ui_music_list->topLevelItem(p_model.row())->data(0, Qt::UserRole).toString();
   send_mc_packet(l_song_name, bgm_playback);
   ui_ic_chat_message_field->setFocus();
 }
 
 void Courtroom::on_music_menu_insert_ooc_triggered()
 {
-  QListWidgetItem *l_item = ui_music_list->currentItem();
+  QTreeWidgetItem *l_item = ui_music_list->currentItem();
   if (l_item)
   {
-    const QString l_song = l_item->data(Qt::UserRole).toString();
+    const QString l_song = l_item->data(0, Qt::UserRole).toString();
     ui_ooc_chat_message->insert(l_song);
   }
   ui_ooc_chat_message->setFocus();
@@ -2809,7 +2843,7 @@ void Courtroom::on_music_menu_insert_ooc_triggered()
 
 void Courtroom::on_music_search_edited(QString p_filter)
 {
-  filter_list_widget(ui_music_list, p_filter);
+  filter_tree_widget(ui_music_list, p_filter);
 }
 
 void Courtroom::on_music_search_edited()

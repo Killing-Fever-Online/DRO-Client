@@ -42,6 +42,8 @@
 #include <QSignalMapper>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <QTreeWidget>
+#include <QHeaderView>
 
 #include <modules/theme/thememanager.h>
 
@@ -213,8 +215,14 @@ void Courtroom::create_widgets()
   ui_area_search->setFrame(false);
   ui_area_search->setPlaceholderText(localization::getText("TEXTBOX_AREA"));
 
-  ui_music_list = new QListWidget(this);
+  ui_music_list = new QTreeWidget(this);
   ui_music_list->setContextMenuPolicy(Qt::CustomContextMenu);
+  ui_music_list->setColumnCount(1);
+  ui_music_list->setHeaderHidden(true);
+  ui_music_list->header()->setStretchLastSection(false);
+  ui_music_list->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  ui_music_list->setUniformRowHeights(true);
+
   ui_music_search = new RPLineEdit("music_search", localization::getText("TEXTBOX_MUSIC"), "[MUSIC SEARCH]", this);
   ui_music_search->setFrame(false);
   p_MenuBGM = new BGMMenu(this);

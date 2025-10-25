@@ -52,6 +52,7 @@ class RPTextEdit;
 #include <QSlider>
 #include <QStack>
 #include <QTextCharFormat>
+#include <QTreeWidget>
 
 class QAction;
 class QCheckBox;
@@ -217,9 +218,8 @@ public:
   // properly sets up some varibles: resets user state
   void enter_courtroom(int p_cid);
 
-  // helper function that populates ui_music_list with the contents of
-  // music_list
   void filter_list_widget(QListWidget *widget, QString filter);
+  void filter_tree_widget(QTreeWidget *widget, QString filter);
   bool is_area_music_list_separated();
   void list_music();
   void list_areas();
@@ -537,7 +537,7 @@ private:
 
   QListWidget *ui_area_list = nullptr;
   QLineEdit *ui_area_search = nullptr;
-  QListWidget *ui_music_list = nullptr;
+  QTreeWidget *ui_music_list = nullptr;
   QLineEdit *ui_music_search = nullptr;
   BGMMenu *p_MenuBGM = nullptr;
 
