@@ -7,6 +7,7 @@
 #include <QVector>
 #include <QRect>
 #include <QColor>
+#include <qvariant.h>
 
 class MessageEffect
 {
@@ -419,6 +420,34 @@ enum Color : int32_t
 
   // aliases
   CWhite = CDefault,
+};
+
+enum class MidLineCommand : int32_t
+{
+  ColorHighlight,
+  SetInterval,
+  ScreenShake,
+  ScreenFlash
+};
+
+struct CommandData
+{
+public:
+  CommandData() = default;
+  CommandData(MidLineCommand p_type)
+      : type(p_type)
+  {}
+  CommandData(MidLineCommand p_type, QColor p_color)
+      : type(p_type)
+      , color(p_color)
+  {}
+  CommandData(MidLineCommand p_type, int p_interval)
+      : type(p_type)
+      , interval(p_interval)
+  {}
+  MidLineCommand type;
+  QColor color;
+  int interval;
 };
 
 struct ColorInfo
