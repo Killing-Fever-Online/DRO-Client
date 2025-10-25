@@ -424,8 +424,10 @@ enum Color : int32_t
 
 enum class MidLineCommand : int32_t
 {
+  Chara,
   ColorHighlight,
   SetInterval,
+  Pause,
   ScreenShake,
   ScreenFlash
 };
@@ -445,9 +447,14 @@ public:
       : type(p_type)
       , interval(p_interval)
   {}
+  CommandData(MidLineCommand p_type, QChar p_chara)
+      : type(p_type)
+        , chara(p_chara)
+  {}
   MidLineCommand type;
   QColor color;
   int interval;
+  QChar chara;
 };
 
 struct ColorInfo
