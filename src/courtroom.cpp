@@ -944,9 +944,6 @@ void Courtroom::on_character_ini_changed()
 
 void Courtroom::on_ic_message_return_pressed()
 {
-  if (ui_ic_chat_message_field->text() == "")
-    return;
-
   if ((anim_state < 3 || text_state < 2) && m_shout_state == 0)
     return;
 
@@ -1810,8 +1807,6 @@ void Courtroom::handle_chatmessage_3()
     }
   }
 
-  calculate_chat_tick_interval();
-
   LuaBridge::LuaEventCall("OnMessageStart");
   start_chat_timer();
   metadata::message::pair::disable();
@@ -2124,7 +2119,6 @@ void Courtroom::setup_chat()
 
   ui_vp_chatbox->show();
 
-  m_tick_speed = 0;
   m_tick_step = 0;
   is_ignore_next_letter = false;
   m_blip_step = 0;
@@ -2172,7 +2166,11 @@ void Courtroom::start_chat_timer()
   {
     return;
   }
-  m_tick_timer->start();
+  // Pre-render the chat message into the box as transparent
+  precalculate_ic_message();
+  // Reset interval to default
+  m_tick_interval = calculate_chat_tick_interval();
+  m_tick_timer->start(m_tick_interval);
 }
 
 void Courtroom::stop_chat_timer()
@@ -2180,205 +2178,223 @@ void Courtroom::stop_chat_timer()
   m_tick_timer->stop();
 }
 
-void Courtroom::calculate_chat_tick_interval()
+int Courtroom::calculate_chat_tick_interval(int p_tick_speed)
 {
   double l_tick_rate = ao_config->chat_tick_interval();
   if (m_server_tick_rate.has_value())
     l_tick_rate = qMax(m_server_tick_rate.value(), 0);
-  l_tick_rate = qBound(0.0, l_tick_rate * (1.0 - qBound(-1.0, 0.4 * m_tick_speed, 1.0)), l_tick_rate * 2.0);
-  if(is_delay_next_letter)
-  {
-    m_tick_timer->setInterval(l_tick_rate + ao_config->punctuation_delay());
-      return;
-  }
-  m_tick_timer->setInterval(l_tick_rate);
+  l_tick_rate = qBound(0.0, l_tick_rate * (1.0 - qBound(-1.0, 0.4 * p_tick_speed, 1.0)), l_tick_rate * 2.0);
+  return l_tick_rate;
 }
 
-void Courtroom::next_chat_letter()
+// Precalculates the IC message and strips unrendered characters while preserving their intended commands
+void Courtroom::precalculate_ic_message()
 {
   const QString &f_message = m_chatmessage[CMMessage];
 
   static const QList<QChar> punctuationCharacters = { '.', '!', '?', ',' };
 
   int message_length = f_message.length();
+  int m_tick_speed = 0;
+  message_components.clear();
 
-  if (m_tick_step >= message_length || ui_vp_chatbox->isHidden())
+  QTextCharFormat vp_message_blank = ui_vp_message->currentCharFormat();
+  vp_message_blank.setForeground(Qt::GlobalColor::transparent);
+
+  // This is the real tick position on the finalized, rendered text
+  for (int render_pos = 0; render_pos < message_length; ++render_pos)
   {
-    post_chatmessage();
-    return;
-  }
+    QTextCharFormat vp_message_format = ui_vp_message->currentCharFormat();
+    vp_message_format.setTextOutline(m_chatbox_message_outline ? QPen(m_messageOutlineColor, m_messageOutlineSize) : Qt::NoPen);
 
-  // note: this is called fairly often(every 60 ms when char is talking)
-  // do not perform heavy operations here
-  QTextCharFormat vp_message_format = ui_vp_message->currentCharFormat();
-  vp_message_format.setTextOutline(m_chatbox_message_outline ? QPen(m_messageOutlineColor, m_messageOutlineSize) : Qt::NoPen);
+    QChar f_character = f_message.at(render_pos);
 
-
-  auto insertChar = [&](QChar ch, const QTextCharFormat &format) {
-    ui_vp_message->textCursor().insertText(ch, format);
-    LuaBridge::LuaEventCall("OnMessageTick", QString(ch).toStdString());
-  };
-
-  auto advanceLetter = [&]() {
-    ++m_tick_step;
-    is_ignore_next_letter = false;
-  };
-
-  const QChar f_character = f_message.at(m_tick_step);
-
-  if (punctuationCharacters.contains(f_character) && m_tick_step != message_length - 1)
-  {
-    if(!is_delay_next_letter)
+    if(!is_ignore_next_letter)
     {
-        is_delay_next_letter = true;
-        calculate_chat_tick_interval();
+      if (f_character == Qt::Key_Backslash)
+      {
+        is_ignore_next_letter = true;
+        continue;
+      }
+      if ((f_character == Qt::Key_BraceLeft || f_character == Qt::Key_BraceRight))
+      {
+        m_tick_speed = qBound(-3, m_tick_speed + (f_character == '}' ? 1 : -1), 3);
+        message_components.append(DR::CommandData(DR::MidLineCommand::SetInterval, calculate_chat_tick_interval(m_tick_speed)));
+        continue;
+      }
     }
-  }
-  else if(is_delay_next_letter)
-  {
-      is_delay_next_letter = false;
-      calculate_chat_tick_interval();
-  }
-
-  if(!is_ignore_next_letter)
-  {
-
-    if (f_character == Qt::Key_Backslash)
+    else
     {
-      ++m_tick_step;
-      is_ignore_next_letter = true;
-      next_chat_letter();
-      return;
+      switch (f_character.unicode())
+      {
+      case 's':
+        // play_screenshake_anim();
+        message_components.append(DR::CommandData(DR::MidLineCommand::ScreenShake));
+        is_ignore_next_letter = false;
+        continue;
+      case 'f':
+        // playEffect("effect_flash", "");
+        message_components.append(DR::CommandData(DR::MidLineCommand::ScreenFlash));
+        is_ignore_next_letter = false;
+        continue;
+      case 'n':
+        ui_vp_message->textCursor().insertText("\n", vp_message_format);
+        message_components.append(DR::CommandData(DR::MidLineCommand::Chara, "\n"));
+        is_ignore_next_letter = false;
+        continue;
+      case 'p':
+        // TODO: allow redefining the pause duration
+        message_components.append(DR::CommandData(DR::MidLineCommand::Pause, 100));
+        is_ignore_next_letter = false;
+        continue;
+      default:
+        break;
+      }
     }
-    else if ((f_character == Qt::Key_BraceLeft || f_character == Qt::Key_BraceRight))
-    {
-      ++m_tick_step;
-      m_tick_speed = qBound(-3, m_tick_speed + (f_character == '}' ? 1 : -1), 3);
-      calculate_chat_tick_interval();
-      next_chat_letter();
-      return;
-    }
-  }
-  else
-  {
-    switch (f_character.unicode())
-    {
-    case 's':
-      play_screenshake_anim();
-      advanceLetter();
-      next_chat_letter();
-      return;
-
-    case 'f':
-      playEffect("effect_flash", "");
-      advanceLetter();
-      next_chat_letter();
-      return;
-
-    case 'n':
-      ui_vp_message->textCursor().insertText("\n", vp_message_format);
-      advanceLetter();
-      next_chat_letter();
-      return;
-
-    default:
-      break;
-    }
-  }
-
-  if (f_character == Qt::Key_Space)
-  {
-    ui_vp_message->insertPlainText(f_character);
-  }
-  else if (m_chatmessage[CMTextColor].toInt() == DR::CRainbow)
-  {
-    static const QStringList rainbowColors = { "#BA1518", "#D55900", "#E7CE4E", "#65C856", "#1596C8" };
-    QColor color(rainbowColors[m_rainbow_step]);
-    vp_message_format.setForeground(color);
-    insertChar(f_character, vp_message_format);
-    m_rainbow_step = (m_rainbow_step + 1) % rainbowColors.size();
-  }
-  else if (m_chatbox_message_enable_highlighting)
-  {
-    bool highlight_found = false;
-    bool render_character = true;
     // render_character should only be false if the character is a highlight
     // character specifically marked as a character that should not be
     // rendered.
-    if (m_message_color_stack.isEmpty())
-      m_message_color_stack.push("");
-
-    if (!is_ignore_next_letter)
+    bool render_character = true;
+    if (f_character != ' ' && m_chatmessage[CMTextColor].toInt() == DR::CRainbow)
     {
-      for (const auto &col : qAsConst(m_chatbox_message_highlight_colors))
+      static const QStringList rainbowColors = { "#BA1518", "#D55900", "#E7CE4E", "#65C856", "#1596C8", "#2457ff", "#b226e9" };
+      QColor color(rainbowColors[m_rainbow_step]);
+      message_components.append(DR::CommandData(DR::MidLineCommand::ColorHighlight, color));
+      render_character = true;
+      m_rainbow_step = (m_rainbow_step + 1) % rainbowColors.size();
+    }
+    else if (m_chatbox_message_enable_highlighting)
+    {
+      bool highlight_found = false;
+      if (m_message_color_stack.isEmpty())
+        m_message_color_stack.push("");
+
+      if (!is_ignore_next_letter)
       {
-        if (f_character == col[0][0] && m_message_color_name != col[1])
+        for (const auto &col : qAsConst(m_chatbox_message_highlight_colors))
         {
-          m_message_color_stack.push(col[1]);
-          m_message_color_name = m_message_color_stack.top();
-          render_character = (col[2] != "0");
-          highlight_found = true;
-          break;
+          if (f_character == col[0][0] && m_message_color_name != col[1])
+          {
+            m_message_color_stack.push(col[1]);
+            m_message_color_name = m_message_color_stack.top();
+            render_character = (col[2] != "0");
+            highlight_found = true;
+            break;
+          }
         }
       }
-    }
 
-    QColor text_color = m_message_color_name.isEmpty() ? m_message_color : QColor(m_message_color_name);
-    vp_message_format.setForeground(text_color);
+      QColor text_color = m_message_color_name.isEmpty() ? m_message_color : QColor(m_message_color_name);
 
-    QString m_future_string_color = m_message_color_name;
+      QString m_future_string_color = m_message_color_name;
 
-    if (!highlight_found && !is_ignore_next_letter)
-    {
-      for (const auto &col : qAsConst(m_chatbox_message_highlight_colors))
+      if (!highlight_found && !is_ignore_next_letter)
       {
-        if (f_character == col[0][1])
+        for (const auto &col : qAsConst(m_chatbox_message_highlight_colors))
         {
-          if (m_message_color_stack.size() > 1)
-            m_message_color_stack.pop();
-          m_future_string_color = m_message_color_stack.top();
-          render_character = (col[2] != "0");
-          break;
+          if (f_character == col[0][1])
+          {
+            if (m_message_color_stack.size() > 1)
+              m_message_color_stack.pop();
+            m_future_string_color = m_message_color_stack.top();
+            render_character = (col[2] != "0");
+            break;
+          }
         }
+      }
+      m_message_color_name = m_future_string_color;
+      if (render_character)
+      {
+        message_components.append(DR::CommandData(DR::MidLineCommand::ColorHighlight, text_color));
       }
     }
 
     if (render_character)
-      insertChar(f_character, vp_message_format);
+    {
+      ui_vp_message->textCursor().insertText(f_character, vp_message_blank);
+      message_components.append(DR::CommandData(DR::MidLineCommand::Chara, f_character));
+    }
+    // Punctuation delay goes AFTER the displayed character, not BEFORE like pauses
+    if (!is_ignore_next_letter && punctuationCharacters.contains(f_character) && render_pos != message_length - 1)
+    {
+      message_components.append(DR::CommandData(DR::MidLineCommand::Pause, ao_config->punctuation_delay()));
+    }
+    is_ignore_next_letter = false;
+  }
+  // Move the cursor to the very start of the text
+  ui_vp_message->moveCursor(QTextCursor::Start);
+}
 
-    m_message_color_name = m_future_string_color;
-  }
-  else
+void Courtroom::next_chat_letter()
+{
+  if (m_tick_step >= message_components.length())
   {
-    insertChar(f_character, vp_message_format);
+    post_chatmessage();
+    return;
   }
+  DR::CommandData command_data = message_components.at(m_tick_step);
+
+  auto insertChar = [&](QChar ch, const QTextCharFormat &format) {
+    // Reformat the chara at cursor position
+    QTextCursor cursor = ui_vp_message->textCursor();
+    cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+    cursor.setCharFormat(format);
+    // Advance the cursor by one character
+    ui_vp_message->moveCursor(QTextCursor::NextCharacter);
+    LuaBridge::LuaEventCall("OnMessageTick", QString(ch).toStdString());
+  };
 
   QScrollBar *scroll = ui_vp_message->verticalScrollBar();
-  scroll->setValue(scroll->maximum());
 
-  if ((f_message.at(m_tick_step) != ' ' || ao_config->blank_blips_enabled()))
-  {
+  QTextCharFormat vp_message_format = ui_vp_message->currentCharFormat();
+  vp_message_format.setTextOutline(m_chatbox_message_outline ? QPen(m_messageOutlineColor, m_messageOutlineSize) : Qt::NoPen);
 
-    int overideBlipRate = audio::blip::getBlipRate();
-    overideBlipRate = overideBlipRate == -1 ? ao_config->blip_rate() : overideBlipRate;
-
-    if (m_blip_step % overideBlipRate == 0)
+  switch (command_data.type) {
+  case DR::MidLineCommand::Chara:
+    insertChar(command_data.chara, vp_message_format);
+    scroll->setValue(scroll->maximum());
+    // Play blip sound
+    if ((command_data.chara != ' ' || ao_config->blank_blips_enabled()))
     {
-      m_blip_step = 0;
-      if(!LuaBridge::LuaEventCall("BlipTickEvent"))
+      int overideBlipRate = audio::blip::getBlipRate();
+      overideBlipRate = overideBlipRate == -1 ? ao_config->blip_rate() : overideBlipRate;
+      if (m_blip_step % overideBlipRate == 0)
       {
-        audio::blip::Tick();
-        LuaBridge::LuaEventCall("OnBlipTick");
+        m_blip_step = 0;
+        if(!LuaBridge::LuaEventCall("BlipTickEvent"))
+        {
+          audio::blip::Tick();
+          LuaBridge::LuaEventCall("OnBlipTick");
+        }
       }
+      ++m_blip_step;
     }
-
-    ++m_blip_step;
+    ui_vp_message->repaint();
+    ++m_tick_step;
+    m_tick_timer->start(m_tick_interval);
+    return;
+  case DR::MidLineCommand::ColorHighlight:
+    vp_message_format.setForeground(command_data.color);
+    ui_vp_message->setCurrentCharFormat(vp_message_format);
+    break;
+  case DR::MidLineCommand::ScreenFlash:
+    playEffect("effect_flash", "");
+    break;
+  case DR::MidLineCommand::ScreenShake:
+    play_screenshake_anim();
+    break;
+  case DR::MidLineCommand::SetInterval:
+    m_tick_interval = command_data.interval;
+    break;
+  case DR::MidLineCommand::Pause:
+    m_tick_timer->start(command_data.interval);
+    ++m_tick_step;
+    return;
+  default:
+    break;
   }
-  ui_vp_message->repaint();
-
   ++m_tick_step;
-  is_ignore_next_letter = false;
-  m_tick_timer->start();
+  next_chat_letter();
 }
 
 void Courtroom::post_chatmessage()
@@ -2639,13 +2655,6 @@ void Courtroom::on_ooc_message_return_pressed()
 
   LuaBridge::LuaEventCall("OnOOCMessageSend");
 
-  if (l_message.startsWith("/rainbow") && !is_rainbow_enabled)
-  {
-    ui_text_color->addItem(localization::getText("COLOR_RAINBOW"));
-    ui_ooc_chat_message->clear();
-    is_rainbow_enabled = true;
-    return;
-  }
   if (l_message.startsWith("/afk") && !m_isAfk)
   {
     m_lastActivityTimestamp = 1;

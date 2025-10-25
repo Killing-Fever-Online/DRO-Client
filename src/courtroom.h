@@ -343,18 +343,16 @@ private:
   // maintains a timer for how fast messages tick onto screen
   QTimer *m_tick_timer = nullptr;
   std::optional<int> m_server_tick_rate;
-  int m_tick_speed = 0;
   // which tick position(character in chat message) we are at
   int m_tick_step = 0;
+  // the tick interval, excluding the pauses
+  int m_tick_interval = 0;
   bool is_ignore_next_letter = false;
-  bool is_delay_next_letter = false;
-  bool is_pause = false;
   // used to determine how often blips sound
   int m_blip_step = 0;
   int m_rainbow_step = 0;
   bool is_first_showname_sent = false;
   bool is_next_showname_ignored = false;
-  bool is_rainbow_enabled = false;
   bool is_note_shown = false;
   bool contains_add_button = false;
 
@@ -637,6 +635,8 @@ private:
   QVector<bool> wtce_enabled;
   QVector<bool> free_blocks_enabled;
 
+  QVector<DR::CommandData> message_components;
+
   CharMenu *p_CharacterContextMenu;
   RPButton *ui_change_character = nullptr;
 
@@ -784,7 +784,8 @@ private slots:
 
   void start_chat_timer();
   void stop_chat_timer();
-  void calculate_chat_tick_interval();
+  int calculate_chat_tick_interval(int p_tickspeed = 0);
+  void precalculate_ic_message();
   void next_chat_letter();
   void post_chatmessage();
 
