@@ -347,7 +347,6 @@ private:
   int m_rainbow_step = 0;
   bool is_first_showname_sent = false;
   bool is_next_showname_ignored = false;
-  bool is_rainbow_enabled = false;
   bool is_note_shown = false;
   bool contains_add_button = false;
 
