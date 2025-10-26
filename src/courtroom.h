@@ -52,6 +52,8 @@ class RPTextEdit;
 #include <QSlider>
 #include <QStack>
 #include <QTextCharFormat>
+#include <QTreeWidget>
+#include <QRandomGenerator>
 
 class QAction;
 class QCheckBox;
@@ -217,9 +219,8 @@ public:
   // properly sets up some varibles: resets user state
   void enter_courtroom(int p_cid);
 
-  // helper function that populates ui_music_list with the contents of
-  // music_list
   void filter_list_widget(QListWidget *widget, QString filter);
+  void filter_tree_widget(QTreeWidget *widget, QString filter);
   bool is_area_music_list_separated();
   void list_music();
   void list_areas();
@@ -276,6 +277,12 @@ public:
   // local filesystem) takes in a list where the first element is the song
   // name and the second is the char id of who played it
   void handle_song(QStringList p_contents);
+
+  // sets the music playback type when you play a song
+  void set_bgm_playback_type(BGMPlayback p_bgm_playback);
+
+  // return the current music playback type
+  BGMPlayback get_bgm_playback_type() { return bgm_playback; };
 
   // animates music text
   void set_music_text(QString p_text);
@@ -350,6 +357,8 @@ private:
   bool is_note_shown = false;
   bool contains_add_button = false;
 
+  // current BGM playback type
+  BGMPlayback bgm_playback = BGMPlayback_Standard;
 
   ChoiceDialog *pNotifyPopup = nullptr;
 
@@ -529,7 +538,7 @@ private:
 
   QListWidget *ui_area_list = nullptr;
   QLineEdit *ui_area_search = nullptr;
-  QListWidget *ui_music_list = nullptr;
+  QTreeWidget *ui_music_list = nullptr;
   QLineEdit *ui_music_search = nullptr;
   BGMMenu *p_MenuBGM = nullptr;
 
@@ -763,7 +772,11 @@ public slots:
   void on_char_select_left_clicked();
   void on_char_select_right_clicked();
   void hide_emote_tooltip(int id);
+
   void send_mc_packet(QString p_song, BGMPlayback playbackType = BGMPlayback_Standard);
+  void send_play_music(QString p_song, BGMPlayback playbackType = BGMPlayback_Standard);
+  void send_play_random_music(QString category = "", BGMPlayback playbackType = BGMPlayback_Standard);
+
   void SwitchCharacterByName(const char* characterName);
   void SwitchRandomCharacter(QString list);
 
@@ -810,8 +823,7 @@ private slots:
   void on_area_search_edited();
 
   void on_music_list_clicked();
-  void on_music_list_double_clicked(QModelIndex p_model);
-  void on_music_menu_play_triggered();
+  void on_music_list_double_clicked(QTreeWidgetItem *p_item, int column);
   void on_music_menu_insert_ooc_triggered();
   void on_music_search_edited(QString);
   void on_music_search_edited();

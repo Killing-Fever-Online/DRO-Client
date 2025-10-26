@@ -7,7 +7,8 @@ enum BGMPlayback
 {
   BGMPlayback_Standard = 0,
   BGMPlayback_NoFade = 1,
-  BGMPlayback_Continue = 2
+  BGMPlayback_Continue = 2,
+  BGMPlayback_CrossFade = 3,
 };
 
 

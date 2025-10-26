@@ -42,6 +42,8 @@
 #include <QSignalMapper>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <QTreeWidget>
+#include <QHeaderView>
 
 #include <modules/theme/thememanager.h>
 
@@ -213,8 +215,14 @@ void Courtroom::create_widgets()
   ui_area_search->setFrame(false);
   ui_area_search->setPlaceholderText(localization::getText("TEXTBOX_AREA"));
 
-  ui_music_list = new QListWidget(this);
+  ui_music_list = new QTreeWidget(this);
   ui_music_list->setContextMenuPolicy(Qt::CustomContextMenu);
+  ui_music_list->setColumnCount(1);
+  ui_music_list->setHeaderHidden(true);
+  ui_music_list->header()->setStretchLastSection(false);
+  ui_music_list->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  ui_music_list->setUniformRowHeights(true);
+
   ui_music_search = new RPLineEdit("music_search", localization::getText("TEXTBOX_MUSIC"), "[MUSIC SEARCH]", this);
   ui_music_search->setFrame(false);
   p_MenuBGM = new BGMMenu(this);
@@ -454,8 +462,11 @@ void Courtroom::connect_widgets()
   connect(ui_ooc_chat_message, SIGNAL(returnPressed()), this, SLOT(on_ooc_message_return_pressed()));
 
   connect(ui_music_list, SIGNAL(clicked(QModelIndex)), this, SLOT(on_music_list_clicked()));
-  connect(ui_music_list, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(on_music_list_double_clicked(QModelIndex)));
-  connect(ui_music_list, SIGNAL(customContextMenuRequested(QPoint)), p_MenuBGM, SLOT(OnMenuRequested(QPoint)));
+  connect(ui_music_list, &QTreeWidget::itemDoubleClicked, this, &Courtroom::on_music_list_double_clicked);
+  connect(ui_music_list, &QTreeWidget::customContextMenuRequested, p_MenuBGM, &BGMMenu::OnMenuRequested);
+
+  connect(p_MenuBGM, &BGMMenu::expandAll, ui_music_list, &QTreeWidget::expandAll);
+  connect(p_MenuBGM, &BGMMenu::collapseAll, ui_music_list, &QTreeWidget::collapseAll);
 
   connect(ui_area_list, SIGNAL(clicked(QModelIndex)), this, SLOT(on_area_list_clicked()));
   connect(ui_area_list, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(on_area_list_double_clicked(QModelIndex)));
