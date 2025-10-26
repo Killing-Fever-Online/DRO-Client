@@ -19,7 +19,7 @@ int get_major_version()
 
 int get_minor_version()
 {
-  return 0;
+  return 1;
 }
 
 VersionNumber get_version_number(int baseVersion)
@@ -41,7 +41,7 @@ VersionNumber get_version_number(int baseVersion)
 
 QString get_post_version()
 {
-  return "";
+  return "b03";
 }
 
 QString get_version_string(int baseVersion)
@@ -73,10 +73,10 @@ QString build_about_message()
   QString msg = QString("<h2>Danganronpa Online</h2>"
                         "version: %1"
                         "<p><b>Source code:</b> "
-                        "<a href='https://github.com/Chrezm/DRO-Client'>"
-                        "https://github.com/Chrezm/DRO-Client</a>"
+                        "<a href='https://github.com/Killing-Fever-Online/DRO-Client'>"
+                        "https://github.com/Killing-Fever-Online/DRO-Client</a>"
                         "<p><b>Development:</b><br>"
-                        "Cerapter, Elf, Iuvee, Tricky Leifa, Keightiie"
+                        "Cerapter, Elf, Iuvee, Tricky Leifa, Keightiie, Crystalwarrior"
                         "<p>Based on Attorney Online 2:<br>"
                         "<a href='https://github.com/AttorneyOnline/AO2-Client'>"
                         "https://github.com/AttorneyOnline/AO2-Client</a>"
