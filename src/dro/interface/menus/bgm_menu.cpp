@@ -12,13 +12,19 @@ BGMMenu::BGMMenu(QWidget *parent) : QMenu(parent)
 
   p_PlayAction = addAction(tr("Play"));
 
+  QMenu *randomizeMenu = new QMenu(tr("Randomize"), this);
+  addMenu(randomizeMenu);
+
+  p_PlayRandomCategoryAction = randomizeMenu->addAction(tr("Pick Selected Category"));
+  p_PlayRandomAnyAction = randomizeMenu->addAction(tr("Pick Any Expanded"));
+
   QMenu *playMenu = new QMenu(tr("Settings"), this);
   addMenu(playMenu);
 
-  m_PlaySmooth = playMenu->addAction((tr("Smooth Play")));
-  m_PlayInstant = playMenu->addAction((tr("Instant Play")));
-  m_PlaySync = playMenu->addAction((tr("Sync Playback")));
-  m_PlayCrossFade = playMenu->addAction((tr("Radio CrossFade")));
+  m_PlaySmooth = playMenu->addAction(tr("Smooth Play"));
+  m_PlayInstant = playMenu->addAction(tr("Instant Play"));
+  m_PlaySync = playMenu->addAction(tr("Sync Playback"));
+  m_PlayCrossFade = playMenu->addAction(tr("Radio CrossFade"));
 
   m_PlaySmooth->setCheckable(true);
   m_PlayInstant->setCheckable(true);
@@ -29,6 +35,12 @@ BGMMenu::BGMMenu(QWidget *parent) : QMenu(parent)
   m_PlaySmooth->setChecked(true);
 
   p_InsertAction = addAction(tr("Insert into OOC"));
+
+  addSeparator();
+
+  // Convenience expand/collapse all functionality, these are one-liners due to simplicity
+  connect(addAction(tr("Expand All")), &QAction::triggered, this, [=]() { Q_EMIT expandAll(); });
+  connect(addAction(tr("Collapse All")), &QAction::triggered, this, [=]() { Q_EMIT collapseAll(); });
 
   addSeparator();
 
@@ -43,6 +55,8 @@ BGMMenu::BGMMenu(QWidget *parent) : QMenu(parent)
   connect(m_PlaySync, &QAction::triggered, this, &BGMMenu::OnSyncPlayAction);
   connect(m_PlayCrossFade, &QAction::triggered, this, &BGMMenu::OnCrossFadePlayAction);
   connect(p_PlayAction, &QAction::triggered, this, &BGMMenu::OnPlayTriggered);
+  connect(p_PlayRandomCategoryAction, &QAction::triggered, this, &BGMMenu::OnPlayRandomCategoryTriggered);
+  connect(p_PlayRandomAnyAction, &QAction::triggered, this, &BGMMenu::OnPlayRandomAnyTriggered);
   connect(p_InsertAction, &QAction::triggered, this, &BGMMenu::OnInsertTriggered);
   connect(p_StopAction, &QAction::triggered, this, &BGMMenu::OnStopTriggered);
   connect(p_PinAction, &QAction::triggered, this, &BGMMenu::OnPinTriggered);
@@ -50,14 +64,18 @@ BGMMenu::BGMMenu(QWidget *parent) : QMenu(parent)
 
 void BGMMenu::OnMenuRequested(QPoint p_point)
 {
-  QListWidget *musicList = ThemeManager::get().GetWidgetType<QListWidget>("music_list");
+  QTreeWidget *musicList = ThemeManager::get().GetWidgetType<QTreeWidget>("music_list");
   if(musicList == nullptr) return;
 
-  QListWidgetItem *l_item = musicList->currentItem();
+  QTreeWidgetItem *l_item = musicList->currentItem();
 
   if (!l_item) { m_TargetTrack = "";  return; }
 
-  m_TargetTrack = l_item->data(Qt::UserRole).toString();
+  m_TargetTrack = l_item->data(0, Qt::UserRole).toString();
+  m_TargetCategory = l_item->text(0);
+  if(l_item->parent() != nullptr)
+    m_TargetCategory = l_item->parent()->text(0);
+
   const QPoint l_global_point = musicList->viewport()->mapToGlobal(p_point);
   popup(l_global_point);
 }
@@ -66,8 +84,19 @@ void BGMMenu::OnPlayTriggered()
 {
   if(m_TargetTrack.isEmpty()) return;
   Courtroom *courtroom = AOApplication::getInstance()->get_courtroom();
-  courtroom->send_mc_packet(m_TargetTrack, courtroom->get_bgm_playback_type());
-  courtroom::ic::focusMessageBox();
+  courtroom->send_play_music(m_TargetTrack, courtroom->get_bgm_playback_type());
+}
+
+void BGMMenu::OnPlayRandomCategoryTriggered()
+{
+  Courtroom *courtroom = AOApplication::getInstance()->get_courtroom();
+  courtroom->send_play_random_music(m_TargetCategory, courtroom->get_bgm_playback_type());
+}
+
+void BGMMenu::OnPlayRandomAnyTriggered()
+{
+  Courtroom *courtroom = AOApplication::getInstance()->get_courtroom();
+  courtroom->send_play_random_music("", courtroom->get_bgm_playback_type());
 }
 
 void BGMMenu::OnInsertTriggered()

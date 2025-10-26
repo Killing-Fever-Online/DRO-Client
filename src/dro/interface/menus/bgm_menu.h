@@ -14,6 +14,8 @@ public:
 public slots:
   void OnMenuRequested(QPoint p_point);
   void OnPlayTriggered();
+  void OnPlayRandomCategoryTriggered();
+  void OnPlayRandomAnyTriggered();
   void OnInsertTriggered();
   void OnPinTriggered();
   void OnStopTriggered();
@@ -22,10 +24,16 @@ public slots:
   void OnSyncPlayAction();
   void OnCrossFadePlayAction();
 
+signals:
+  void expandAll();
+  void collapseAll();
 
 private:
   QString m_TargetTrack = "";
+  QString m_TargetCategory = "";
   QAction *p_PlayAction = nullptr;
+  QAction *p_PlayRandomCategoryAction = nullptr;
+  QAction *p_PlayRandomAnyAction = nullptr;
   QAction *p_InsertAction = nullptr;
   QAction *p_PinAction = nullptr;
   QAction *p_StopAction = nullptr;

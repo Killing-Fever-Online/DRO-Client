@@ -732,12 +732,28 @@ void Courtroom::filter_list_widget(QListWidget *p_list_widget, QString p_filter)
 void Courtroom::filter_tree_widget(QTreeWidget *p_tree_widget, QString p_filter)
 {
   const QString l_final_filter = p_filter.simplified();
+  // Search through each top level tree item
   for (int i = 0; i < p_tree_widget->topLevelItemCount(); i++)
   {
     QTreeWidgetItem *i_item = p_tree_widget->topLevelItem(i);
     bool check_title = i_item->text(0).contains(l_final_filter, Qt::CaseInsensitive);
     bool check_file_name = i_item->data(0, Qt::UserRole).toString().contains(l_final_filter, Qt::CaseInsensitive);
     i_item->setHidden(!l_final_filter.isEmpty() && !check_title && !check_file_name);
+    // Check through the children of each top level tree item.
+    // Note that this is NON-RECURSIVE, it only goes as deep as 1 "category" right now.
+    for( int i = 0; i < i_item->childCount(); ++i )
+    {
+      QTreeWidgetItem *child_item = i_item->child(i);
+      bool child_check_title = child_item->text(0).contains(l_final_filter, Qt::CaseInsensitive);
+      bool child_check_file_name = child_item->data(0, Qt::UserRole).toString().contains(l_final_filter, Qt::CaseInsensitive);
+      bool is_hidden = !l_final_filter.isEmpty() && !child_check_title && !child_check_file_name;
+      child_item->setHidden(is_hidden);
+      if (!is_hidden)
+      {
+        // If this child is visible, make sure its parent category is visible as well.
+        child_item->parent()->setHidden(false);
+      }
+    }
   }
 }
 
@@ -2527,12 +2543,31 @@ void Courtroom::handle_song(QStringList p_contents)
     if (m_current_song == l_song && !l_restart)
       return;
   }
+
+  // If the song is ~stop.mp3 (aka keyword for "stop this song" since AO1 days), treat it as blank song.
   if (l_song == "~stop.mp3")
     l_song = "";
+
+  DRAudiotrackMetadata l_song_meta(l_song);
+  QString song_title = l_song_meta.title();
+  // Grab a human-readable song name here by stripping out the category folder
+  // (if track title name is not defined)
+  QString i_song_listname = song_title.left(song_title.lastIndexOf("."));
+      i_song_listname = i_song_listname.right(
+      i_song_listname.length() - (i_song_listname.lastIndexOf("/") + 1));
+
+  // Only possibility for this to happen is when the song has no extension, aka it's a
+  // song category. I also don't believe this can't be true for streamed music.
+  bool is_category = i_song_listname == l_song_meta.filename();
+
+  // There's never a good reason to play a "Category" song - people can create an extension-less
+  // song so any time category is used to stop music, it plays a track instead. That's bad!
+  if (is_category)
+    l_song = "";
+
   m_current_song = l_song;
 
   replays::recording::musicChange(l_song);
-  DRAudiotrackMetadata l_song_meta(l_song);
 
   if(!LuaBridge::SongChangeEvent(l_song.toStdString(), l_song_meta.title().toStdString(), l_showname.toStdString()))
   {
@@ -2555,13 +2590,10 @@ void Courtroom::handle_song(QStringList p_contents)
       {
         l_showname = ao_app->get_showname(CharacterManager::get().mServerCharacters.at(l_chr_id).name);
       }
-
-      QString song_title = l_song_meta.title();
-      QString message = "has played a song: " + song_title;
-
-      if (l_song.isEmpty())
+      QString message = "has played a song: " + i_song_listname;
+      if (l_song.isEmpty() || is_category)
       {
-        message = "has stopped a song.";
+        message = "has stopped music.";
       }
 
       append_ic_text(l_showname, message, false, true, NoClientId, l_chr_id == metadata::user::GetCharacterId());
@@ -2572,7 +2604,7 @@ void Courtroom::handle_song(QStringList p_contents)
       }
     }
 
-    set_music_text(l_song_meta.title());
+    set_music_text(i_song_listname);
 
     LuaBridge::OnSongChange(l_song.toStdString(), l_song_meta.title().toStdString(), l_showname.toStdString());
   }
@@ -2823,9 +2855,9 @@ void Courtroom::on_music_list_clicked()
   ui_ic_chat_message_field->setFocus();
 }
 
-void Courtroom::on_music_list_double_clicked(QModelIndex p_model)
+void Courtroom::on_music_list_double_clicked(QTreeWidgetItem* p_item, int column)
 {
-  const QString l_song_name = ui_music_list->topLevelItem(p_model.row())->data(0, Qt::UserRole).toString();
+  const QString l_song_name = p_item->data(column, Qt::UserRole).toString();
   send_mc_packet(l_song_name, bgm_playback);
   ui_ic_chat_message_field->setFocus();
 }
@@ -2863,6 +2895,65 @@ void Courtroom::send_mc_packet(QString p_song, BGMPlayback playbackType)
   }
 
   ao_app->send_server_packet(DRPacket("MC", contents));
+}
+
+void Courtroom::send_play_music(QString p_song, BGMPlayback playbackType)
+{
+  send_mc_packet(p_song, playbackType);
+  ui_ic_chat_message_field->setFocus();
+}
+
+void Courtroom::send_play_random_music(QString category, BGMPlayback playbackType)
+{
+  QList<QTreeWidgetItem *> clist;
+  QTreeWidgetItemIterator it(ui_music_list);
+  while (QTreeWidgetItem *p_item = *it) {
+    ++it;
+    // if "category" search string was provided...
+    if (category != "")
+    {
+      // if this category doesn't contain the search string, or the song's parent category doesn't match, skip it
+      if (!p_item->text(0).contains(category, Qt::CaseInsensitive) && (!p_item->parent() || !p_item->parent()->text(0).contains(category, Qt::CaseInsensitive)))
+        continue;
+    }
+    // if "category" search string was NOT provided...
+    else
+    {
+      // exclude anything that contains children - aka categories
+      if (p_item->childCount() > 0)
+        continue;
+      // exclude anything that is under a collapsed parent category
+      if (!(p_item->parent() && p_item->parent()->isExpanded()))
+        continue;
+      // otherwise, songs outside of any category will be included.
+    }
+    if (p_item->isHidden())
+      continue;
+    // If this is a category, grab its children
+    if (p_item->childCount() > 0) {
+      for (int i = 0; i < p_item->childCount(); ++i) {
+        QTreeWidgetItem *p_child = p_item->child(i);
+        // Make sure to only include non-hidden category children.
+        // Also make sure to exclude songs that are already playing
+        if (!p_child->isHidden() && p_child->data(0, Qt::UserRole).toString() != m_current_song)
+          clist += p_child;
+      }
+      // Do not return the category itself
+      continue;
+    }
+    // make sure to exclude songs that are already playing
+    if (p_item->data(0, Qt::UserRole).toString() != m_current_song)
+      clist += p_item;
+  }
+
+  // found no viable results
+  if (clist.length() == 0)
+    return;
+
+  // found a valid random song, play it!
+  QString random_song = clist.at(QRandomGenerator::global()->bounded(0, clist.length()))->data(0, Qt::UserRole).toString();
+  send_mc_packet(random_song, playbackType);
+  ui_ic_chat_message_field->setFocus();
 }
 
 /**

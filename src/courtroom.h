@@ -53,6 +53,7 @@ class RPTextEdit;
 #include <QStack>
 #include <QTextCharFormat>
 #include <QTreeWidget>
+#include <QRandomGenerator>
 
 class QAction;
 class QCheckBox;
@@ -771,7 +772,11 @@ public slots:
   void on_char_select_left_clicked();
   void on_char_select_right_clicked();
   void hide_emote_tooltip(int id);
+
   void send_mc_packet(QString p_song, BGMPlayback playbackType = BGMPlayback_Standard);
+  void send_play_music(QString p_song, BGMPlayback playbackType = BGMPlayback_Standard);
+  void send_play_random_music(QString category = "", BGMPlayback playbackType = BGMPlayback_Standard);
+
   void SwitchCharacterByName(const char* characterName);
   void SwitchRandomCharacter(QString list);
 
@@ -818,7 +823,7 @@ private slots:
   void on_area_search_edited();
 
   void on_music_list_clicked();
-  void on_music_list_double_clicked(QModelIndex p_model);
+  void on_music_list_double_clicked(QTreeWidgetItem *p_item, int column);
   void on_music_menu_insert_ooc_triggered();
   void on_music_search_edited(QString);
   void on_music_search_edited();
