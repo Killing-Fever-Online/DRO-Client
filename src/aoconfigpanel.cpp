@@ -98,6 +98,7 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   ui_searchable_iniswap = AO_GUI_WIDGET(QCheckBox, "searchable_iniswap");
   ui_always_pre = AO_GUI_WIDGET(QCheckBox, "always_pre");
   ui_chat_tick_interval = AO_GUI_WIDGET(QSpinBox, "chat_tick_interval");
+  ui_chat_ratelimit = AO_GUI_WIDGET(QSpinBox, "chat_ratelimit");
   ui_emote_preview = AO_GUI_WIDGET(QCheckBox, "emote_preview");
   ui_sticky_sfx = AO_GUI_WIDGET(QCheckBox, "sticky_sfx");
 
@@ -222,6 +223,7 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   connect(m_config, SIGNAL(searchable_iniswap_changed(bool)), ui_searchable_iniswap, SLOT(setChecked(bool)));
   connect(m_config, SIGNAL(always_pre_changed(bool)), ui_always_pre, SLOT(setChecked(bool)));
   connect(m_config, SIGNAL(chat_tick_interval_changed(int)), ui_chat_tick_interval, SLOT(setValue(int)));
+  connect(m_config, SIGNAL(chat_ratelimit_changed(int)), ui_chat_ratelimit, SLOT(setValue(int)));
   connect(m_config, SIGNAL(emote_preview_changed(bool)), ui_emote_preview, SLOT(setChecked(bool)));
   connect(m_config, SIGNAL(sticky_sfx_changed(bool)), ui_sticky_sfx, SLOT(setChecked(bool)));
 
@@ -288,6 +290,7 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   connect(ui_searchable_iniswap, SIGNAL(toggled(bool)), m_config, SLOT(set_searchable_iniswap(bool)));
   connect(ui_always_pre, SIGNAL(toggled(bool)), m_config, SLOT(set_always_pre(bool)));
   connect(ui_chat_tick_interval, SIGNAL(valueChanged(int)), m_config, SLOT(set_chat_tick_interval(int)));
+  connect(ui_chat_ratelimit, SIGNAL(valueChanged(int)), m_config, SLOT(set_chat_ratelimit(int)));
   connect(ui_emote_preview, SIGNAL(toggled(bool)), m_config, SLOT(set_emote_preview(bool)));
   connect(ui_sticky_sfx, SIGNAL(toggled(bool)), m_config, SLOT(set_sticky_sfx(bool)));
 
@@ -359,6 +362,7 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   ui_searchable_iniswap->setChecked(m_config->searchable_iniswap_enabled());
   ui_always_pre->setChecked(m_config->always_pre_enabled());
   ui_chat_tick_interval->setValue(m_config->chat_tick_interval());
+  ui_chat_ratelimit->setValue(m_config->chat_ratelimit());
   ui_emote_preview->setChecked(m_config->emote_preview_enabled());
   ui_sticky_sfx->setChecked(m_config->sticky_sfx_enabled());
 
