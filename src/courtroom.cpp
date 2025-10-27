@@ -1211,42 +1211,37 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
     p_chatmessage.append(QString{});
   }
 
+  // Submit the message metadata into the recent message stack, and record it for the replay data
   metadata::message::incomingMessage(p_chatmessage);
 
-  const int l_message_chr_id = p_chatmessage[CMChrId].toInt();
+  // Obtain the message metadata we just recorded so we can add it to the message queue if need be
+  const MessageMetadata ic_message = metadata::message::recentMessage();
+
+  const int l_message_chr_id = ic_message.characterId;
   const bool l_system_speaking = l_message_chr_id == SpectatorId;
 
-  m_SpeakerActor = CharacterManager::get().ReadCharacter(p_chatmessage[CMChrName]);
-  if(!p_chatmessage[CMOutfitName].isEmpty())
+  m_SpeakerActor = CharacterManager::get().ReadCharacter(ic_message.characterFolder);
+  if(!ic_message.characterOutfit.isEmpty())
   {
-    m_SpeakerActor->SwitchOutfit(p_chatmessage[CMOutfitName]);
+    m_SpeakerActor->SwitchOutfit(ic_message.characterOutfit);
   }
 
-  if(metadata::message::pair::isActive())
+  if(ic_message.pairActive)
   {
-    m_PairActor = CharacterManager::get().ReadCharacter(metadata::message::pair::getCharacter());
+    m_PairActor = CharacterManager::get().ReadCharacter(ic_message.pairData.characterFolder);
 
     m_PairScaling = mk2::SpritePlayer::AutomaticScaling;
 
     if(m_PairActor != nullptr)
     {
       m_PairScaling = m_PairActor->GetScalingMode();
-      m_PairScale = metadata::message::pair::scaleOffset();
+      m_PairScale = (double)ic_message.pairData.offsetScale / (double)1000.0f;
     }
 
   }
 
-
-  m_ActorScale = 1.0;
-
-  int scaleValue = p_chatmessage[CMOffsetS].trimmed().toInt();
-  if(!p_chatmessage[CMOffsetS].isEmpty())
-  {
-    m_ActorScale = (double)scaleValue / 1000.0f;
-  }
-
-
-
+  int scaleValue = ic_message.offsetScale;
+  m_ActorScale = (double)scaleValue / 1000.0f;
 
   m_ActorScaling = mk2::SpritePlayer::AutomaticScaling;
 
@@ -1255,15 +1250,13 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
     m_ActorScaling = m_SpeakerActor->GetScalingMode();
   }
 
-
-
-  QString l_showname = p_chatmessage[CMShowName];
+  QString l_showname = ic_message.userShowname;
   if (l_showname.isEmpty() && !l_system_speaking)
   {
     l_showname = m_SpeakerActor->GetShowname();
   }
 
-  QString l_message = QString(p_chatmessage[CMMessage]).remove(QRegularExpression("(?<!\\\\)(\\{|\\})")).replace(QRegularExpression("\\\\(\\{|\\})"), "\\1");
+  QString l_message = QString(ic_message.textContent).remove(QRegularExpression("(?<!\\\\)(\\{|\\})")).replace(QRegularExpression("\\\\(\\{|\\})"), "\\1");
   if(l_message.startsWith("<a>"))
   {
     l_message = l_message.mid(3);
@@ -1274,8 +1267,7 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
   }
   else if (l_message_chr_id >= 0 && l_message_chr_id < CharacterManager::get().mServerCharacters.length())
   {
-    const int l_client_id = p_chatmessage[CMClientId].toInt();
-    append_ic_text(l_showname, l_message, false, false, l_client_id, metadata::user::GetCharacterId() == l_message_chr_id);
+    append_ic_text(l_showname, l_message, false, false, ic_message.speakerClient, metadata::user::GetCharacterId() == l_message_chr_id);
 
     if (ao_config->log_is_recording_enabled() && !l_message.isEmpty())
     {
@@ -1283,13 +1275,10 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
     }
   }
 
-  { // clear interface if required
-    bool l_ok;
-    const int l_client_id = p_chatmessage[CMClientId].toInt(&l_ok);
-    if (l_ok && l_client_id == metadata::user::getClientId())
-    {
-      handle_acknowledged_ms();
-    }
+  // clear interface if required
+  if (ic_message.speakerClient == metadata::user::getClientId())
+  {
+    handle_acknowledged_ms();
   }
   SceneManager::get().RenderTransition();
   preload_chatmessage(p_chatmessage);

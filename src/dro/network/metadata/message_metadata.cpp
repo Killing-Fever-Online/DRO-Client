@@ -3,14 +3,13 @@
 #include "dro/system/replay_playback.h"
 
 static MessageMetadata s_CurrentMessage;
-static bool s_MsgPairActive = false;
 
 namespace dro::network::metadata::message
 {
 
   void setPairMetadata(const PairMetadata &data, int selfOffset)
   {
-    s_MsgPairActive = true;
+    s_CurrentMessage.pairActive = true;
     s_CurrentMessage.offsetHorizontal = selfOffset;
     s_CurrentMessage.pairData = data;
     if(data.offsetScale == 0) s_CurrentMessage.pairData.offsetScale = 1000;
@@ -20,12 +19,12 @@ namespace dro::network::metadata::message
   {
     bool isActive()
     {
-      return s_MsgPairActive;
+      return s_CurrentMessage.pairActive;
     }
 
     void disable()
     {
-      s_MsgPairActive = false;
+      s_CurrentMessage.pairActive = false;
       s_CurrentMessage.offsetHorizontal = 0;
       s_CurrentMessage.pairData.offsetHorizontal = 0;
     }
@@ -40,7 +39,7 @@ namespace dro::network::metadata::message
       const QString &emote = s_CurrentMessage.pairData.characterEmote;
       if(emote.isEmpty()) return false;
       if(emote == "../../misc/blank") return false;
-      return s_MsgPairActive;
+      return s_CurrentMessage.pairActive;
     }
 
     const QString &getEmote()
