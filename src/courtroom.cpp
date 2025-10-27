@@ -1002,8 +1002,6 @@ void Courtroom::on_character_ini_changed()
 
 void Courtroom::on_ic_message_return_pressed()
 {
-  if ((anim_state < 3 || text_state < 2) && m_shout_state == 0)
-    return;
   ui_ic_chat_message_filter->blockSignals(true);
   QTimer::singleShot(ao_config->chat_ratelimit(), this,
                      [this] { ui_ic_chat_message_filter->blockSignals(false); });
