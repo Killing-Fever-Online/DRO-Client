@@ -48,6 +48,7 @@ public:
   bool searchable_iniswap_enabled() const;
   bool always_pre_enabled() const;
   int chat_tick_interval() const;
+  int chat_ratelimit() const;
   bool emote_preview_enabled() const;
   bool sticky_sfx_enabled() const;
   int message_length_threshold() const;
@@ -122,6 +123,7 @@ public slots:
   void set_searchable_iniswap(bool);
   void set_always_pre(bool p_enabled);
   void set_chat_tick_interval(int p_number);
+  void set_chat_ratelimit(int p_number);
   void set_emote_preview(bool p_enabled);
   void set_sticky_sfx(bool p_enabled);
   void set_message_length_threshold(int percent);
@@ -181,6 +183,7 @@ signals:
   void searchable_iniswap_changed(bool);
   void always_pre_changed(bool);
   void chat_tick_interval_changed(int);
+  void chat_ratelimit_changed(int);
   void emote_preview_changed(bool);
   void sticky_sfx_changed(bool);
 
