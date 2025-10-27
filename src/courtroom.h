@@ -10,6 +10,7 @@
 #include "dro/interface/widgets/screenshot_button.h"
 #include "dro/interface/widgets/health_bar.h"
 #include "dro/interface/widgets/rp_slider.h"
+#include "dro/network/metadata/message_metadata.h"
 #include "dro/network/metadata/user_metadata.h"
 #include "dro/system/audio/music_player.h"
 #include "drposition.h"
@@ -532,6 +533,13 @@ private:
   RPTextEdit *ui_ic_chatlog = nullptr;
   QList<DRChatRecord> m_ic_record_list;
   QQueue<DRChatRecord> m_ic_record_queue;
+
+
+  // Message Queue processing timer
+  QTimer *m_text_queue_timer = nullptr;
+  // The queue itself contains MessageMetadata to display
+  QQueue<MessageMetadata> chatmessage_queue;
+
   RPButton *ui_ic_chatlog_scroll_topdown = nullptr;
   RPButton *ui_ic_chatlog_scroll_bottomup = nullptr;
 
@@ -921,6 +929,10 @@ private slots:
 
   // performance
   void assign_readers_for_viewers(int p_type, bool p_caching);
+
+
+  // Proceed to parse the oldest chatmessage and remove it from the stack
+  void chatmessage_dequeue();
 
   // character
   // ===========================================================================

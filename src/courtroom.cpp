@@ -1217,38 +1217,9 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
   // Obtain the message metadata we just recorded so we can add it to the message queue if need be
   const MessageMetadata ic_message = metadata::message::recentMessage();
 
+  // Create a log entry
   const int l_message_chr_id = ic_message.characterId;
   const bool l_system_speaking = l_message_chr_id == SpectatorId;
-
-  m_SpeakerActor = CharacterManager::get().ReadCharacter(ic_message.characterFolder);
-  if(!ic_message.characterOutfit.isEmpty())
-  {
-    m_SpeakerActor->SwitchOutfit(ic_message.characterOutfit);
-  }
-
-  if(ic_message.pairActive)
-  {
-    m_PairActor = CharacterManager::get().ReadCharacter(ic_message.pairData.characterFolder);
-
-    m_PairScaling = mk2::SpritePlayer::AutomaticScaling;
-
-    if(m_PairActor != nullptr)
-    {
-      m_PairScaling = m_PairActor->GetScalingMode();
-      m_PairScale = (double)ic_message.pairData.offsetScale / (double)1000.0f;
-    }
-
-  }
-
-  int scaleValue = ic_message.offsetScale;
-  m_ActorScale = (double)scaleValue / 1000.0f;
-
-  m_ActorScaling = mk2::SpritePlayer::AutomaticScaling;
-
-  if(m_SpeakerActor != nullptr)
-  {
-    m_ActorScaling = m_SpeakerActor->GetScalingMode();
-  }
 
   QString l_showname = ic_message.userShowname;
   if (l_showname.isEmpty() && !l_system_speaking)
@@ -1280,8 +1251,63 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
   {
     handle_acknowledged_ms();
   }
+
+  chatmessage_queue.enqueue(ic_message);
+
+  // Our settings disabled queue, or no message is being parsed right now and we're not waiting on one
+  bool start_queue = text_state >= 2 && !m_text_queue_timer->isActive();
+  qInfo() << "Queue: " << start_queue;
+  // Objections also immediately play the message
+  if (start_queue)
+    chatmessage_dequeue(); // Process the message instantly
+  // Otherwise, since a message is being parsed, post_chatmessage() will handle the queue instead.
+}
+
+void Courtroom::chatmessage_dequeue()
+{
+  // Nothing to parse in the queue
+  if (chatmessage_queue.isEmpty())
+    return;
+
+  // Stop the text queue timer
+  if (m_text_queue_timer->isActive())
+    m_text_queue_timer->stop();
+
+  MessageMetadata ic_message = chatmessage_queue.dequeue();
+
+  m_SpeakerActor = CharacterManager::get().ReadCharacter(ic_message.characterFolder);
+  if(!ic_message.characterOutfit.isEmpty())
+  {
+    m_SpeakerActor->SwitchOutfit(ic_message.characterOutfit);
+  }
+
+  if(ic_message.pairActive)
+  {
+    m_PairActor = CharacterManager::get().ReadCharacter(ic_message.pairData.characterFolder);
+
+    m_PairScaling = mk2::SpritePlayer::AutomaticScaling;
+
+    if(m_PairActor != nullptr)
+    {
+      m_PairScaling = m_PairActor->GetScalingMode();
+      m_PairScale = (double)ic_message.pairData.offsetScale / (double)1000.0f;
+    }
+
+  }
+
+  int scaleValue = ic_message.offsetScale;
+  m_ActorScale = (double)scaleValue / 1000.0f;
+
+  m_ActorScaling = mk2::SpritePlayer::AutomaticScaling;
+
+  if(m_SpeakerActor != nullptr)
+  {
+    m_ActorScaling = m_SpeakerActor->GetScalingMode();
+  }
+
+  // Process the message
   SceneManager::get().RenderTransition();
-  preload_chatmessage(p_chatmessage);
+  preload_chatmessage(ic_message.rawData);
 }
 
 void Courtroom::reset_viewport()
@@ -2471,6 +2497,10 @@ void Courtroom::post_chatmessage()
     ui_vp_chat_arrow->restart();
     ui_vp_chat_arrow->show();
   }
+
+  // Start the next queue message
+  if (!m_text_queue_timer->isActive())
+    m_text_queue_timer->start(500);
 }
 
 void Courtroom::play_sfx()

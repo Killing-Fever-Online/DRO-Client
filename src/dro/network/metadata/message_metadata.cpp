@@ -101,6 +101,7 @@ namespace dro::network::metadata::message
 
   void incomingMessage(const QStringList &message)
   {
+    s_CurrentMessage.rawData = message;
     s_CurrentMessage.offsetHorizontal = message[CMOffsetH].isEmpty() ? 500 : message[CMOffsetH].toInt();
     s_CurrentMessage.offsetVertical = message[CMOffsetV].toInt();
     s_CurrentMessage.offsetScale = message[CMOffsetS].isEmpty() ? 1000 : message[CMOffsetS].toInt();
@@ -121,7 +122,7 @@ namespace dro::network::metadata::message
     s_CurrentMessage.modifiers.Hidden = message[CMHideCharacter].toInt();
     s_CurrentMessage.modifiers.Flipped = message[CMFlipState].toInt();
     s_CurrentMessage.effect = dro::system::effects::effectById(message[CMEffectState].toInt());
-    s_CurrentMessage.characterShout = ""; //TO-DO - CMShoutModifier
+    s_CurrentMessage.characterShout = message[CMShoutModifier].toInt();
     s_CurrentMessage.characterId = message[CMChrId].toInt();
     s_CurrentMessage.speakerClient = message[CMClientId].toInt();
     s_CurrentMessage.modifiers.DelaySFX = message[CMSoundDelay].toInt();

@@ -36,6 +36,7 @@ struct PairMetadata
 
 struct MessageMetadata
 {
+  QStringList rawData = {};
   QString characterPre = "";
   QString characterFolder = "";
   QString characterOutfit = "";
