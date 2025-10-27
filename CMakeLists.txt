@@ -142,6 +142,7 @@ set(HEADERS
   src/theme.h
   src/utils.h
   src/version.h
+  src/eventfilters.h
 )
 
 set(SOURCES
@@ -283,6 +284,7 @@ set(SOURCES
   src/theme.cpp
   src/utils.cpp
   src/version.cpp
+  src/eventfilters.cpp
 )
 
 set(RESOURCES

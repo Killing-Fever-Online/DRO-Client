@@ -243,6 +243,12 @@ void Courtroom::create_widgets()
   ui_ic_chat_message = new QWidget(this);
 
   ui_ic_chat_message_field = new QLineEdit(ui_ic_chat_message);
+
+  // RPLineEditFilter event filter preserves selection when clicking outside, and allows Shift+Enter for newline
+  ui_ic_chat_message_filter = new RPLineEditFilter();
+  ui_ic_chat_message_filter->text_edit_preserve_selection = true;
+
+  ui_ic_chat_message_field->installEventFilter(ui_ic_chat_message_filter);
   ui_ic_chat_message_field->setFrame(false);
   ui_ic_chat_message_field->setPlaceholderText(localization::getText("CHATBOX_IC"));
   ui_ic_chat_message_field->setMaxLength(255);
