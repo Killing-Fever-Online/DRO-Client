@@ -62,6 +62,8 @@ struct MessageMetadata
   int speakerClient = -1;
 
   MessageModifiers modifiers;
+
+  bool pairActive = false;
   PairMetadata pairData;
 };
 
