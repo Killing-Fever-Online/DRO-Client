@@ -18,6 +18,7 @@
 #include "mk2/graphicsvideoscreen.h"
 #include "mk2/spriteplayer.h"
 #include "mk2/spritereadersynchronizer.h"
+#include "eventfilters.h"
 
 class AOApplication;
 class AOBlipPlayer;
@@ -562,6 +563,7 @@ private:
   QLineEdit *ui_ic_chat_showname = nullptr;
   QWidget *ui_ic_chat_message = nullptr;
   QLineEdit *ui_ic_chat_message_field = nullptr;
+  RPLineEditFilter *ui_ic_chat_message_filter = nullptr;
   QLabel *ui_ic_chat_message_counter = nullptr;
   int m_lastTypingPacket = 0;
 
