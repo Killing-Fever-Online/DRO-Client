@@ -112,6 +112,9 @@ public:
   // Writes to note file
   void write_note(QString p_text, QString filename);
 
+  // ensure directory exists
+  bool ensure_directory(QString p_file);
+
   // appends to note file
   void append_note(QString p_line, QString filename);
 
