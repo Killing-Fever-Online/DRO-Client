@@ -3,6 +3,8 @@
 #include <QColor>
 #include <QDebug>
 #include <QFile>
+#include <QFileInfo>
+#include <QDir>
 #include <QSettings>
 #include <QTextStream>
 
@@ -16,6 +18,21 @@
 QStringList AOApplication::get_callwords()
 {
   return ao_config->callwords().split(" ", DR::SplitBehavior::SkipEmptyParts);
+}
+
+QString AOApplication::ensure_directory(QString p_file)
+{
+  QString path = QFileInfo(p_file).path();
+  // Create the dir if it doesn't exist yet
+  QDir dir(path);
+  if (!dir.exists())
+  {
+    if (!dir.mkpath("."))
+    {
+      qWarning() << "Failed to write text to file: " << p_file << " - couldn't create folder.";
+      return;
+    }
+  }
 }
 
 QString AOApplication::read_note(QString filename)
@@ -36,30 +53,46 @@ QString AOApplication::read_note(QString filename)
 
 void AOApplication::write_note(QString p_text, QString p_file)
 {
+  if (!ensure_directory(p_file))
+  {
+    qWarning() << "Failed to write text to file: " << p_file << " - couldn't make directory";
+    return;
+  }
   QFile f_log(p_file);
-  if (f_log.open(QIODevice::WriteOnly | QFile::Text))
+  if (f_log.open(QIODevice::WriteOnly | QFile::Text | QIODevice::Truncate))
   {
     QTextStream out(&f_log);
+    out.setCodec("UTF-8");
 
     out << p_text;
 
     f_log.flush();
     f_log.close();
   }
+  else
+    qWarning() << "Failed to write text to file: " << p_file << " - couldn't open file";
 }
 
 void AOApplication::append_note(QString p_line, QString p_file)
 {
+  if (!ensure_directory(p_file))
+  {
+    qWarning() << "Failed to write text to file: " << p_file << " - couldn't make directory";
+    return;
+  }
   QFile f_log(p_file);
   if (f_log.open(QIODevice::WriteOnly | QIODevice::Append))
   {
     QTextStream out(&f_log);
+    out.setCodec("UTF-8");
 
     out << p_line << "\r\n";
 
     f_log.flush();
     f_log.close();
   }
+  else
+    qWarning() << "Failed to append line to file: " << p_file;
 }
 
 /**
