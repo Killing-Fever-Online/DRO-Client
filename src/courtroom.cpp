@@ -1216,36 +1216,6 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
 
   // Obtain the message metadata we just recorded so we can add it to the message queue if need be
   const MessageMetadata ic_message = metadata::message::recentMessage();
-
-  // Create a log entry
-  const int l_message_chr_id = ic_message.characterId;
-  const bool l_system_speaking = l_message_chr_id == SpectatorId;
-
-  QString l_showname = ic_message.userShowname;
-  if (l_showname.isEmpty() && !l_system_speaking)
-  {
-    l_showname = m_SpeakerActor->GetShowname();
-  }
-
-  QString l_message = QString(ic_message.textContent).remove(QRegularExpression("(?<!\\\\)(\\{|\\})")).replace(QRegularExpression("\\\\(\\{|\\})"), "\\1");
-  if(l_message.startsWith("<a>"))
-  {
-    l_message = l_message.mid(3);
-  }
-  if (l_message_chr_id == SpectatorId)
-  {
-    append_system_text(l_showname, l_message);
-  }
-  else if (l_message_chr_id >= 0 && l_message_chr_id < CharacterManager::get().mServerCharacters.length())
-  {
-    append_ic_text(l_showname, l_message, false, false, ic_message.speakerClient, metadata::user::GetCharacterId() == l_message_chr_id);
-
-    if (ao_config->log_is_recording_enabled() && !l_message.isEmpty())
-    {
-      save_textlog(l_showname + ": " + l_message);
-    }
-  }
-
   // clear interface if required
   if (ic_message.speakerClient == metadata::user::getClientId())
   {
@@ -1254,13 +1224,58 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
 
   chatmessage_queue.enqueue(ic_message);
 
-  // Our settings disabled queue, or no message is being parsed right now and we're not waiting on one
+  // Check if we should start our queue. Text_state >= 2 means the message is done and a queued message is not pending
   bool start_queue = text_state >= 2 && !m_text_queue_timer->isActive();
-  qInfo() << "Queue: " << start_queue;
-  // Objections also immediately play the message
+  // Process the message instantly if conditions are met
   if (start_queue)
-    chatmessage_dequeue(); // Process the message instantly
-  // Otherwise, since a message is being parsed, post_chatmessage() will handle the queue instead.
+    chatmessage_dequeue();
+  // Otherwise, since a message is being parsed, post_chatmessage() will handle the queue instead by starting the timer when needed.
+
+  // Make a log entry for the message
+  log_chatmessage(ic_message);
+}
+
+void Courtroom::log_chatmessage(MessageMetadata ic_message)
+{
+  // Obtain the most relevant showname
+  QString l_showname = ic_message.userShowname;
+  const int l_message_chr_id = ic_message.characterId;
+  const bool l_system_speaking = l_message_chr_id == SpectatorId;
+  if (l_showname.isEmpty() && !l_system_speaking)
+  {
+    // Temporarily read the actor data just for the log entry itself
+    ActorData *futureSpeaker = CharacterManager::get().ReadCharacter(ic_message.characterFolder);
+    if(!ic_message.characterOutfit.isEmpty())
+    {
+      futureSpeaker->SwitchOutfit(ic_message.characterOutfit);
+    }
+    l_showname = futureSpeaker->GetShowname();
+  }
+
+  // Obtain and strip the message of stuff
+  QString l_message = ic_message.textContent;
+  if(l_message.startsWith("<a>"))
+  {
+    l_message = l_message.mid(3);
+  }
+
+  // If the character id is valid, append it as ic text
+  if (l_message_chr_id >= 0 && l_message_chr_id < CharacterManager::get().mServerCharacters.length())
+  {
+    append_ic_text(l_showname, l_message, false, false, ic_message.speakerClient, metadata::user::GetCharacterId() == l_message_chr_id);
+  }
+  else
+  {
+    // if (l_message_chr_id == SpectatorId)
+    // Append if message character ID is spectator ID, or is invalid in some way
+    append_system_text(l_showname, l_message);
+  }
+
+  // Save to textlog regardless if message is system or not
+  if (ao_config->log_is_recording_enabled() && !l_message.isEmpty())
+  {
+    save_textlog(l_showname + ": " + l_message);
+  }
 }
 
 void Courtroom::chatmessage_dequeue()

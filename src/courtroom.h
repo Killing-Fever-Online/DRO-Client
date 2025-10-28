@@ -250,6 +250,7 @@ public:
   // The process itself is very convoluted and merits separate documentation
   // But the general idea is objection animation->pre animation->talking->idle
   void next_chatmessage(QStringList p_contents);
+  void log_chatmessage(MessageMetadata ic_message);
   void reset_viewport();
   void preload_chatmessage(QStringList p_contents);
   void handle_chatmessage();
