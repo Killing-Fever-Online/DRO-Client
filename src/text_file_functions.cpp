@@ -20,7 +20,7 @@ QStringList AOApplication::get_callwords()
   return ao_config->callwords().split(" ", DR::SplitBehavior::SkipEmptyParts);
 }
 
-QString AOApplication::ensure_directory(QString p_file)
+bool AOApplication::ensure_directory(QString p_file)
 {
   QString path = QFileInfo(p_file).path();
   // Create the dir if it doesn't exist yet
@@ -30,9 +30,10 @@ QString AOApplication::ensure_directory(QString p_file)
     if (!dir.mkpath("."))
     {
       qWarning() << "Failed to write text to file: " << p_file << " - couldn't create folder.";
-      return;
+      return false;
     }
   }
+  return true;
 }
 
 QString AOApplication::read_note(QString filename)
