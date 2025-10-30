@@ -67,6 +67,9 @@ void Courtroom::create_widgets()
   m_tick_timer->setSingleShot(true);
   m_tick_timer->setTimerType(Qt::PreciseTimer);
 
+  m_text_queue_timer = new QTimer(this);
+  m_text_queue_timer->setSingleShot(true);
+
   m_sound_timer = new QTimer(this);
   m_sound_timer->setSingleShot(true);
 
@@ -438,6 +441,8 @@ void Courtroom::connect_widgets()
   connect(m_sound_timer, SIGNAL(timeout()), this, SLOT(play_sfx()));
 
   connect(m_tick_timer, SIGNAL(timeout()), this, SLOT(next_chat_letter()));
+
+  connect(m_text_queue_timer, &QTimer::timeout, this, &Courtroom::chatmessage_dequeue);
 
   connect(m_flash_timer, SIGNAL(timeout()), this, SLOT(realization_done()));
 

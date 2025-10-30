@@ -36,6 +36,7 @@ struct PairMetadata
 
 struct MessageMetadata
 {
+  QStringList rawData = {};
   QString characterPre = "";
   QString characterFolder = "";
   QString characterOutfit = "";
@@ -62,6 +63,8 @@ struct MessageMetadata
   int speakerClient = -1;
 
   MessageModifiers modifiers;
+
+  bool pairActive = false;
   PairMetadata pairData;
 };
 
