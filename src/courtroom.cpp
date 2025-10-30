@@ -1238,10 +1238,10 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
   // Otherwise, since a message is being parsed, post_chatmessage() will handle the queue instead by starting the timer when needed.
 
   // Make a log entry for the message
-  log_chatmessage(ic_message);
+  log_chatmessage(ic_message, chatmessage_queue.length() > 0);
 }
 
-void Courtroom::log_chatmessage(MessageMetadata ic_message)
+void Courtroom::log_chatmessage(MessageMetadata ic_message, bool is_pending)
 {
   // Obtain the most relevant showname
   QString l_showname = ic_message.userShowname;
@@ -1268,13 +1268,13 @@ void Courtroom::log_chatmessage(MessageMetadata ic_message)
   // If the character id is valid, append it as ic text
   if (l_message_chr_id >= 0 && l_message_chr_id < CharacterManager::get().mServerCharacters.length())
   {
-    append_ic_text(l_showname, l_message, false, false, ic_message.speakerClient, metadata::user::GetCharacterId() == l_message_chr_id);
+    append_ic_text(l_showname, l_message, false, false, ic_message.speakerClient, metadata::user::GetCharacterId() == l_message_chr_id, is_pending);
   }
   else
   {
     // if (l_message_chr_id == SpectatorId)
     // Append if message character ID is spectator ID, or is invalid in some way
-    append_system_text(l_showname, l_message);
+    append_system_text(l_showname, l_message, is_pending);
   }
 
   // Save to textlog regardless if message is system or not
@@ -2017,38 +2017,60 @@ void Courtroom::update_ic_log(bool p_reset_log)
   QTextCursor l_cursor = ui_ic_chatlog->textCursor();
   const QTextCursor::MoveOperation move_type = l_topdown_orientation ? QTextCursor::End : QTextCursor::Start;
 
-  const QTextCharFormat &l_name_format = m_ic_log_format.name;
-  const QTextCharFormat &l_selfname_format = m_ic_log_format.selfname;
-  const QTextCharFormat &l_message_format = m_ic_log_format.message;
-  const QTextCharFormat &l_system_format = m_ic_log_format.system;
-
   QScrollBar *l_scrollbar = ui_ic_chatlog->verticalScrollBar();
   const int l_scroll_pos = l_scrollbar->value();
   const bool l_is_end_scroll_pos = p_reset_log || (l_topdown_orientation ? l_scroll_pos == l_scrollbar->maximum() : l_scroll_pos == l_scrollbar->minimum());
 
-  while (!m_ic_record_queue.isEmpty())
-  {
-    const DRChatRecord l_record = m_ic_record_queue.takeFirst();
-    m_ic_record_list.append(l_record);
+  QTextBlockFormat text_block_format;
+  text_block_format.setTopMargin(0);
 
-    if (!ao_config->log_display_empty_messages_enabled() && l_record.get_message().trimmed().isEmpty())
-      continue;
+  auto insertLog = [&](DRChatRecord l_record, bool is_pending = false) {
+    // Grab the colors of the record
+    QTextCharFormat l_name_format = m_ic_log_format.name;
+    QTextCharFormat l_selfname_format = m_ic_log_format.selfname;
+    QTextCharFormat l_message_format = m_ic_log_format.message;
+    QTextCharFormat l_system_format = m_ic_log_format.system;
+    // self-highlight check
+    QTextCharFormat l_target_name_format = (l_record.is_self() && ao_config->log_display_self_highlight_enabled()) ? l_selfname_format : l_name_format;
 
-    if (!ao_config->log_display_music_switch_enabled() && l_record.is_music())
-      continue;
+    // This record is marked as "pending", meaning it hasn't properly appeared in-character yet
+    if (is_pending)
+    {
+      QColor name_color = l_name_format.foreground().color();
+      name_color.setAlpha(128);
+      l_name_format.setForeground(name_color);
+
+      QColor selfname_color = l_selfname_format.foreground().color();
+      selfname_color.setAlpha(128);
+      l_selfname_format.setForeground(selfname_color);
+
+      QColor message_color = l_message_format.foreground().color();
+      message_color.setAlpha(128);
+      l_message_format.setForeground(message_color);
+
+      QColor system_color = l_system_format.foreground().color();
+      system_color.setAlpha(128);
+      l_system_format.setForeground(system_color);
+
+      QColor target_name_color = l_target_name_format.foreground().color();
+      target_name_color.setAlpha(128);
+      l_target_name_format.setForeground(target_name_color);
+    }
 
     l_cursor.movePosition(move_type);
 
     const QString l_linefeed(QChar::LineFeed);
     if (!l_log_is_empty)
-      l_cursor.insertText(l_linefeed + QString(l_use_newline ? l_linefeed : nullptr), l_message_format);
+    {
+      l_cursor.insertBlock(text_block_format);
+      if (l_use_newline)
+        l_cursor.insertText(l_linefeed, l_message_format);
+    }
     l_log_is_empty = false;
 
     if (!l_topdown_orientation)
       l_cursor.movePosition(move_type);
 
-    // self-highlight check
-    const QTextCharFormat &l_target_name_format = (l_record.is_self() && ao_config->log_display_self_highlight_enabled()) ? l_selfname_format : l_name_format;
 
     if (ao_config->log_display_timestamp_enabled())
     {
@@ -2067,7 +2089,7 @@ void Courtroom::update_ic_log(bool p_reset_log)
     {
       QString l_separator;
       if (l_use_newline)
-        l_separator = QString(QChar::LineFeed);
+        l_separator = l_linefeed;
       else if (!l_record.is_music())
         l_separator = ": ";
       else
@@ -2095,6 +2117,38 @@ void Courtroom::update_ic_log(bool p_reset_log)
         l_cursor.movePosition(l_block_orientation, QTextCursor::KeepAnchor);
       l_cursor.removeSelectedText();
     }
+  };
+
+  // Process the record queue
+  while (!m_ic_record_queue.isEmpty())
+  {
+    // Append the record to the list as Handled
+    const DRChatRecord l_record = m_ic_record_queue.takeFirst();
+    m_ic_record_list.append(l_record);
+
+    // Don't display the record in the log if it's empty (setting)
+    if (!ao_config->log_display_empty_messages_enabled() && l_record.get_message().trimmed().isEmpty())
+      continue;
+    // Don't display the record in the log if it's a music switch (setting)
+    if (!ao_config->log_display_music_switch_enabled() && l_record.is_music())
+      continue;
+
+    insertLog(l_record);
+  }
+
+  // Append spooky ghostly messages of stuff that hasn't happened yet
+  // for (int ghost_i = 0; ghost_i < m_ic_record_pending_list.length(); ++ghost_i)
+  // {
+  //   const DRChatRecord l_record = m_ic_record_pending_list.at(ghost_i);
+
+  //   // Don't display the record in the log if it's empty (setting)
+  //   if (!ao_config->log_display_empty_messages_enabled() && l_record.get_message().trimmed().isEmpty())
+  //     continue;
+  //   // Don't display the record in the log if it's a music switch (setting)
+  //   if (!ao_config->log_display_music_switch_enabled() && l_record.is_music())
+  //     continue;
+
+  //   insertLog(l_record, true);
   }
 
   if (l_is_end_scroll_pos)
@@ -2136,7 +2190,7 @@ void Courtroom::on_ic_chatlog_scroll_bottomup_clicked()
   l_scrollbar->setValue(l_scrollbar->minimum());
 }
 
-void Courtroom::append_ic_text(QString p_name, QString p_line, bool p_system, bool p_music, int p_client_id, bool p_self)
+void Courtroom::append_ic_text(QString p_name, QString p_line, bool p_system, bool p_music, int p_client_id, bool p_self, bool p_pending)
 {
   if (p_name.trimmed().isEmpty())
     p_name = "Anonymous";
@@ -2159,13 +2213,13 @@ void Courtroom::append_ic_text(QString p_name, QString p_line, bool p_system, bo
  * @param p_showname The showname used by the system. Can be an empty string.
  * @param p_line The message that the system is sending.
  */
-void Courtroom::append_system_text(QString p_showname, QString p_line)
+void Courtroom::append_system_text(QString p_showname, QString p_line, bool p_pending)
 {
   if (p_line.isEmpty())
   {
     return;
   }
-  append_ic_text(p_showname, p_line, true, false, NoClientId, false);
+  append_ic_text(p_showname, p_line, true, false, NoClientId, false, p_pending);
 }
 
 void Courtroom::play_preanim()
