@@ -7,6 +7,8 @@
 #include <QComboBox>
 #include <QMainWindow>
 #include <QModelIndex>
+#include <QTreeView>
+#include <QFileSystemModel>
 
 #include <optional>
 
@@ -78,7 +80,8 @@ private:
   RPButton *ui_gallery_play = nullptr;
   RPButton *ui_gallery_toggle = nullptr;
 
-  QListWidget *ui_replay_list = nullptr;
+  QFileSystemModel *ui_replay_file_system_model = nullptr;
+  QTreeView *ui_replay_list = nullptr;
   QComboBox *ui_gallery_packages = nullptr;
   QComboBox *ui_gallery_categories = nullptr;
 

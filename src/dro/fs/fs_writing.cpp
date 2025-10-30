@@ -5,7 +5,7 @@
 
 void DirUtils::CreateInitialFolders()
 {
-  QDir().mkdir("base/screenshots");
-  QDir().mkdir("base/replays");
+  QDir().mkdir("screenshots");
+  QDir().mkdir("logs");
   QDir().mkdir("base/configs");
 }

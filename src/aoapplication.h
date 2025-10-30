@@ -195,6 +195,12 @@ public:
   void load_fonts();
   Courtroom *m_courtroom = nullptr;
 
+
+  // Generate a File Name based on the time you launched the client
+  // This will change to a sub-folder based on server title when you first connect to a server.
+  QString log_timestamp = "yyyy-MM-dd'/'hh.mm.ss.z";
+  QString icchatlogsfilename = QDateTime::currentDateTimeUtc().toString(log_timestamp);
+
 public slots:
   void loading_cancelled();
 

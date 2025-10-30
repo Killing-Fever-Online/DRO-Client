@@ -105,7 +105,7 @@ Courtroom::Courtroom(AOApplication *p_ao_app, QWidget *parent)
   ui_slider_horizontal_axis->setValue(500);
   resetAFKTimer();
 
-  replays::recording::start();
+  replays::recording::start(ao_app->icchatlogsfilename);
 
   if (!ServerMetadata::FeatureSupported("sequence")) return;
   connect(&m_checkTimer, &QTimer::timeout, this, &Courtroom::checkAFKStatus);
@@ -892,9 +892,8 @@ void Courtroom::save_note()
 
 void Courtroom::save_textlog(QString p_text)
 {
-  QString f_file = FS::Paths::BasePath() + icchatlogsfilename;
-
-  ao_app->append_note("[" + QTime::currentTime().toString() + "]" + p_text, f_file);
+  QString log_file = "logs/" + ao_app->icchatlogsfilename + "_LOG.txt";
+  ao_app->append_note("[" + QDateTime::currentDateTimeUtc().toString("hh:mm:ss") + "] " + p_text, log_file);
 }
 
 void Courtroom::append_server_chatmessage(QString p_name, QString p_message)
@@ -903,7 +902,7 @@ void Courtroom::append_server_chatmessage(QString p_name, QString p_message)
   {
     ui_ooc_chatlog->append_chatmessage(p_name, p_message);
     if (ao_config->log_is_recording_enabled())
-      save_textlog("(OOC)" + p_name + ": " + p_message);
+      save_textlog("(OOC) " + p_name + ": " + p_message);
 
     replays::recording::messageSystem(p_name, p_message);
     LuaBridge::LuaEventCall("OnOOCMessage", p_name.toStdString(), p_message.toStdString());
@@ -1211,6 +1210,13 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
     p_chatmessage.append(QString{});
   }
 
+  // If the shout is an ID and not a Shout Name, turn it into a shout name
+  bool l_ok = false;
+  const int shout_id = p_chatmessage[CMShoutModifier].toInt(&l_ok);
+  if (l_ok)
+  {
+    p_chatmessage[CMShoutModifier] = get_shout_name(shout_id);
+  }
   // Submit the message metadata into the recent message stack, and record it for the replay data
   metadata::message::incomingMessage(p_chatmessage);
 
@@ -1354,8 +1360,8 @@ void Courtroom::preload_chatmessage(QStringList p_contents)
   const QString l_emote_anim = m_pre_chatmessage[CMPreAnim];
   const QString l_emote = m_pre_chatmessage[CMEmote];
   const QString l_outfit = m_pre_chatmessage[CMOutfitName];
+  const QString l_shout_name = m_pre_chatmessage[CMShoutModifier];
   const int l_effect_id = m_pre_chatmessage[CMEffectState].toInt();
-  const int l_shout_id = m_pre_chatmessage[CMShoutModifier].toInt();
 
   { // backgrounds
     DRPosition l_position = m_position_map.get_position(l_position_id);
@@ -1371,7 +1377,7 @@ void Courtroom::preload_chatmessage(QStringList p_contents)
   l_file_list.insert(ViewportPairCharacterIdle, ao_app->get_character_sprite_idle_path(metadata::message::pair::getCharacter(), metadata::message::pair::getEmote()));
 
   // shouts
-  l_file_list.insert(ViewportShout, ao_app->get_shout_sprite_path(l_character, get_shout_name(l_shout_id), l_outfit));
+  l_file_list.insert(ViewportShout, ao_app->get_shout_sprite_path(l_character, l_shout_name, l_outfit));
 
   // effects
   QString effect_name = get_effect_name(l_effect_id);
@@ -1576,9 +1582,15 @@ void Courtroom::video_finished()
   }
 
   const QString l_character = m_chatmessage[CMChrName];
-  const int l_shout_index = m_chatmessage[CMShoutModifier].toInt();
 
-  const QString l_shout_name = get_shout_name(l_shout_index);
+  QString l_shout_name = m_chatmessage[CMShoutModifier];
+  // Test if this shout is an index and not a name
+  bool l_ok = false;
+  const int l_shout_index = m_chatmessage[CMShoutModifier].toInt(&l_ok);
+  // If this shout is an index, turn it into a shout name
+  if (l_ok)
+    l_shout_name = get_shout_name(l_shout_index);
+
   if (l_shout_name.isEmpty())
   {
     handle_chatmessage_2();
@@ -2039,7 +2051,13 @@ void Courtroom::update_ic_log(bool p_reset_log)
     const QTextCharFormat &l_target_name_format = (l_record.is_self() && ao_config->log_display_self_highlight_enabled()) ? l_selfname_format : l_name_format;
 
     if (ao_config->log_display_timestamp_enabled())
-      l_cursor.insertText(QString("[%1] ").arg(l_record.get_timestamp().toString("hh:mm")), l_target_name_format);
+    {
+      bool use_utc = false;
+      QDateTime timestamp = l_record.get_timestamp();
+      if (use_utc)
+        timestamp = timestamp.toUTC();
+      l_cursor.insertText(QString("[%1] ").arg(timestamp.toString("hh:mm")), l_target_name_format);
+    }
 
     if (l_record.is_system())
     {
@@ -2732,7 +2750,7 @@ void Courtroom::mod_called(QString p_ip)
     audio::system::Play(ao_app->get_sfx("mod_call").toUtf8());
     ao_app->alert(this);
     if (ao_config->log_is_recording_enabled())
-      save_textlog("(OOC)(MOD CALL)" + p_ip);
+      save_textlog("(OOC) (MOD CALL)" + p_ip);
   }
 }
 

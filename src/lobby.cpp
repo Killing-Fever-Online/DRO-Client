@@ -34,6 +34,8 @@
 #include <QScopedPointer>
 #include <QSettings>
 
+#include <qfilesystemmodel.h>
+#include <qheaderview.h>
 #include <utility>
 #include "dro/fs/fs_reading.h"
 #include "dro/interface/lobby_layout.h"
@@ -115,9 +117,14 @@ Lobby::Lobby(AOApplication *p_ao_app)
 
   ui_cancel = new RPButton(ui_loading_background);
 
+  ui_replay_file_system_model = new QFileSystemModel;
+  ui_replay_file_system_model->setFilter(QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot);
+  ui_replay_file_system_model->setNameFilters(QStringList() << "*.json");
+  ui_replay_file_system_model->setNameFilterDisables(false);
 
-  ui_replay_list = new QListWidget(ui_gallery_background);
+  ui_replay_list = new QTreeView(ui_gallery_background);
   ui_replay_list->setContextMenuPolicy(Qt::CustomContextMenu);
+  ui_replay_list->setSortingEnabled(true);
 
   ui_gallery_packages = new QComboBox(ui_gallery_background);
   ui_gallery_categories = new QComboBox(ui_gallery_background);
@@ -533,37 +540,30 @@ void Lobby::onReplayRowChanged(int row)
 
 void Lobby::onGalleryPackageChanged(int index)
 {
-  ui_replay_list->clear();
-  if(index == 0)
-  {
-    m_currentPackage = "";
-    ui_gallery_categories->clear();
-    ui_gallery_categories->addItem("Default");
-  }
-  else
-  {
+  m_currentPackage = "";
+  if(index > 0)
     m_currentPackage = ui_gallery_packages->currentText();
-    ui_gallery_categories->clear();
-    ui_gallery_categories->addItem("Default");
-
-    ui_gallery_categories->addItems(dro::system::replays::io::packageCategories(m_currentPackage));
-  }
+  ui_gallery_categories->clear();
+  ui_gallery_categories->addItem("Default");
 }
 
 void Lobby::onGalleryCategoryChanged(int index)
 {
-  ui_replay_list->clear();
-  if(index == 0)
-  {
-    m_currentCategory = "";
-  }
-  else
-  {
-    m_currentCategory = ui_gallery_categories->currentText();
-  }
+  QString path = "logs/";
 
-  QStringList lReplays = dro::system::replays::io::packageContents(m_currentPackage, m_currentCategory);
-  ui_replay_list->addItems(lReplays);
+  path = FS::Paths::ApplicationPath() + "/" + path;
+  qInfo() << path;
+  ui_replay_file_system_model->setRootPath(path);
+
+  ui_replay_list->setModel(ui_replay_file_system_model);
+  ui_replay_list->setRootIndex(ui_replay_file_system_model->index(path));
+  // Hide the "size" and "type" columns
+  ui_replay_list->hideColumn(2);
+  ui_replay_list->hideColumn(1);
+  // Make sure the replay names are readable
+  ui_replay_list->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  // QStringList lReplays = dro::system::replays::io::packageContents(m_currentPackage, m_currentCategory);
+  // ui_replay_list->addItems(lReplays);
 }
 
 void Lobby::onGalleryToggle()
@@ -573,7 +573,8 @@ void Lobby::onGalleryToggle()
 
 void Lobby::onGalleryPlay()
 {
-  dro::system::replays::playback::load(ui_replay_list->currentItem()->text(), m_currentPackage, m_currentCategory);
+  QString path = ui_replay_file_system_model->filePath(ui_replay_list->currentIndex());
+  dro::system::replays::playback::loadFile(path);
   m_replayWindow->show();
 }
 

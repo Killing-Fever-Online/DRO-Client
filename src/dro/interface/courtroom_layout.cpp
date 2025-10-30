@@ -628,21 +628,14 @@ namespace courtroom
 
   namespace viewport
   {
-    void screenshot()
+    void screenshot(const QString& outputPath)
     {
       Courtroom *courtroom = dynamic_cast<Courtroom*>(s_CourtroomWidgets["courtroom"]);
       DRGraphicsView *viewport = dynamic_cast<DRGraphicsView*>(s_CourtroomWidgets["viewport"]);
 
       if(courtroom != nullptr && viewport != nullptr)
       {
-        QPixmap courtroomRender = courtroom->grab();
-
-        QRect viewportArea(viewport->x(), viewport->y(), viewport->width(), viewport->height());
-        QPixmap viewportCrop = courtroomRender.copy(viewportArea);
-
-        QString outputFilename = QDateTime::currentDateTime().toString("yyyy-MM-dd (hh.mm.ss.z)'.png'");
-        QString outputPath = "base/screenshots/" + outputFilename;
-
+        QPixmap viewportCrop = getScreenshot();
         if (!viewportCrop.save(outputPath, "PNG"))
           qWarning("Failed to save the screenshot.");
       }
