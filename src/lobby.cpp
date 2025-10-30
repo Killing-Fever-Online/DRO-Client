@@ -557,7 +557,8 @@ void Lobby::onGalleryCategoryChanged(int index)
 
   ui_replay_list->setModel(ui_replay_file_system_model);
   ui_replay_list->setRootIndex(ui_replay_file_system_model->index(path));
-  // Hide the "size" and "type" columns
+  // Hide the "size", "type", "date modified" columns
+  ui_replay_list->hideColumn(3);
   ui_replay_list->hideColumn(2);
   ui_replay_list->hideColumn(1);
   // Make sure the replay names are readable
