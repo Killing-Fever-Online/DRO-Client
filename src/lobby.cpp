@@ -33,6 +33,7 @@
 #include <QProgressBar>
 #include <QScopedPointer>
 #include <QSettings>
+#include <QDesktopServices>
 
 #include <qfilesystemmodel.h>
 #include <qheaderview.h>
@@ -119,7 +120,8 @@ Lobby::Lobby(AOApplication *p_ao_app)
 
   ui_replay_file_system_model = new QFileSystemModel;
   ui_replay_file_system_model->setFilter(QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot);
-  ui_replay_file_system_model->setNameFilters(QStringList() << "*.json");
+  // Both replays and logs are available in the list
+  ui_replay_file_system_model->setNameFilters(QStringList() << "*.json" << "*.txt");
   ui_replay_file_system_model->setNameFilterDisables(false);
 
   ui_replay_list = new QTreeView(ui_gallery_background);
@@ -575,8 +577,17 @@ void Lobby::onGalleryToggle()
 void Lobby::onGalleryPlay()
 {
   QString path = ui_replay_file_system_model->filePath(ui_replay_list->currentIndex());
-  dro::system::replays::playback::loadFile(path);
-  m_replayWindow->show();
+  // If this is a replay, open it as one!
+  if (path.endsWith(".json"))
+  {
+    dro::system::replays::playback::loadFile(path);
+    m_replayWindow->show();
+  }
+  // Otherwise, open the Log file in a file system-defined text editor.
+  else
+  {
+    QDesktopServices::openUrl(QUrl::fromLocalFile(path));
+  }
 }
 
 void Lobby::toggle_public_server_filter()
