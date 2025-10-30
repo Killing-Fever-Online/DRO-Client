@@ -62,8 +62,7 @@ namespace dro::system::replays
 
     void save()
     {
-      if((s_limitLatestMessage - s_limitEarliestMessage) < 240000 ) return;
-      if(s_limitMessageCount < 5 ) return;
+      if(s_limitMessageCount < 1 ) return;
 
       QJsonObject replayJson;
 
