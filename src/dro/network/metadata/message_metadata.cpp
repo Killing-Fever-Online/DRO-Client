@@ -122,7 +122,7 @@ namespace dro::network::metadata::message
     s_CurrentMessage.modifiers.Hidden = message[CMHideCharacter].toInt();
     s_CurrentMessage.modifiers.Flipped = message[CMFlipState].toInt();
     s_CurrentMessage.effect = dro::system::effects::effectById(message[CMEffectState].toInt());
-    s_CurrentMessage.characterShout = message[CMShoutModifier].toInt();
+    s_CurrentMessage.characterShout = message[CMShoutModifier];
     s_CurrentMessage.characterId = message[CMChrId].toInt();
     s_CurrentMessage.speakerClient = message[CMClientId].toInt();
     s_CurrentMessage.modifiers.DelaySFX = message[CMSoundDelay].toInt();

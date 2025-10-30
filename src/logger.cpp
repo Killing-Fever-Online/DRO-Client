@@ -15,8 +15,8 @@
 // Get the default Qt message handler.
 static const QtMessageHandler QT_DEFAULT_MESSAGE_HANDLER = qInstallMessageHandler(0);
 static const int C_MAX_FILE_SIZE = 1e7; // 10 MB
-static const QString C_FILE_NAME = "base/logs/debug.log";
-static const QString C_FILE_NAME_BACKUP = "base/logs/debug_b.log";
+static const QString C_FILE_NAME = "logs/debug.log";
+static const QString C_FILE_NAME_BACKUP = "logs/debug_b.log";
 static bool s_verbose_logging = false;
 
 static bool s_initialized = false;

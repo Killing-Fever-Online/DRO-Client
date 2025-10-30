@@ -13,7 +13,7 @@ namespace dro::system::replays
 
   namespace recording
   {
-    void start();
+    void start(const QString &recName);
 
     void musicChange(QString music);
     void backgroundChange(QString background);

@@ -196,12 +196,24 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     m_loaded_music_list = false;
     m_loaded_area_list = false;
 
+    // Obtain current server info
+    DRServerInfo l_current_server = m_lobby->get_selected_server();
+    // Set up the logging information before courtroom is constructed
+    static QRegularExpression validateFilename(R"([\\/:*?\"<>|\']")");
+    QString log_folder = l_current_server.to_info().remove(validateFilename) + "/";
+
+    this->icchatlogsfilename = QDateTime::currentDateTimeUtc().toString("'" + log_folder + "'" + this->log_timestamp);
+    qInfo() << "setting log/replay name to " << this->icchatlogsfilename;
+
     construct_courtroom();
 
-    DRServerInfo l_current_server = m_lobby->get_selected_server();
     QString l_window_title = "Danganronpa Online (" + get_version_string() + ")";
+
+    // If the server name is defined, display it in the window title
     if (!l_current_server.name.isEmpty())
       l_window_title = l_window_title + ": " + l_current_server.to_info();
+    // Otherwise, don't display the server IP.
+
     m_courtroom->set_window_title(l_window_title);
 
     m_lobby->show_loading_overlay();
@@ -211,7 +223,11 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     send_server_packet(DRPacket("RC"));
 
     dr_discord->set_state(DRDiscord::State::Connected);
-    dr_discord->set_server_name(l_current_server.to_info());
+    // Don't leak the server IP over Discord if its title is undefined!
+    if (!l_current_server.name.isEmpty())
+      dr_discord->set_server_name(l_current_server.to_info());
+    else
+      dr_discord->set_server_name("Unknown Server");
   }
   else if (l_header == "CharsCheck")
   {

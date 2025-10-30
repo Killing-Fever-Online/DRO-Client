@@ -7,6 +7,9 @@
 #include "dro/system/audio.h"
 #include "datatypes.h"
 #include "dro/system/runtime_loop.h"
+#include <QDir>
+#include <QFileInfo>
+#include <QDirIterator>
 
 static ReplayWindow *s_replayWindow = nullptr;
 static RPViewport *s_replayViewport = nullptr;
@@ -47,10 +50,9 @@ namespace dro::system::replays
   namespace recording
   {
 
-    void start()
+  void start(const QString &recName)
     {
-      QString fileName = QDateTime::currentDateTime().toString("yyyy-MM-dd (hh.mm.ss.z)'.json'");
-      s_outputPath =  FS::Paths::BasePath() + "replays/" + fileName;
+      s_outputPath = "logs/" + recName + "_REPLAY.json";
       s_recordingStartTime = RuntimeLoop::uptime();
       s_recordingActive = true;
       s_recordingOperations.clear();
@@ -62,8 +64,7 @@ namespace dro::system::replays
 
     void save()
     {
-      if((s_limitLatestMessage - s_limitEarliestMessage) < 240000 ) return;
-      if(s_limitMessageCount < 5 ) return;
+      if(s_limitMessageCount < 1 ) return;
 
       QJsonObject replayJson;
 
@@ -84,17 +85,27 @@ namespace dro::system::replays
 
       replayJson["script"] = replayOperations;
 
-
-      QJsonDocument lOutputJson(replayJson);
+      QString path = QFileInfo(s_outputPath).path();
+      // Create the dir if it doesn't exist yet
+      QDir dir(path);
+      if (!dir.exists())
+      {
+        if (!dir.mkpath("."))
+        {
+          qWarning() << "Failed to write replay data to file: " << s_outputPath << " - couldn't create folder.";
+          return;
+        }
+      }
 
       QFile file(s_outputPath);
 
-      if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+      if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
       {
-        qDebug() << "Failed to open file for writing.";
+        qWarning() << "Failed to write replay data to file: " << s_outputPath << " - couldn't open file.";
         return;
       }
 
+      QJsonDocument lOutputJson(replayJson);
       QTextStream out(&file);
       out.setCodec("UTF-8");
       out << lOutputJson.toJson();
@@ -292,18 +303,15 @@ namespace dro::system::replays
 
     void load(const QString &name, const QString &package, const QString &category)
     {
-      if(!s_replayWindow) return;
-      s_playbackTimestamp = 0;
-
-      QString filePath = package.isEmpty() ? "base/replays/" : "packages/" + package + "/replays/";
+      QString filePath = package.isEmpty() ? "logs/" : "packages/" + package + "/replays/";
 
       if(!category.isEmpty()) filePath += category + "/";
 
-      filePath.append(name + ".json");
+      filePath.append(name);
+      if(!name.endsWith(".json"))
+        filePath.append(".json");
 
-      ReplayReader(filePath, s_playbackOperations);
-      s_replayWindow->setScrubberData(s_playbackOperations.count());
-      progress();
+      loadFile(filePath);
     }
 
     void setTimestamp(int index)
@@ -421,14 +429,25 @@ namespace dro::system::replays
 
     QStringList packageContents(QString package, QString category)
     {
-      QString path = "replays/";
       if(package.isEmpty())
       {
+        QString path = "logs/";
         if(!category.trimmed().isEmpty()) path += (category + "/");
-        return FS::Paths::GetFileList(path, false, "json", false);
+
+        QStringList fileList = {};
+        QDirIterator it(path, QStringList() << "*.json", QDir::Files, QDirIterator::Subdirectories);
+        while (it.hasNext())
+        {
+          QString filePath = it.next();
+          // Trim out the path from the filename
+          filePath = filePath.remove(0, path.length());
+          fileList.append(filePath);
+        }
+        return fileList;
       }
       else
       {
+        QString path = "replays/";
         if(!category.trimmed().isEmpty()) path += (category + "/");
         return FS::Paths::GetFileList(path, package, "json", false);
       }

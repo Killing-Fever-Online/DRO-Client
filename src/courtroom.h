@@ -375,9 +375,6 @@ private:
   // and should be visible less than a second)
   QTimer *m_flash_timer = nullptr;
 
-  // Generate a File Name based on the time you launched the client
-  QString icchatlogsfilename = QDateTime::currentDateTime().toString("'logs/'yyyy-MM-dd (hh.mm.ss.z)'.txt'");
-
   static const int MINIMUM_MESSAGE_SIZE = 15;
   static const int OPTIMAL_MESSAGE_SIZE = 25;
   QStringList m_pre_chatmessage;

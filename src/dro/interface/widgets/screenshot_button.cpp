@@ -5,6 +5,7 @@
 
 ScreenshotButton::ScreenshotButton(QWidget *parent, AOApplication *p_ao_app) : RPButton(parent)
 {
+  ao_app = p_ao_app;
   connect(this, SIGNAL(clicked()), this, SLOT(OnButtonClicked()));
   UpdateDimensions();
   show();
@@ -19,5 +20,10 @@ void ScreenshotButton::UpdateDimensions()
 void ScreenshotButton::OnButtonClicked()
 {
   audio::system::Play("screenshot");
-  courtroom::viewport::screenshot();
+
+  QString outputFilename = QDateTime::currentDateTimeUtc().toString(ao_app->log_timestamp);
+  QString outputPath = "screenshots/" + outputFilename + ".png";
+  ao_app->ensure_directory(outputPath);
+
+  courtroom::viewport::screenshot(outputPath);
 }

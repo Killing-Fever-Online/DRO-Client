@@ -106,7 +106,7 @@ namespace courtroom
   namespace viewport
   {
     void update();
-    void screenshot();
+    void screenshot(const QString& outputPath);
     QPixmap getScreenshot();
   }
 

@@ -14,6 +14,9 @@ public:
 
 private slots:
   void OnButtonClicked();
+
+protected:
+  AOApplication *ao_app = nullptr;
 };
 
 #endif // SCREENSHOT_BUTTON_H

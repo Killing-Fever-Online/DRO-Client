@@ -25,7 +25,7 @@ void ReplayWindow::setScrubberData(int length)
 {
   setState(ReplayState_Manual);
   m_playbackScrubber->setMinimum(0);
-  m_playbackScrubber->setMaximum(length - 1);
+  m_playbackScrubber->setMaximum(qMax(0, length - 1));
 }
 
 void ReplayWindow::setScrubberPosition(int position)
