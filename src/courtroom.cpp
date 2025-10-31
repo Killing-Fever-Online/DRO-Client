@@ -2102,7 +2102,7 @@ void Courtroom::update_ic_log(bool p_reset_log)
       l_cursor.insertText(l_record.get_name() + l_separator, l_target_name_format);
       l_cursor.insertText(l_record.get_message(), l_message_format);
     }
-  }
+  };
 
   { // remove unneeded blocks
     const int l_max_block_count = m_ic_record_list.length() * (1 + l_use_newline) + (l_use_newline * (m_ic_record_list.length() - 1)) + !l_topdown_orientation;
@@ -2149,7 +2149,7 @@ void Courtroom::update_ic_log(bool p_reset_log)
   //     continue;
 
   //   insertLog(l_record, true);
-  }
+  // }
 
   if (l_is_end_scroll_pos)
   {
