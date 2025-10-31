@@ -978,7 +978,7 @@ void Courtroom::set_widget_layers_legacy()
 
 void Courtroom::set_widgets()
 {
-  pos_size_type courtroomDimensions = ao_app->get_element_dimensions("courtroom", COURTROOM_DESIGN_INI);
+  pos_size_type courtroomDimensions = ao_app->get_element_dimensions("courtroom", COURTROOM_DESIGN_INI, true);
   if (courtroomDimensions.width < 0 || courtroomDimensions.height < 0)
   {
     qWarning() << "W: did not find courtroom width or height in " << COURTROOM_DESIGN_INI;
@@ -986,12 +986,18 @@ void Courtroom::set_widgets()
     courtroomDimensions.height = DEFAULT_HEIGHT;
   }
 
-  m_default_size = QSize(courtroomDimensions.width, courtroomDimensions.height);
+  // We scale the theme manually but we still want to know the raw size to compare against
+  m_raw_size = QSize(courtroomDimensions.width, courtroomDimensions.height);
+  double client_scale = ThemeManager::get().getResize();
 
+  m_default_size = QSize(int((double)courtroomDimensions.width * client_scale), int((double)courtroomDimensions.height * client_scale));
+
+  qInfo() << "theme size: " << m_raw_size << ", scaled: " << m_default_size;
   if (!m_is_maximized)
   {
     resize(m_default_size);
   }
+
 
   if (m_first_theme_loading)
   {

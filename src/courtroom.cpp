@@ -3595,9 +3595,18 @@ void Courtroom::changeEvent(QEvent *event)
   QWidget::changeEvent(event);
   if (event->type() == QEvent::WindowStateChange)
   {
+    bool old_max = m_is_maximized;
     m_is_maximized = windowState().testFlag(Qt::WindowMaximized);
     if (!m_is_maximized)
-      resize(m_default_size);
+      resize(m_raw_size);
+    if (event->spontaneous() && old_max != m_is_maximized)
+    {
+      m_user_pending_resize = false;
+      double scale_x = (double)size().width() / (double)m_raw_size.width();
+      ThemeManager::get().setResize(scale_x);
+      ThemeManager::get().toggleReload();
+      reload_theme();
+    }
   }
 }
 
@@ -3628,6 +3637,23 @@ bool Courtroom::event(QEvent *event)
 
   default:
     break;
+  }
+
+  // We need to check for both types of mouse release, because it can vary on which type happens when resizing.
+  if ((event->type() == QEvent::MouseButtonRelease) ||
+      (event->type() == QEvent::MouseButtonDblClick) ||
+      (event->type() == QEvent::NonClientAreaMouseButtonRelease) ||
+      (event->type() == QEvent::NonClientAreaMouseButtonDblClick)
+      ) {
+    QMouseEvent* pMouseEvent = dynamic_cast<QMouseEvent*>(event);
+    if ((pMouseEvent->button() == Qt::MouseButton::LeftButton) && m_user_pending_resize) {
+      // reset user resizing flag
+      m_user_pending_resize = false;
+      if (size() != m_default_size) {
+        ThemeManager::get().toggleReload();
+        reload_theme();
+      }
+    }
   }
 
   return QWidget::event(event);
@@ -3731,6 +3757,14 @@ void Courtroom::resizeEvent(QResizeEvent *event)
   if (event)
   {
     QSize size = event->size();
+    if (event->spontaneous())
+    {
+      double scale_w = (double)size.width() / (double)m_raw_size.width();
+      double scale_h = (double)size.height() / (double)m_raw_size.height();
+      ThemeManager::get().setResize(scale_h);
+      m_user_pending_resize = true;
+    }
+
     LuaBridge::LuaEventCall("OnWindowResized", size.width(), size.height());
   }
 }
