@@ -250,7 +250,7 @@ public:
   // The process itself is very convoluted and merits separate documentation
   // But the general idea is objection animation->pre animation->talking->idle
   void next_chatmessage(QStringList p_contents);
-  void log_chatmessage(MessageMetadata ic_message, bool is_pending = false);
+  void log_chatmessage(MessageMetadata ic_message);
   void reset_viewport();
   void preload_chatmessage(QStringList p_contents);
   void handle_chatmessage();
@@ -272,9 +272,9 @@ public:
   // newlin this function keeps the chatlog scrolled to the top unless there's
   // text selected or the user isn't already scrolled to the top
   void update_ic_log(bool p_reset_log);
-  void append_ic_text(QString p_name, QString p_line, bool p_system, bool p_music, int p_client_id, bool p_self, bool p_pending = false);
+  void append_ic_text(QString p_name, QString p_line, bool p_system, bool p_music, int p_client_id, bool p_self);
 
-  void append_system_text(QString p_showname, QString p_line, bool p_pending = false);
+  void append_system_text(QString p_showname, QString p_line);
 
   // prints who played the song to IC chat and plays said song(if found on
   // local filesystem) takes in a list where the first element is the song
