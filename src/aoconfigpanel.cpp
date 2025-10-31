@@ -194,6 +194,8 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   refresh_gamemode_list();
   refresh_timeofday_list();
 
+  ui_manual_resize = AO_GUI_WIDGET(QCheckBox, "manual_resize");
+
   // input
   // meta
   connect(m_config, SIGNAL(autosave_changed(bool)), ui_autosave, SLOT(setChecked(bool)));
@@ -260,6 +262,8 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   connect(m_engine, SIGNAL(current_device_changed(DRAudioDevice)), this, SLOT(on_audio_device_changed(DRAudioDevice)));
   connect(m_engine, SIGNAL(device_list_changed(QVector<DRAudioDevice>)), this, SLOT(on_audio_device_list_changed(QVector<DRAudioDevice>)));
   connect(m_engine, SIGNAL(favorite_device_changed(DRAudioDevice)), this, SLOT(on_favorite_audio_device_changed(DRAudioDevice)));
+
+  connect(m_config, SIGNAL(manual_resize_changed(bool)), ui_manual_resize, SLOT(setChecked(bool)));
 
   // meta
   connect(ui_close, SIGNAL(clicked()), this, SLOT(close()));
@@ -340,6 +344,7 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   connect(ui_theme_resize, SIGNAL(valueChanged(double)), m_config, SLOT(setThemeResize(double)));
   connect(ui_fade_duration, SIGNAL(valueChanged(int)), m_config, SLOT(setFadeDuration(int)));
 
+  connect(ui_manual_resize, SIGNAL(toggled(bool)), m_config, SLOT(set_manual_resize(bool)));
   // set values
   // meta
   ui_autosave->setChecked(m_config->autosave());
@@ -447,6 +452,8 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
 
   on_manual_gamemode_selection_changed(m_config->is_manual_gamemode_selection_enabled());
   on_manual_timeofday_selection_changed(m_config->is_manual_timeofday_selection_enabled());
+
+  ui_manual_resize->setChecked(m_config->manual_resize());
 
   ui_about->setText(build_about_message());
 }

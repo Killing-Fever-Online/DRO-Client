@@ -448,6 +448,7 @@ void Courtroom::connect_widgets()
 
   connect(ao_config, SIGNAL(searchable_iniswap_changed(bool)), this, SLOT(update_iniswap_dropdown_searchable()));
   connect(ao_config, SIGNAL(emote_preview_changed(bool)), this, SLOT(on_emote_preview_toggled(bool)));
+
   connect(ui_emote_left, SIGNAL(clicked()), this, SLOT(on_emote_left_clicked()));
   connect(ui_emote_right, SIGNAL(clicked()), this, SLOT(on_emote_right_clicked()));
 
@@ -572,6 +573,7 @@ void Courtroom::connect_widgets()
   connect(ui_player_list_right, SIGNAL(clicked()), this, SLOT(on_player_list_right_clicked()));
   connect(ui_area_look, SIGNAL(clicked()), this, SLOT(on_area_look_clicked()));
 
+  connect(ao_config, &AOConfig::manual_resize_changed, this, &Courtroom::toggle_manual_resize);
 }
 
 

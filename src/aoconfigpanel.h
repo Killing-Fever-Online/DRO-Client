@@ -220,6 +220,8 @@ private:
   QDoubleSpinBox *ui_theme_resize = nullptr;
   QSpinBox *ui_fade_duration = nullptr;
 
+  QCheckBox *ui_manual_resize = nullptr;
+
 
 private slots:
   void updateTabsVisibility(const QModelIndex &current);

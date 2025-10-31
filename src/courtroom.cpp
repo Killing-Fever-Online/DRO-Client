@@ -73,6 +73,18 @@ Courtroom::Courtroom(AOApplication *p_ao_app, QWidget *parent)
 {
   ao_app = p_ao_app;
   ao_config = new AOConfig(this);
+  if (ao_config->manual_resize())
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::WindowMaximizeButtonHint)
+                         & ~Qt::MSWindowsFixedSizeDialogHint);
+  }
+  else
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::MSWindowsFixedSizeDialogHint)
+                         & ~Qt::WindowMaximizeButtonHint);
+  }
   RuntimeLoop::setWindowFocus(true);
 
   m_preloader_sync = new mk2::SpriteReaderSynchronizer(this);
@@ -3410,6 +3422,26 @@ void Courtroom::OnCharRandomClicked()
       DRPacket("CC", {QString::number(metadata::user::getOutgoingClientId()), QString::number(n_real_char), "HDID"}));
 }
 
+void Courtroom::toggle_manual_resize(bool p_toggle)
+{
+  if (p_toggle)
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::WindowMaximizeButtonHint)
+                         & ~Qt::MSWindowsFixedSizeDialogHint);
+  }
+  else
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::MSWindowsFixedSizeDialogHint)
+                         & ~Qt::WindowMaximizeButtonHint);
+  }
+  ThemeManager::get().setResize(ao_config->theme_resize());
+  ThemeManager::get().toggleReload();
+  reload_theme();
+  show();
+}
+
 void Courtroom::SwitchRandomCharacter(QString list)
 {
   int n_real_char = 0;
@@ -3598,7 +3630,7 @@ void Courtroom::changeEvent(QEvent *event)
     bool old_max = m_is_maximized;
     m_is_maximized = windowState().testFlag(Qt::WindowMaximized);
     if (!m_is_maximized)
-      resize(m_raw_size);
+      resize(m_default_size);
     if (event->spontaneous() && old_max != m_is_maximized)
     {
       m_user_pending_resize = false;

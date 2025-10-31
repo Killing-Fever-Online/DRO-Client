@@ -919,6 +919,8 @@ private slots:
   void OnCharRefreshClicked();
   void OnCharRandomClicked();
 
+  void toggle_manual_resize(bool p_toggle);
+
   //Player List
 
   void on_player_list_left_clicked();
