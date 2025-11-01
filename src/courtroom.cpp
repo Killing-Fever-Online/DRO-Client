@@ -3630,7 +3630,7 @@ void Courtroom::changeEvent(QEvent *event)
     bool old_max = m_is_maximized;
     m_is_maximized = windowState().testFlag(Qt::WindowMaximized);
     if (!m_is_maximized)
-      resize(m_default_size);
+      resize(m_raw_size);
     if (event->spontaneous() && old_max != m_is_maximized)
     {
       m_user_pending_resize = false;
