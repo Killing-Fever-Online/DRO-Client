@@ -128,6 +128,8 @@ void set_font(QWidget *p_widget, QString p_identifier, QString ini_file, AOAppli
     l_font.setFamily(font_name);
   }
 
+  // Make sure to adjust according to the Font Resize
+  f_weight = static_cast<int>(f_weight * ThemeManager::get().getFontResize());
 
   l_font.setPointSize(f_weight);
   l_font.setBold(is_bold);
