@@ -330,8 +330,10 @@ public:
 
 private:
   bool m_first_theme_loading = true;
+  QSize m_raw_size;
   QSize m_default_size;
   bool m_is_maximized = false;
+  bool m_user_pending_resize = false;
 
   AOApplication *ao_app = nullptr;
 
@@ -916,6 +918,8 @@ private slots:
   void on_spectator_clicked();
   void OnCharRefreshClicked();
   void OnCharRandomClicked();
+
+  void toggle_manual_resize(bool p_toggle);
 
   //Player List
 

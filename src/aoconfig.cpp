@@ -92,6 +92,7 @@ private:
   bool log_format_use_newline;
   bool log_display_music_switch;
   bool log_is_recording;
+  bool manual_resize;
 
   // performance
   bool focus_performance_mode;
@@ -247,6 +248,7 @@ void AOConfigPrivate::load_file()
   fade_duration = cfg.value("fade_duration", 200).toInt();
   SceneManager::get().setFadeDuration(fade_duration);
   blank_blips = cfg.value("blank_blips").toBool();
+  manual_resize = cfg.value("manual_resize", true).toBool();
 
   // audio update
   audio_engine->set_volume(master_volume);
@@ -362,6 +364,7 @@ void AOConfigPrivate::save_file()
   cfg.setValue("theme_resize", theme_resize);
   cfg.setValue("fade_duration", fade_duration);
   cfg.setValue("blank_blips", blank_blips);
+  cfg.setValue("manual_resize", manual_resize);
 
   cfg.remove("character_ini");
   { // ini swap
@@ -771,6 +774,11 @@ bool AOConfig::blank_blips_enabled() const
 double AOConfig::theme_resize() const
 {
   return d->theme_resize;
+}
+
+bool AOConfig::manual_resize() const
+{
+  return d->manual_resize;
 }
 
 int AOConfig::fade_duration() const
@@ -1306,6 +1314,14 @@ void AOConfig::setThemeResize(double resize)
   d->theme_resize = resize;
   ThemeManager::get().setResize(resize);
   d->invoke_signal("theme_resize_changed", Q_ARG(double, resize));
+}
+
+void AOConfig::set_manual_resize(bool p_enabled)
+{
+  if (d->manual_resize == p_enabled)
+    return;
+  d->manual_resize = p_enabled;
+  d->invoke_signal("manual_resize_changed", Q_ARG(bool, p_enabled));
 }
 
 void AOConfig::setFadeDuration(int duration)

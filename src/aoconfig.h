@@ -88,6 +88,8 @@ public:
   double theme_resize() const;
   int fade_duration() const;
 
+  bool manual_resize() const;
+
   // io
 public slots:
   void load_file();
@@ -161,6 +163,7 @@ public slots:
   void set_blank_blips(bool p_enabled);
   void setThemeResize(double resize);
   void setFadeDuration(int duration);
+  void set_manual_resize(bool p_enabled);
 
   // signals
 signals:
@@ -239,6 +242,7 @@ signals:
   //Theme
   void theme_resize_changed(double);
   void fade_duration_changed(int);
+  void manual_resize_changed(bool);
 };
 
 #endif // AOCONFIG_H

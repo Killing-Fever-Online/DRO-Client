@@ -73,7 +73,25 @@ Courtroom::Courtroom(AOApplication *p_ao_app, QWidget *parent)
 {
   ao_app = p_ao_app;
   ao_config = new AOConfig(this);
+  if (ao_config->manual_resize())
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::WindowMaximizeButtonHint)
+                         & ~Qt::MSWindowsFixedSizeDialogHint);
+  }
+  else
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::MSWindowsFixedSizeDialogHint)
+                         & ~Qt::WindowMaximizeButtonHint);
+  }
   RuntimeLoop::setWindowFocus(true);
+
+  // set black background
+  QPalette pal = palette();
+  pal.setColor(QPalette::Window, Qt::black);
+  setAutoFillBackground(true);
+  setPalette(pal);
 
   m_preloader_sync = new mk2::SpriteReaderSynchronizer(this);
   m_preloader_sync->set_threshold(ao_config->caching_threshold());
@@ -3410,6 +3428,26 @@ void Courtroom::OnCharRandomClicked()
       DRPacket("CC", {QString::number(metadata::user::getOutgoingClientId()), QString::number(n_real_char), "HDID"}));
 }
 
+void Courtroom::toggle_manual_resize(bool p_toggle)
+{
+  if (p_toggle)
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::WindowMaximizeButtonHint)
+                         & ~Qt::MSWindowsFixedSizeDialogHint);
+  }
+  else
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::MSWindowsFixedSizeDialogHint)
+                         & ~Qt::WindowMaximizeButtonHint);
+  }
+  ThemeManager::get().setResize(ao_config->theme_resize());
+  ThemeManager::get().toggleReload();
+  reload_theme();
+  show();
+}
+
 void Courtroom::SwitchRandomCharacter(QString list)
 {
   int n_real_char = 0;
@@ -3595,9 +3633,18 @@ void Courtroom::changeEvent(QEvent *event)
   QWidget::changeEvent(event);
   if (event->type() == QEvent::WindowStateChange)
   {
+    bool old_max = m_is_maximized;
     m_is_maximized = windowState().testFlag(Qt::WindowMaximized);
     if (!m_is_maximized)
-      resize(m_default_size);
+      resize(m_raw_size);
+    if (event->spontaneous() && old_max != m_is_maximized)
+    {
+      m_user_pending_resize = false;
+      double scale_x = (double)size().width() / (double)m_raw_size.width();
+      ThemeManager::get().setResize(scale_x);
+      ThemeManager::get().toggleReload();
+      reload_theme();
+    }
   }
 }
 
@@ -3628,6 +3675,23 @@ bool Courtroom::event(QEvent *event)
 
   default:
     break;
+  }
+
+  // We need to check for both types of mouse release, because it can vary on which type happens when resizing.
+  if ((event->type() == QEvent::MouseButtonRelease) ||
+      (event->type() == QEvent::MouseButtonDblClick) ||
+      (event->type() == QEvent::NonClientAreaMouseButtonRelease) ||
+      (event->type() == QEvent::NonClientAreaMouseButtonDblClick)
+      ) {
+    QMouseEvent* pMouseEvent = dynamic_cast<QMouseEvent*>(event);
+    if ((pMouseEvent->button() == Qt::MouseButton::LeftButton) && m_user_pending_resize) {
+      // reset user resizing flag
+      m_user_pending_resize = false;
+      if (size() != m_default_size) {
+        ThemeManager::get().toggleReload();
+        reload_theme();
+      }
+    }
   }
 
   return QWidget::event(event);
@@ -3731,6 +3795,14 @@ void Courtroom::resizeEvent(QResizeEvent *event)
   if (event)
   {
     QSize size = event->size();
+    if (event->spontaneous())
+    {
+      double scale_w = (double)size.width() / (double)m_raw_size.width();
+      double scale_h = (double)size.height() / (double)m_raw_size.height();
+      ThemeManager::get().setResize(scale_h);
+      m_user_pending_resize = true;
+    }
+
     LuaBridge::LuaEventCall("OnWindowResized", size.width(), size.height());
   }
 }
@@ -3809,12 +3881,12 @@ void Courtroom::construct_playerlist_layout()
 
   set_size_and_pos(ui_player_list, "player_list", COURTROOM_DESIGN_INI, ao_app);
 
-  float resize = ThemeManager::get().getResize();
-  int player_height = (int)((float)50 * resize);
-  int y_spacing = f_spacing.y();
+  double resize = ThemeManager::get().getResize();
+  int player_height = (int)((double)50 * resize);
+  int y_spacing = int((double)f_spacing.y() * resize);
   int max_pages = ceil((SceneManager::get().mPlayerDataList.count() - 1) / m_page_max_player_count);
 
-  player_columns = (( (int)((float)ui_player_list->height() * resize) - player_height) / (y_spacing + player_height)) + 1;
+  player_columns = (int)((((double)ui_player_list->height() * resize) - player_height) / (y_spacing + player_height) + 1);
 
   if(m_current_reportcard_reason != ReportCardReason::None && metadata::user::GetCharacterId() != SpectatorId)
   {
