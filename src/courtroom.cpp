@@ -87,6 +87,12 @@ Courtroom::Courtroom(AOApplication *p_ao_app, QWidget *parent)
   }
   RuntimeLoop::setWindowFocus(true);
 
+  // set black background
+  QPalette pal = palette();
+  pal.setColor(QPalette::Window, Qt::black);
+  setAutoFillBackground(true);
+  setPalette(pal);
+
   m_preloader_sync = new mk2::SpriteReaderSynchronizer(this);
   m_preloader_sync->set_threshold(ao_config->caching_threshold());
 
