@@ -16,6 +16,8 @@ public:
 
 private:
   QPixmap m_pixmap;
+  // Default scaling mode for the pixmap
+  Qt::TransformationMode m_mode = Qt::SmoothTransformation;
 };
 
 #endif
