@@ -193,8 +193,8 @@ void AOConfigPrivate::load_file()
   manual_timeofday = cfg.value("timeofday").toString();
   manual_timeofday_selection = cfg.value("manual_timeofday", false).toBool();
   searchable_iniswap = cfg.value("searchable_iniswap", true).toBool();
-  always_pre = cfg.value("always_pre", true).toBool();
-  chat_tick_interval = cfg.value("chat_tick_interval", 60).toInt();
+  always_pre = cfg.value("always_pre", false).toBool();
+  chat_tick_interval = cfg.value("chat_tick_interval", 40).toInt();
   chat_ratelimit = cfg.value("chat_ratelimit", 500).toInt();
   emote_preview = cfg.value("emote_preview", true).toBool();
   sticky_sfx = cfg.value("sticky_sfx", false).toBool();
