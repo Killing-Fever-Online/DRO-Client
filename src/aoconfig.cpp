@@ -118,6 +118,7 @@ private:
   int blip_rate;
   int punctuation_delay;
   double theme_resize;
+  double font_resize;
   int fade_duration;
   bool blank_blips;
 
@@ -245,6 +246,8 @@ void AOConfigPrivate::load_file()
   punctuation_delay = cfg.value("punctuation_delay", 110).toInt();
   theme_resize = cfg.value("theme_resize", 1).toDouble();
   ThemeManager::get().setResize(theme_resize);
+  font_resize = cfg.value("font_resize", 1).toDouble();
+  ThemeManager::get().setFontResize(font_resize);
   fade_duration = cfg.value("fade_duration", 200).toInt();
   SceneManager::get().setFadeDuration(fade_duration);
   blank_blips = cfg.value("blank_blips").toBool();
@@ -362,6 +365,7 @@ void AOConfigPrivate::save_file()
   cfg.setValue("blip_rate", blip_rate);
   cfg.setValue("punctuation_delay", punctuation_delay);
   cfg.setValue("theme_resize", theme_resize);
+  cfg.setValue("font_resize", font_resize);
   cfg.setValue("fade_duration", fade_duration);
   cfg.setValue("blank_blips", blank_blips);
   cfg.setValue("manual_resize", manual_resize);
@@ -774,6 +778,11 @@ bool AOConfig::blank_blips_enabled() const
 double AOConfig::theme_resize() const
 {
   return d->theme_resize;
+}
+
+double AOConfig::font_resize() const
+{
+  return d->font_resize;
 }
 
 bool AOConfig::manual_resize() const
@@ -1315,6 +1324,16 @@ void AOConfig::setThemeResize(double resize)
   ThemeManager::get().setResize(resize);
   d->invoke_signal("theme_resize_changed", Q_ARG(double, resize));
 }
+
+void AOConfig::setFontResize(double resize)
+{
+  if (d->font_resize == resize)
+    return;
+  d->font_resize = resize;
+  ThemeManager::get().setFontResize(resize);
+  d->invoke_signal("font_resize_changed", Q_ARG(double, resize));
+}
+
 
 void AOConfig::set_manual_resize(bool p_enabled)
 {

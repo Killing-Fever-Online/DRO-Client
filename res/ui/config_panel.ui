@@ -717,27 +717,38 @@
         <layout class="QVBoxLayout" name="verticalLayout_9">
          <item>
           <layout class="QGridLayout" name="gridLayout_4">
-           <item row="6" column="1" colspan="3">
-            <widget class="QDoubleSpinBox" name="themeResizeSpinbox">
-             <property name="decimals">
-              <number>3</number>
+           <item row="4" column="0" rowspan="2">
+            <widget class="QLabel" name="timeofday_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
-             <property name="minimum">
-              <double>0.200000000000000</double>
-             </property>
-             <property name="maximum">
-              <double>4.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.100000000000000</double>
-             </property>
-             <property name="value">
-              <double>1.000000000000000</double>
+             <property name="text">
+              <string>Time of day:</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="1" colspan="2">
-            <widget class="QComboBox" name="theme"/>
+           <item row="8" column="0">
+            <widget class="QLabel" name="manual_resize_label">
+             <property name="text">
+              <string>Manual Resizing:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="theme_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Folder:</string>
+             </property>
+            </widget>
            </item>
            <item row="2" column="1" rowspan="2" colspan="2">
             <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -777,36 +788,29 @@
              </item>
             </layout>
            </item>
-           <item row="4" column="0" rowspan="2">
-            <widget class="QLabel" name="timeofday_label">
+           <item row="4" column="3" rowspan="2">
+            <widget class="QCheckBox" name="manual_timeofday_selection">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="text">
-              <string>Time of day:</string>
+              <string>Manual</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="theme_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Folder:</string>
-             </property>
-            </widget>
+           <item row="1" column="1" colspan="2">
+            <widget class="QComboBox" name="theme"/>
            </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_resize">
+           <item row="7" column="0">
+            <widget class="QLabel" name="font_resize_label">
              <property name="text">
-              <string>Resize:</string>
+              <string>Font Resize:</string>
              </property>
             </widget>
            </item>
@@ -856,35 +860,6 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="0" rowspan="2">
-            <widget class="QLabel" name="gamemode_label">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Gamemode:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="3" rowspan="2">
-            <widget class="QCheckBox" name="manual_timeofday_selection">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Manual</string>
-             </property>
-             <property name="checked">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
            <item row="4" column="1" rowspan="2" colspan="2">
             <layout class="QVBoxLayout" name="verticalLayout_5">
              <item>
@@ -920,7 +895,20 @@
              </item>
             </layout>
            </item>
-           <item row="7" column="1" colspan="3">
+           <item row="2" column="0" rowspan="2">
+            <widget class="QLabel" name="gamemode_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Gamemode:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="1" colspan="3">
             <widget class="QCheckBox" name="manual_resize">
              <property name="text">
               <string>Allowed</string>
@@ -930,10 +918,48 @@
              </property>
             </widget>
            </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="manual_resize_label">
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_resize">
              <property name="text">
-              <string>Manual Resizing:</string>
+              <string>Resize:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="1" colspan="3">
+            <widget class="QDoubleSpinBox" name="themeResizeSpinbox">
+             <property name="decimals">
+              <number>3</number>
+             </property>
+             <property name="minimum">
+              <double>0.200000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>4.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1" colspan="3">
+            <widget class="QDoubleSpinBox" name="font_resize">
+             <property name="decimals">
+              <number>3</number>
+             </property>
+             <property name="minimum">
+              <double>0.200000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>4.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
              </property>
             </widget>
            </item>

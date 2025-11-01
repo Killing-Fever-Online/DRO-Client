@@ -59,6 +59,8 @@ public:
   double getResize();
   void setViewporResize(double size);
   double getViewporResize();
+  void setFontResize(double size);
+  double getFontResize();
 
   void addComboBox(QString name, RPComboBox* lineEdit);
   void refreshComboBox();
@@ -91,6 +93,8 @@ private:
   double mClientResize = 1;
 
   double mViewportResize = 1;
+
+  double mFontResize = 1;
 
 
   QMap<QString, QWidget *> m_TabWidgets = {};
