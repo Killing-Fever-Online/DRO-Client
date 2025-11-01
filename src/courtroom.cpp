@@ -3881,12 +3881,12 @@ void Courtroom::construct_playerlist_layout()
 
   set_size_and_pos(ui_player_list, "player_list", COURTROOM_DESIGN_INI, ao_app);
 
-  float resize = ThemeManager::get().getResize();
-  int player_height = (int)((float)50 * resize);
-  int y_spacing = f_spacing.y();
+  double resize = ThemeManager::get().getResize();
+  int player_height = (int)((double)50 * resize);
+  int y_spacing = int((double)f_spacing.y() * resize);
   int max_pages = ceil((SceneManager::get().mPlayerDataList.count() - 1) / m_page_max_player_count);
 
-  player_columns = (( (int)((float)ui_player_list->height() * resize) - player_height) / (y_spacing + player_height)) + 1;
+  player_columns = (int)((((double)ui_player_list->height() * resize) - player_height) / (y_spacing + player_height) + 1);
 
   if(m_current_reportcard_reason != ReportCardReason::None && metadata::user::GetCharacterId() != SpectatorId)
   {
