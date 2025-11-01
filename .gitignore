@@ -18,3 +18,4 @@ bin/
 3rd/**/*.hpp
 3rd/**/*.lib
 3rd/**/*.cpp
+.vscode/
