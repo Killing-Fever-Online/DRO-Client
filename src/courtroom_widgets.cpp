@@ -243,6 +243,23 @@ void Courtroom::create_widgets()
   ui_sfx_menu_insert_file_name = ui_sfx_menu->addAction(localization::getText("SFX_FILENAME"));
   ui_sfx_menu_insert_caption = ui_sfx_menu->addAction(localization::getText("SFX_CAPTION"));
 
+  // Pop-out evidence list window
+  ui_evidence_list = new QListWidget(this);
+  ui_evidence_list->setSizeAdjustPolicy(QListWidget::AdjustToContents);
+  ui_evidence_list->setWindowTitle("Evidence List");
+  ui_evidence_list->setWindowFlag(Qt::WindowMinMaxButtonsHint, false);
+  ui_evidence_list->setWindowFlag(Qt::Tool);
+  ui_evidence_list->setDragEnabled(true);
+  ui_evidence_list->setViewMode(QListView::IconMode);
+  ui_evidence_list->setIconSize(QSize(70, 70));
+  ui_evidence_list->setSpacing(5);
+  ui_evidence_list->setWordWrap(true);
+  ui_evidence_list->setDropIndicatorShown(true);
+  ui_evidence_list->setMinimumSize(90, 90);
+  ui_evidence_list->resize(QSize(256, 256));
+  ui_evidence_list->setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
+  ui_evidence_list->setAcceptDrops(true);
+
   ui_ic_chat_message = new QWidget(this);
 
   ui_ic_chat_message_field = new QLineEdit(ui_ic_chat_message);

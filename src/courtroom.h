@@ -12,6 +12,7 @@
 #include "dro/interface/widgets/rp_slider.h"
 #include "dro/network/metadata/message_metadata.h"
 #include "dro/network/metadata/user_metadata.h"
+#include "dro/param/evidence/evidence_data.h"
 #include "dro/system/audio/music_player.h"
 #include "drposition.h"
 #include "drthememovie.h"
@@ -211,6 +212,7 @@ public:
   void setPlayerTyping(int client, bool active);
   void construct_emotes();
   void write_area_desc();
+  void set_evidence_list(QVector<EvidenceData> &f_evidence_list);
 
   // Set the showname of the client
   void set_showname(QString p_showname);
@@ -340,6 +342,8 @@ private:
   QStringList m_area_list;
   QStringList m_music_list;
   QString m_current_song;
+
+  QVector<EvidenceData> global_evidence_list;
 
   QSignalMapper *char_button_mapper = nullptr;
 
@@ -555,6 +559,9 @@ private:
 
   QListWidget *animList = nullptr;
   QListWidget *ui_sfx_list = nullptr;
+
+  QListWidget *ui_evidence_list = nullptr;
+
   QVector<DRSfx> m_sfx_list;
   const QString m_sfx_default_file = "__DEFAULT__";
   QColor m_animListIdle;

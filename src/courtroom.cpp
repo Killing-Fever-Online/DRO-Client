@@ -4045,3 +4045,22 @@ void Courtroom::write_area_desc()
   QTextCursor l_cursor = ui_area_desc->textCursor();
   l_cursor.insertText(m_area_description, formatting);
 }
+
+void Courtroom::set_evidence_list(QVector<EvidenceData> &f_evidence_list)
+{
+  global_evidence_list = f_evidence_list;
+
+  ui_evidence_list->clear();
+  for (EvidenceData f_evidence : f_evidence_list)
+  {
+    QListWidgetItem *l_item = new QListWidgetItem(f_evidence.getName(), ui_evidence_list);
+    l_item->setToolTip(f_evidence.getName());
+
+    // TODO: cache this!!!
+    QString path = ao_app->get_evidence_path(f_evidence.getImagePath());
+    QString evidence_image_path = ao_app->find_asset_path({path});//, FS::Formats::StaticImages());
+    QIcon l_evidence_icon = QPixmap(evidence_image_path);
+    l_item->setIcon(l_evidence_icon);
+  }
+  ui_evidence_list->show();
+}

@@ -87,6 +87,7 @@ set(HEADERS
   src/dro/param/background/background_data.h
   src/dro/param/background/background_reader.h
   src/dro/param/background/legacy_background_reader.h
+  src/dro/param/evidence/evidence_data.h
   src/aoapplication.h
   src/aoconfig.h
   src/aoconfigpanel.h
@@ -220,6 +221,7 @@ set(SOURCES
   src/dro/param/background/background_data.cpp
   src/dro/param/background/background_reader.cpp
   src/dro/param/background/legacy_background_reader.cpp
+  src/dro/param/evidence/evidence_data.cpp
   src/aoapplication.cpp
   src/aoconfig.cpp
   src/aoconfigpanel.cpp
@@ -336,3 +338,5 @@ if(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/icons/logo-client.rc")
     target_sources(dro-client PRIVATE ${APP_ICON_RESOURCE_WINDOWS})
 endif()
+
+set_target_properties(dro-client PROPERTIES OUTPUT_NAME "DanganronpaOnline")
