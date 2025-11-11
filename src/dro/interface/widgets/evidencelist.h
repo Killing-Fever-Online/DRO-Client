@@ -7,6 +7,9 @@ class AOApplication;
 #include <QListWidget>
 #include <QLabel>
 #include <QTextEdit>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QMessageBox>
 #include "dro/param/evidence/evidence_data.h"
 
 class EvidenceList : public QListWidget
@@ -16,7 +19,6 @@ public:
   explicit EvidenceList(QWidget *parent = nullptr);
   void addItem(EvidenceData f_evidence);
   void setInfoWindowData(EvidenceData f_evidence);
-
   void setEvidenceList(QVector<EvidenceData> *evi_list);
 
 private:
@@ -24,15 +26,24 @@ private:
 
   QWidget *info_window;
   QLabel *icon_label;
-  QLabel *name_label;
+  QLineEdit *name_edit;
   QTextEdit *desc;
+  QPushButton *close_button;
+  QPushButton *save_button;
+  QPushButton *delete_button;
 
   QVector<EvidenceData> *current_evi_list;
+
+  EvidenceData edited_evidence_data;
 
   int m_current_index = -1;
 
 private slots:
   void onItemDoubleClicked(QListWidgetItem *item);
+  void onCloseClicked();
+  void onSaveClicked();
+  void onDeleteClicked();
+  void onEdited();
 };
 
 #endif // EVIDENCELIST_H

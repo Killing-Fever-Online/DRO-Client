@@ -20,20 +20,31 @@ EvidenceList::EvidenceList(QWidget *parent) : QListWidget(parent), m_app(AOAppli
   setSpacing(5);
   setWordWrap(true);
   setMinimumSize(90, 90);
-  resize(QSize(256, 256));
+  resize(QSize(270, 270));
   setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
 
   info_window = new QWidget(parent);
   info_window->setWindowFlag(Qt::WindowMinMaxButtonsHint, false);
   info_window->setWindowFlag(Qt::Tool);
+  info_window->resize(QSize(356, 300));
+
   AOGuiLoader loader;
   loader.load_from_file(":res/ui/info.ui", info_window);
 
   icon_label = info_window->findChild<QLabel *>("icon_label");
-  name_label = info_window->findChild<QLabel *>("name_label");
+  name_edit = info_window->findChild<QLineEdit *>("name_edit");
   desc = info_window->findChild<QTextEdit *>("desc");
+  close_button = info_window->findChild<QPushButton *>("close_button");
+  save_button = info_window->findChild<QPushButton *>("save_button");
+  delete_button = info_window->findChild<QPushButton *>("delete_button");
 
   connect(this, &QListWidget::itemDoubleClicked, this, &EvidenceList::onItemDoubleClicked);
+  connect(close_button, &QPushButton::clicked, this, &EvidenceList::onCloseClicked);
+  connect(save_button, &QPushButton::clicked, this, &EvidenceList::onSaveClicked);
+  connect(delete_button, &QPushButton::clicked, this, &EvidenceList::onDeleteClicked);
+
+  connect(name_edit, &QLineEdit::textChanged, this, &EvidenceList::onEdited);
+  connect(desc, &QTextEdit::textChanged, this, &EvidenceList::onEdited);
 }
 
 void EvidenceList::setEvidenceList(QVector<EvidenceData> *evi_list)
@@ -61,7 +72,39 @@ void EvidenceList::setEvidenceList(QVector<EvidenceData> *evi_list)
 
   if (!info_window->isHidden())
   {
-    setInfoWindowData(current_evi_list->at(m_current_index));
+    EvidenceData current_evidence = current_evi_list->at(m_current_index);
+    bool is_new = name_edit->text() != current_evidence.getName() ||
+                     desc->toPlainText() != current_evidence.getDesc();
+    if (is_new && save_button->isVisible())
+    {
+      QMessageBox *msgBox = new QMessageBox;
+
+      msgBox->setAttribute(Qt::WA_DeleteOnClose);
+      msgBox->setText(tr("The piece of evidence you've been editing has changed."));
+      msgBox->setInformativeText(tr("Do you wish to keep your changes?"));
+      msgBox->setDetailedText(tr(
+                                  "Name: %1\n"
+                                  "Image: %2\n"
+                                  "Description:\n%3").arg(
+                                      current_evidence.getName(),
+                                      current_evidence.getImagePath(),
+                                      current_evidence.getDesc())
+                              );
+      msgBox->setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+      msgBox->setDefaultButton(QMessageBox::LastButton);
+      // msgBox->setWindowModality(Qt::NonModal);
+      int ret = msgBox->exec();
+      switch (ret) {
+      case QMessageBox::Yes:
+        // "Keep changes"
+        return;
+        break;
+      case QMessageBox::No:
+      default:
+        break;
+      }
+    }
+    setInfoWindowData(current_evidence);
   }
 }
 
@@ -101,12 +144,14 @@ void EvidenceList::setInfoWindowData(EvidenceData f_evidence)
   icon_label->setPixmap(QPixmap(evidence_image_path));
 
   QString name = f_evidence.getName();
-  name_label->setText(name);
+  name_edit->setText(name);
 
   QString desc_text = f_evidence.getDesc();
   desc->setText(desc_text);
 
   info_window->setWindowTitle(name);
+  edited_evidence_data = f_evidence;
+  onEdited();
 }
 
 void EvidenceList::onItemDoubleClicked(QListWidgetItem *item)
@@ -116,4 +161,45 @@ void EvidenceList::onItemDoubleClicked(QListWidgetItem *item)
 
   setInfoWindowData(f_evidence);
   info_window->show();
+}
+
+void EvidenceList::onCloseClicked()
+{
+  if (save_button->isVisible())
+  {
+    QMessageBox::StandardButton reply;
+    QString warning = "You have unsaved changes.\n"
+                      "Discard them?";
+    reply = QMessageBox::warning(info_window, "Warning", warning, QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+    if (reply == QMessageBox::No)
+      return;
+  }
+  info_window->hide();
+}
+
+void EvidenceList::onSaveClicked()
+{
+  // TODO: move this somewhere else so it can be adjusted for json evidence
+  QStringList f_contents;
+  f_contents.append(QString::number(m_current_index));
+  f_contents.append(name_edit->text());
+  f_contents.append(desc->toPlainText());
+  f_contents.append(edited_evidence_data.getImagePath());
+
+  m_app->send_server_packet(DRPacket("EE", f_contents));
+}
+
+void EvidenceList::onDeleteClicked()
+{
+  // TODO: move this somewhere else so it can be adjusted for json evidence
+  m_app->send_server_packet(DRPacket("DE", {QString::number(m_current_index)}));
+  info_window->hide();
+}
+
+void EvidenceList::onEdited()
+{
+  bool is_edited = name_edit->text() != edited_evidence_data.getName() ||
+                   desc->toPlainText() != edited_evidence_data.getDesc();
+  save_button->setVisible(is_edited);
 }
