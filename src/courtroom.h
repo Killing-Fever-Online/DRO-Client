@@ -7,6 +7,7 @@
 #include "dro/interface/menus/bgm_menu.h"
 #include "dro/interface/menus/char_menu.h"
 #include "dro/interface/widgets/bgm_filter.h"
+#include "dro/interface/widgets/evidencelist.h"
 #include "dro/interface/widgets/screenshot_button.h"
 #include "dro/interface/widgets/health_bar.h"
 #include "dro/interface/widgets/rp_slider.h"
@@ -560,7 +561,7 @@ private:
   QListWidget *animList = nullptr;
   QListWidget *ui_sfx_list = nullptr;
 
-  QListWidget *ui_evidence_list = nullptr;
+  EvidenceList *ui_evidence_list = nullptr;
 
   QVector<DRSfx> m_sfx_list;
   const QString m_sfx_default_file = "__DEFAULT__";

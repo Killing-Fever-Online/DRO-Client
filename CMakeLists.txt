@@ -53,6 +53,7 @@ set(HEADERS
   src/dro/interface/widgets/aotimer.h
   src/dro/interface/widgets/viewports/legacy_viewport.h
   src/dro/interface/widgets/viewports/rp_viewport.h
+  src/dro/interface/widgets/evidencelist.h
   src/dro/network/json_packet.h
   src/dro/network/metadata/area_metadata.h
   src/dro/network/metadata/message_metadata.h
@@ -187,6 +188,7 @@ set(SOURCES
   src/dro/interface/widgets/aotimer.cpp
   src/dro/interface/widgets/viewports/legacy_viewport.cpp
   src/dro/interface/widgets/viewports/rp_viewport.cpp
+  src/dro/interface/widgets/evidencelist.cpp
   src/dro/network/json_packet.cpp
   src/dro/network/metadata/area_metadata.cpp
   src/dro/network/metadata/message_metadata.cpp
