@@ -341,4 +341,3 @@ if(WIN32)
     target_sources(dro-client PRIVATE ${APP_ICON_RESOURCE_WINDOWS})
 endif()
 
-set_target_properties(dro-client PROPERTIES OUTPUT_NAME "DanganronpaOnline")
