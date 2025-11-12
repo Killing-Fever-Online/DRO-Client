@@ -2,56 +2,85 @@
 #include "aoapplication.h"
 #include "aoguiloader.h"
 
-EvidenceList::EvidenceList(QWidget *parent) : QListWidget(parent), m_app(AOApplication::getInstance())
+#include "dro/fs/fs_reading.h"
+
+#include <QDir>
+#include <QFileDialog>
+
+EvidenceList::EvidenceList(QWidget *parent) : QWidget(parent), m_app(AOApplication::getInstance())
 {
-  setResizeMode(QListView::Adjust);
+  AOGuiLoader loader;
+  loader.load_from_file(":res/ui/evidencelist.ui", this);
+
   setWindowTitle("Evidence List");
   // setWindowIcon();
   setWindowFlag(Qt::WindowMinMaxButtonsHint, false);
   setWindowFlag(Qt::Tool);
-  setViewMode(QListView::IconMode);
+
+  this->resize(QSize(375, 350));
+
+  close_button = this->findChild<QPushButton *>("close_button");
+  create_button = this->findChild<QPushButton *>("create_button");
+  present_checkbox = this->findChild<QCheckBox*>("present_checkbox");
+
+
+  evidence_list_widget = this->findChild<QListWidget *>("evidence_list_widget");
+
+  evidence_list_widget->setResizeMode(QListView::Adjust);
+  evidence_list_widget->setViewMode(QListView::IconMode);
   // TODO: enable drag and drop
-  setDragEnabled(false);
-  setDragDropMode(QListWidget::NoDragDrop);
-  setDropIndicatorShown(false);
-  setAcceptDrops(false);
+  evidence_list_widget->setDragEnabled(false);
+  evidence_list_widget->setDragDropMode(QListWidget::NoDragDrop);
+  evidence_list_widget->setDropIndicatorShown(false);
+  evidence_list_widget->setAcceptDrops(false);
   //
-  setIconSize(QSize(70, 70));
-  setSpacing(5);
-  setWordWrap(true);
-  setMinimumSize(90, 90);
-  resize(QSize(270, 270));
-  setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
+  evidence_list_widget->setIconSize(QSize(70, 70));
+  evidence_list_widget->setSpacing(5);
+  evidence_list_widget->setWordWrap(true);
+  evidence_list_widget->setMinimumSize(90, 90);
+  evidence_list_widget->setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
 
   info_window = new QWidget(parent);
   info_window->setWindowFlag(Qt::WindowMinMaxButtonsHint, false);
   info_window->setWindowFlag(Qt::Tool);
-  info_window->resize(QSize(356, 300));
+  info_window->resize(QSize(300, 335));
 
-  AOGuiLoader loader;
   loader.load_from_file(":res/ui/info.ui", info_window);
 
   icon_label = info_window->findChild<QLabel *>("icon_label");
   name_edit = info_window->findChild<QLineEdit *>("name_edit");
-  desc = info_window->findChild<QTextEdit *>("desc");
-  close_button = info_window->findChild<QPushButton *>("close_button");
-  save_button = info_window->findChild<QPushButton *>("save_button");
-  delete_button = info_window->findChild<QPushButton *>("delete_button");
+  desc = info_window->findChild<QTextBrowser *>("desc");
+  image_path = info_window->findChild<QLineEdit *>("image_path");
+  image_browse_button = info_window->findChild<QPushButton *>("browse_button");
 
-  connect(this, &QListWidget::itemDoubleClicked, this, &EvidenceList::onItemDoubleClicked);
+  info_close_button = info_window->findChild<QPushButton *>("close_button");
+  info_apply_button = info_window->findChild<QPushButton *>("apply_button");
+  info_delete_button = info_window->findChild<QPushButton *>("delete_button");
+
+  // Signals
+  connect(evidence_list_widget, &QListWidget::itemDoubleClicked, this, &EvidenceList::onItemDoubleClicked);
   connect(close_button, &QPushButton::clicked, this, &EvidenceList::onCloseClicked);
-  connect(save_button, &QPushButton::clicked, this, &EvidenceList::onSaveClicked);
-  connect(delete_button, &QPushButton::clicked, this, &EvidenceList::onDeleteClicked);
+  connect(create_button, &QPushButton::clicked, this, &EvidenceList::onCreateClicked);
+  // TODO: Presenting Evidence
+  // connect(present_checkbox, &QCheckBox::stateChanged, this, &EvidenceList::onPresentToggled);
 
-  connect(name_edit, &QLineEdit::textChanged, this, &EvidenceList::onEdited);
-  connect(desc, &QTextEdit::textChanged, this, &EvidenceList::onEdited);
+  // Submission Actions
+  connect(info_close_button, &QPushButton::clicked, this, &EvidenceList::onInfoCloseClicked);
+  connect(info_apply_button, &QPushButton::clicked, this, &EvidenceList::onInfoApplyClicked);
+  connect(info_delete_button, &QPushButton::clicked, this, &EvidenceList::onInfoDeleteClicked);
+
+  // Editing Actions
+  connect(name_edit, &QLineEdit::textChanged, this, &EvidenceList::onInfoEdited);
+  connect(image_path, &QLineEdit::textChanged, this, &EvidenceList::onInfoImageEdited);
+  connect(image_browse_button, &QPushButton::clicked, this, &EvidenceList::onInfoImageBrowseRequested);
+  connect(desc, &QTextBrowser::textChanged, this, &EvidenceList::onInfoEdited);
 }
 
 void EvidenceList::setEvidenceList(QVector<EvidenceData> *evi_list)
 {
   current_evi_list = evi_list;
 
-  clear();
+  evidence_list_widget->clear();
   for (const EvidenceData &f_evidence : *current_evi_list)
   {
     addItem(f_evidence);
@@ -74,8 +103,9 @@ void EvidenceList::setEvidenceList(QVector<EvidenceData> *evi_list)
   {
     EvidenceData current_evidence = current_evi_list->at(m_current_index);
     bool is_new = name_edit->text() != current_evidence.getName() ||
-                     desc->toPlainText() != current_evidence.getDesc();
-    if (is_new && save_button->isVisible())
+                  image_path->text() != current_evidence.getImagePath() ||
+                  desc->toPlainText() != current_evidence.getDesc();
+    if (is_new && info_apply_button->isVisible())
     {
       QMessageBox *msgBox = new QMessageBox;
 
@@ -108,13 +138,10 @@ void EvidenceList::setEvidenceList(QVector<EvidenceData> *evi_list)
   }
 }
 
-void EvidenceList::addItem(EvidenceData f_evidence)
+QString EvidenceList::getIconPath(QString f_path)
 {
-  QListWidgetItem *l_item = new QListWidgetItem(f_evidence.getName(), this);
-  l_item->setToolTip(f_evidence.getName());
-
   // TODO: cache this!!!
-  QString path = m_app->get_evidence_path(f_evidence.getImagePath());
+  QString path = m_app->get_evidence_path(f_path);
   QString evidence_image_path = m_app->find_asset_path({path});//, FS::Formats::StaticImages());
   if (evidence_image_path.isEmpty())
   {
@@ -124,48 +151,74 @@ void EvidenceList::addItem(EvidenceData f_evidence)
       evidence_image_path = ":data/empty.png";
     }
   }
-  QIcon l_evidence_icon = QPixmap(evidence_image_path);
+  return evidence_image_path;
+}
+
+void EvidenceList::addItem(EvidenceData f_evidence)
+{
+  QListWidgetItem *l_item = new QListWidgetItem(f_evidence.getName(), evidence_list_widget);
+  l_item->setToolTip(f_evidence.getName());
+  QIcon l_evidence_icon = QPixmap(this->getIconPath(f_evidence.getImagePath()));
   l_item->setIcon(l_evidence_icon);
 }
 
 void EvidenceList::setInfoWindowData(EvidenceData f_evidence)
 {
-  // TODO: cache this!!!
-  QString path = m_app->get_evidence_path(f_evidence.getImagePath());
-  QString evidence_image_path = m_app->find_asset_path({path});//, FS::Formats::StaticImages());
-  if (evidence_image_path.isEmpty())
-  {
-    evidence_image_path = m_app->find_asset_path({m_app->get_evidence_path("empty.png")});
-    if (evidence_image_path.isEmpty())
-    {
-      evidence_image_path = ":data/empty.png";
-    }
-  }
-  icon_label->setPixmap(QPixmap(evidence_image_path));
-
   QString name = f_evidence.getName();
   name_edit->setText(name);
+
+  QString imgpath = f_evidence.getImagePath();
+  image_path->setText(imgpath);
 
   QString desc_text = f_evidence.getDesc();
   desc->setText(desc_text);
 
   info_window->setWindowTitle(name);
   edited_evidence_data = f_evidence;
-  onEdited();
+  // we call onInfoImageEdited() here because it also sets the icon
+  onInfoImageEdited();
 }
 
 void EvidenceList::onItemDoubleClicked(QListWidgetItem *item)
 {
-  m_current_index = row(item);
+  if (info_apply_button->isVisible())
+  {
+    QMessageBox::StandardButton reply;
+    QString warning = "You have unsaved changes.\n"
+                      "Discard them?";
+    reply = QMessageBox::warning(info_window, "Warning", warning, QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+    if (reply == QMessageBox::No)
+      return;
+  }
+  m_current_index = evidence_list_widget->row(item);
   EvidenceData f_evidence = current_evi_list->at(m_current_index);
 
   setInfoWindowData(f_evidence);
   info_window->show();
+  info_window->raise();
 }
 
 void EvidenceList::onCloseClicked()
 {
-  if (save_button->isVisible())
+  hide();
+}
+
+void EvidenceList::onCreateClicked()
+{
+  // TODO: move this somewhere else so it can be adjusted for json evidence
+  m_app->send_server_packet(DRPacket("PE", {"<name>", "<description>", "empty.png"}));
+}
+
+void EvidenceList::onPresentToggled(int state)
+{
+  qInfo() << state;
+  //m_app->
+}
+
+void EvidenceList::onInfoCloseClicked()
+{
+  if (info_apply_button->isVisible())
   {
     QMessageBox::StandardButton reply;
     QString warning = "You have unsaved changes.\n"
@@ -178,28 +231,63 @@ void EvidenceList::onCloseClicked()
   info_window->hide();
 }
 
-void EvidenceList::onSaveClicked()
+void EvidenceList::onInfoApplyClicked()
 {
   // TODO: move this somewhere else so it can be adjusted for json evidence
   QStringList f_contents;
   f_contents.append(QString::number(m_current_index));
   f_contents.append(name_edit->text());
   f_contents.append(desc->toPlainText());
-  f_contents.append(edited_evidence_data.getImagePath());
+  f_contents.append(image_path->text());
 
   m_app->send_server_packet(DRPacket("EE", f_contents));
 }
 
-void EvidenceList::onDeleteClicked()
+void EvidenceList::onInfoDeleteClicked()
 {
   // TODO: move this somewhere else so it can be adjusted for json evidence
   m_app->send_server_packet(DRPacket("DE", {QString::number(m_current_index)}));
   info_window->hide();
 }
 
-void EvidenceList::onEdited()
+void EvidenceList::onInfoImageBrowseRequested()
+{
+  QDir dir(FS::Paths::BasePath() + "evidence/");
+  QFileDialog dialog(info_window);
+  // non-native dialog doesn't support icon previews :/
+  // a lot more work will be needed to put into an actual good
+  // evidence icon browser
+
+  // dialog.setOption(QFileDialog::DontUseNativeDialog);
+  dialog.setFileMode(QFileDialog::ExistingFile);
+  dialog.setNameFilter(tr("Images (*.png)"));
+  dialog.setViewMode(QFileDialog::List);
+  dialog.setDirectory(dir);
+
+  QStringList filenames;
+
+  if (dialog.exec())
+    filenames = dialog.selectedFiles();
+
+  if (filenames.size() != 1)
+    return;
+
+  QString filename = filenames.at(0);
+  filename = dir.relativeFilePath(filename);
+  image_path->setText(filename);
+  onInfoImageEdited();
+}
+
+void EvidenceList::onInfoImageEdited()
+{
+  icon_label->setPixmap(QPixmap(this->getIconPath(image_path->text())));
+  onInfoEdited();
+}
+
+void EvidenceList::onInfoEdited()
 {
   bool is_edited = name_edit->text() != edited_evidence_data.getName() ||
+                   image_path->text() != edited_evidence_data.getImagePath() ||
                    desc->toPlainText() != edited_evidence_data.getDesc();
-  save_button->setVisible(is_edited);
+  info_apply_button->setVisible(is_edited);
 }
