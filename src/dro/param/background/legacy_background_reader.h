@@ -9,6 +9,9 @@ public:
   LegacyBackgroundReader();
 
   void execLoadBackground(QString t_backgroundName);
+
+private:
+  void processBackgroundNoIni(QString t_backgroundName);
 };
 
 #endif // LEGACYBACKGROUNDREADER_H
