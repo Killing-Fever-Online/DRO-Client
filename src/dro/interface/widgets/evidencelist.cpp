@@ -53,6 +53,8 @@ EvidenceList::EvidenceList(QWidget *parent) : QWidget(parent), m_app(AOApplicati
   image_path = info_window->findChild<QLineEdit *>("image_path");
   image_browse_button = info_window->findChild<QPushButton *>("browse_button");
 
+  edit_checkbox = info_window->findChild<QCheckBox *>("edit_checkbox");
+
   info_close_button = info_window->findChild<QPushButton *>("close_button");
   info_apply_button = info_window->findChild<QPushButton *>("apply_button");
   info_delete_button = info_window->findChild<QPushButton *>("delete_button");
@@ -70,10 +72,34 @@ EvidenceList::EvidenceList(QWidget *parent) : QWidget(parent), m_app(AOApplicati
   connect(info_delete_button, &QPushButton::clicked, this, &EvidenceList::onInfoDeleteClicked);
 
   // Editing Actions
+  connect(edit_checkbox, &QCheckBox::stateChanged, this, &EvidenceList::setInfoCanEdit);
   connect(name_edit, &QLineEdit::textChanged, this, &EvidenceList::onInfoEdited);
   connect(image_path, &QLineEdit::textChanged, this, &EvidenceList::onInfoImageEdited);
   connect(image_browse_button, &QPushButton::clicked, this, &EvidenceList::onInfoImageBrowseRequested);
   connect(desc, &QTextEdit::textChanged, this, &EvidenceList::onInfoEdited);
+
+  // Default state is non edit
+  setInfoCanEdit(false);
+}
+
+void EvidenceList::setInfoCanEdit(bool toggle)
+{
+  if (toggle)
+  {
+    name_edit->setReadOnly(false);
+    desc->setReadOnly(false);
+    image_path->show();
+    image_browse_button->show();
+    info_delete_button->show();
+  }
+  else
+  {
+    name_edit->setReadOnly(true);
+    desc->setReadOnly(true);
+    image_path->hide();
+    image_browse_button->hide();
+    info_delete_button->hide();
+  }
 }
 
 void EvidenceList::setEvidenceList(QVector<EvidenceData> *evi_list)

@@ -38,6 +38,7 @@ private:
   QLineEdit *name_edit;
   QTextEdit *desc;
   QLineEdit *image_path;
+  QCheckBox *edit_checkbox;
   QPushButton *image_browse_button;
   int m_current_index = -1;
   QPushButton *info_close_button;
@@ -49,6 +50,7 @@ private:
   EvidenceData edited_evidence_data;
 
   QString getIconPath(QString f_path);
+
 
 private slots:
   void onItemDoubleClicked(QListWidgetItem *item);
@@ -66,6 +68,8 @@ private slots:
 
   void onInfoImageEdited();
   void onInfoEdited();
+
+  void setInfoCanEdit(bool toggle);
 };
 
 #endif // EVIDENCELIST_H
