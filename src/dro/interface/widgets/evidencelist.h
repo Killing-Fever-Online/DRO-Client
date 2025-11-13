@@ -51,6 +51,8 @@ private:
 
   QString getIconPath(QString f_path);
 
+  void setInfoDesc(QString f_description);
+
 
 private slots:
   void onItemDoubleClicked(QListWidgetItem *item);
@@ -67,6 +69,7 @@ private slots:
   void onInfoImageBrowseRequested();
 
   void onInfoImageEdited();
+  void onInfoDescEdited();
   void onInfoEdited();
 
   void setInfoCanEdit(bool toggle);

@@ -50,6 +50,18 @@ EvidenceList::EvidenceList(QWidget *parent) : QWidget(parent), m_app(AOApplicati
   icon_label = info_window->findChild<QLabel *>("icon_label");
   name_edit = info_window->findChild<QLineEdit *>("name_edit");
   desc = info_window->findChild<QTextEdit *>("desc");
+
+  // TODO: replace the disgusting hack with actually using QTextBrowser
+  // QTextBrowser has some issues when it's made editable that'd have to be manually resolved though
+  auto &clist = desc->children();
+  foreach (QObject *pObj, clist)
+  {
+    if(pObj->inherits("QWidgetTextControl"))
+      pObj->setProperty("openExternalLinks", true);
+  }
+  // TODO: allow this to be edited through theme stylesheets somehow.
+  desc->document()->setDefaultStyleSheet("a {color: cyan;}");
+
   image_path = info_window->findChild<QLineEdit *>("image_path");
   image_browse_button = info_window->findChild<QPushButton *>("browse_button");
 
@@ -76,10 +88,14 @@ EvidenceList::EvidenceList(QWidget *parent) : QWidget(parent), m_app(AOApplicati
   connect(name_edit, &QLineEdit::textChanged, this, &EvidenceList::onInfoEdited);
   connect(image_path, &QLineEdit::textChanged, this, &EvidenceList::onInfoImageEdited);
   connect(image_browse_button, &QPushButton::clicked, this, &EvidenceList::onInfoImageBrowseRequested);
-  connect(desc, &QTextEdit::textChanged, this, &EvidenceList::onInfoEdited);
+  connect(desc, &QTextEdit::textChanged, this, &EvidenceList::onInfoDescEdited);
 
   // Default state is non edit
-  setInfoCanEdit(false);
+  name_edit->setReadOnly(true);
+  desc->setReadOnly(true);
+  image_path->hide();
+  image_browse_button->hide();
+  info_delete_button->hide();
 }
 
 void EvidenceList::setInfoCanEdit(bool toggle)
@@ -100,6 +116,9 @@ void EvidenceList::setInfoCanEdit(bool toggle)
     image_browse_button->hide();
     info_delete_button->hide();
   }
+
+  // make sure links are clickable
+  setInfoDesc(desc->toPlainText());
 }
 
 void EvidenceList::setEvidenceList(QVector<EvidenceData> *evi_list)
@@ -197,12 +216,34 @@ void EvidenceList::setInfoWindowData(EvidenceData f_evidence)
   image_path->setText(imgpath);
 
   QString desc_text = f_evidence.getDesc();
-  desc->setText(desc_text);
+  setInfoDesc(desc_text);
 
   info_window->setWindowTitle(name);
   edited_evidence_data = f_evidence;
   // we call onInfoImageEdited() here because it also sets the icon
   onInfoImageEdited();
+}
+
+void EvidenceList::setInfoDesc(QString f_description)
+{
+  desc->blockSignals(true);
+  if (edit_checkbox->isChecked())
+  {
+    desc->setTextInteractionFlags(desc->textInteractionFlags() & ~Qt::LinksAccessibleByMouse);
+    desc->setHtml(f_description.toHtmlEscaped().replace("\n", "<br />"));
+  }
+  else
+  {
+    QString l_description = f_description.toHtmlEscaped();
+    const QRegExp l_regex("(https?://[^\\s/$.?#].[^\\s]*)");
+    if (l_description.contains(l_regex))
+    {
+      l_description.replace(l_regex, "<a href=\"\\1\">\\1</a>");
+    }
+    desc->setTextInteractionFlags(desc->textInteractionFlags() | Qt::LinksAccessibleByMouse);
+    desc->setHtml(l_description.replace("\n", "<br />"));
+  }
+  desc->blockSignals(false);
 }
 
 void EvidenceList::onItemDoubleClicked(QListWidgetItem *item)
@@ -319,6 +360,11 @@ void EvidenceList::onInfoImageBrowseRequested()
 void EvidenceList::onInfoImageEdited()
 {
   icon_label->setPixmap(QPixmap(this->getIconPath(image_path->text())));
+  onInfoEdited();
+}
+
+void EvidenceList::onInfoDescEdited()
+{
   onInfoEdited();
 }
 
