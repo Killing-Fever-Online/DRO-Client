@@ -7,7 +7,7 @@ class AOApplication;
 #include <QCheckBox>
 #include <QListWidget>
 #include <QLabel>
-#include <QTextBrowser>
+#include <QTextEdit>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QMessageBox>
@@ -36,7 +36,7 @@ private:
   // Info Window vars
   QLabel *icon_label;
   QLineEdit *name_edit;
-  QTextBrowser *desc;
+  QTextEdit *desc;
   QLineEdit *image_path;
   QPushButton *image_browse_button;
   int m_current_index = -1;

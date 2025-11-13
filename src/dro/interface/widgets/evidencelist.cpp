@@ -43,13 +43,13 @@ EvidenceList::EvidenceList(QWidget *parent) : QWidget(parent), m_app(AOApplicati
   info_window = new QWidget(parent);
   info_window->setWindowFlag(Qt::WindowMinMaxButtonsHint, false);
   info_window->setWindowFlag(Qt::Tool);
-  info_window->resize(QSize(300, 335));
+  info_window->resize(QSize(430, 340));
 
   loader.load_from_file(":res/ui/info.ui", info_window);
 
   icon_label = info_window->findChild<QLabel *>("icon_label");
   name_edit = info_window->findChild<QLineEdit *>("name_edit");
-  desc = info_window->findChild<QTextBrowser *>("desc");
+  desc = info_window->findChild<QTextEdit *>("desc");
   image_path = info_window->findChild<QLineEdit *>("image_path");
   image_browse_button = info_window->findChild<QPushButton *>("browse_button");
 
@@ -73,7 +73,7 @@ EvidenceList::EvidenceList(QWidget *parent) : QWidget(parent), m_app(AOApplicati
   connect(name_edit, &QLineEdit::textChanged, this, &EvidenceList::onInfoEdited);
   connect(image_path, &QLineEdit::textChanged, this, &EvidenceList::onInfoImageEdited);
   connect(image_browse_button, &QPushButton::clicked, this, &EvidenceList::onInfoImageBrowseRequested);
-  connect(desc, &QTextBrowser::textChanged, this, &EvidenceList::onInfoEdited);
+  connect(desc, &QTextEdit::textChanged, this, &EvidenceList::onInfoEdited);
 }
 
 void EvidenceList::setEvidenceList(QVector<EvidenceData> *evi_list)
