@@ -580,12 +580,25 @@ void Courtroom::update_background_scene()
     ui_vp_desk->set_file_name(l_file_name);
   }
 
+  BackgroundData *bg = SceneManager::get().getCurrentBackground();
+  set_pos_dropdown(bg->getPositions().keys());
+
   if (m_preloader_sync->is_waiting())
   {
     preload_chatmessage(m_pre_chatmessage);
   }
 
   display_background_scene();
+}
+
+void Courtroom::set_pos_dropdown(QStringList pos_list)
+{
+  ui_pos_dropdown->clear();
+  ui_pos_dropdown->addItem(localization::getText("DEFAULT"));
+  for (QString key : pos_list)
+  {
+    ui_pos_dropdown->addItem(key, key);
+  }
 }
 
 void Courtroom::display_background_scene()
@@ -2723,6 +2736,11 @@ void Courtroom::set_character_position(QString p_pos)
       l_pos_index = l_new_pos_index;
     }
   }
+  else
+  {
+    // Set to default pos
+    l_pos_index = 0;
+  }
   ui_pos_dropdown->setCurrentIndex(l_pos_index);
 
   // enable judge mechanics if appropriate
@@ -2894,8 +2912,12 @@ void Courtroom::on_ooc_message_return_pressed()
 
 void Courtroom::on_pos_dropdown_changed()
 {
-  const QString l_pos = get_current_position();
-  send_ooc_packet("/pos " + l_pos);
+  // Sending the OOC packet spam can result in us being forcibly disconnected
+  // Our new pos is set when we send the message anyway, so rely on that instead.
+
+  // const QString l_pos = get_current_position();
+  // send_ooc_packet("/pos " + l_pos);
+
   ui_ic_chat_message_field->setFocus();
 }
 

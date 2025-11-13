@@ -23,7 +23,7 @@ public:
   QString getBackgroundPath(QString t_position);
   QString getForegroundPath(QString t_position);
   DRBackgroundSettings getBackgroundSettings();
-
+  BackgroundData *getCurrentBackground();
 
   RPLabel *CreateTransition(QWidget *parents, AOApplication* ao_app, DRGraphicsView *viewport);
   RPLabel *GetTransition();

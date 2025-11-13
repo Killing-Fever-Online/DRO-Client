@@ -170,6 +170,9 @@ public:
   // updates background based on the position given from the chatmessage; will reset preloading if active
   void update_background_scene();
 
+  // Sets the positions dropdown to a list of positions provided
+  void set_pos_dropdown(QStringList pos_list);
+
   // displays the current background
   void display_background_scene();
 

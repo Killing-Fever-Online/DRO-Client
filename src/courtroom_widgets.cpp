@@ -193,6 +193,10 @@ void Courtroom::create_widgets()
     l_view->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAsNeeded);
   }
 
+  ui_pos_dropdown = new QComboBox(this);
+  // Do not hard code position dropdown!
+  ui_pos_dropdown->addItem(localization::getText("DEFAULT"));
+
   ui_ic_chatlog = new RPTextEdit("ic_chatlog", this);
   ui_ic_chatlog->setReadOnly(true);
   ui_ic_chatlog->set_auto_align(false);
