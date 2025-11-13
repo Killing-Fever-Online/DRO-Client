@@ -7,6 +7,7 @@
 #include "debug_functions.h"
 #include "drdiscord.h"
 #include "dro/network/metadata/tracklist_metadata.h"
+#include "dro/param/evidence/evidence_data.h"
 #include "drpacket.h"
 #include "modules/managers/character_manager.h"
 #include "dro/system/localization.h"
@@ -592,5 +593,26 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     if (ao_config->showname() != l_showname)
       m_courtroom->ignore_next_showname();
     ao_config->set_showname(l_showname);
+  }
+  // Load Evidence Packet (legacy support)
+  else if (l_header == "LE")
+  {
+    if (!is_courtroom_constructed)
+      return;
+    qInfo() << "Evidence packet received!";
+    QVector<EvidenceData> f_evi_list;
+    for (int i = 0; i < l_content.length(); ++i)
+    {
+      const QString &i_value = l_content.at(i);
+      QStringList sub_contents = i_value.split("&");
+      if (sub_contents.size() < 3)
+        continue;
+      f_evi_list.append(EvidenceData(sub_contents.at(0), sub_contents.at(1), sub_contents.at(2)));
+    }
+    m_courtroom->set_evidence_list(f_evi_list);
+  }
+  else
+  {
+    qWarning() << "Unknown packet received: " << p_packet.to_string();
   }
 }

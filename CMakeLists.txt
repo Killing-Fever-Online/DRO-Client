@@ -53,6 +53,7 @@ set(HEADERS
   src/dro/interface/widgets/aotimer.h
   src/dro/interface/widgets/viewports/legacy_viewport.h
   src/dro/interface/widgets/viewports/rp_viewport.h
+  src/dro/interface/widgets/evidencelist.h
   src/dro/network/json_packet.h
   src/dro/network/metadata/area_metadata.h
   src/dro/network/metadata/message_metadata.h
@@ -87,6 +88,7 @@ set(HEADERS
   src/dro/param/background/background_data.h
   src/dro/param/background/background_reader.h
   src/dro/param/background/legacy_background_reader.h
+  src/dro/param/evidence/evidence_data.h
   src/aoapplication.h
   src/aoconfig.h
   src/aoconfigpanel.h
@@ -186,6 +188,7 @@ set(SOURCES
   src/dro/interface/widgets/aotimer.cpp
   src/dro/interface/widgets/viewports/legacy_viewport.cpp
   src/dro/interface/widgets/viewports/rp_viewport.cpp
+  src/dro/interface/widgets/evidencelist.cpp
   src/dro/network/json_packet.cpp
   src/dro/network/metadata/area_metadata.cpp
   src/dro/network/metadata/message_metadata.cpp
@@ -220,6 +223,7 @@ set(SOURCES
   src/dro/param/background/background_data.cpp
   src/dro/param/background/background_reader.cpp
   src/dro/param/background/legacy_background_reader.cpp
+  src/dro/param/evidence/evidence_data.cpp
   src/aoapplication.cpp
   src/aoconfig.cpp
   src/aoconfigpanel.cpp
@@ -336,3 +340,4 @@ if(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/icons/logo-client.rc")
     target_sources(dro-client PRIVATE ${APP_ICON_RESOURCE_WINDOWS})
 endif()
+

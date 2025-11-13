@@ -4008,6 +4008,7 @@ void Courtroom::on_area_look_clicked()
     m_current_reportcard_reason = ReportCardReason::None;
     construct_playerlist_layout();
   }
+  ui_evidence_list->show();
 }
 
 void Courtroom::write_area_desc()
@@ -4044,4 +4045,10 @@ void Courtroom::write_area_desc()
   ui_area_desc->clear();
   QTextCursor l_cursor = ui_area_desc->textCursor();
   l_cursor.insertText(m_area_description, formatting);
+}
+
+void Courtroom::set_evidence_list(QVector<EvidenceData> &f_evidence_list)
+{
+  global_evidence_list = f_evidence_list;
+  ui_evidence_list->setEvidenceList(&global_evidence_list);
 }

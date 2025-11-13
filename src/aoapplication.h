@@ -77,6 +77,8 @@ public:
   QString get_background_path(QString p_background_name);
   QString get_background_dir_path(QString p_identifier);
 
+  QString get_evidence_path(QString p_identifier);
+
   bool is_safe_path(QString p_file);
 
   QString find_asset_path(QStringList file_list, QStringList extension_list);

@@ -243,6 +243,9 @@ void Courtroom::create_widgets()
   ui_sfx_menu_insert_file_name = ui_sfx_menu->addAction(localization::getText("SFX_FILENAME"));
   ui_sfx_menu_insert_caption = ui_sfx_menu->addAction(localization::getText("SFX_CAPTION"));
 
+  // Pop-out evidence list window
+  ui_evidence_list = new EvidenceList(this);
+
   ui_ic_chat_message = new QWidget(this);
 
   ui_ic_chat_message_field = new QLineEdit(ui_ic_chat_message);
@@ -1349,6 +1352,9 @@ void Courtroom::set_widgets()
     QLineEdit *f_line = notepicker->findChild<QLineEdit *>();
     set_stylesheet(f_line, "[LINE EDIT]", COURTROOM_STYLESHEETS_CSS, ao_app);
   }
+
+  set_stylesheet(ui_evidence_list, "[EVIDENCE]", COURTROOM_STYLESHEETS_CSS, ao_app);
+  set_stylesheet(ui_evidence_list->info_window, "[EVIDENCE INFO]", COURTROOM_STYLESHEETS_CSS, ao_app);
 
   adapt_numbered_items(ui_timers, "timer_number", "timer");
   set_fonts();
