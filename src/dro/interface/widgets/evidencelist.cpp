@@ -271,6 +271,18 @@ void EvidenceList::onInfoApplyClicked()
 
 void EvidenceList::onInfoDeleteClicked()
 {
+  // Ctrl+Shift etc. will not be recognized as valid, you need to specifically hold shift only
+  if (QGuiApplication::keyboardModifiers() != Qt::ShiftModifier)
+  {
+    QMessageBox::StandardButton reply;
+    QString warning = "Are you sure you want to delete this evidence?\n"
+                      "Hold 'Shift' when deleting to bypass this warning.";
+    reply = QMessageBox::warning(info_window, "Warning", warning, QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+    if (reply == QMessageBox::No)
+      return;
+  }
+
   // TODO: move this somewhere else so it can be adjusted for json evidence
   m_app->send_server_packet(DRPacket("DE", {QString::number(m_current_index)}));
   info_window->hide();
