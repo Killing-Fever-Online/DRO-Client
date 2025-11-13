@@ -611,6 +611,14 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     }
     m_courtroom->set_evidence_list(f_evi_list);
   }
+  // Set Dropdown Packet
+  else if (l_header == "SD")
+  {
+    if (!is_courtroom_constructed || l_content.isEmpty())
+      return;
+
+    m_courtroom->set_pos_dropdown(l_content.at(0).split("*"));
+  }
   else
   {
     qWarning() << "Unknown packet received: " << p_packet.to_string();
