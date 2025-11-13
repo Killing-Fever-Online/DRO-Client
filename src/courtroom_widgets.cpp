@@ -1353,6 +1353,9 @@ void Courtroom::set_widgets()
     set_stylesheet(f_line, "[LINE EDIT]", COURTROOM_STYLESHEETS_CSS, ao_app);
   }
 
+  set_stylesheet(ui_evidence_list, "[EVIDENCE]", COURTROOM_STYLESHEETS_CSS, ao_app);
+  set_stylesheet(ui_evidence_list->info_window, "[EVIDENCE INFO]", COURTROOM_STYLESHEETS_CSS, ao_app);
+
   adapt_numbered_items(ui_timers, "timer_number", "timer");
   set_fonts();
 

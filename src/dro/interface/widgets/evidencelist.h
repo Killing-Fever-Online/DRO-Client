@@ -22,6 +22,8 @@ public:
   void setInfoWindowData(EvidenceData f_evidence);
   void setEvidenceList(QVector<EvidenceData> *evi_list);
 
+  QWidget *info_window;
+
 private:
   AOApplication *m_app;
 
@@ -32,7 +34,6 @@ private:
   QVector<EvidenceData> *current_evi_list;
 
   // Info Window vars
-  QWidget *info_window;
   QLabel *icon_label;
   QLineEdit *name_edit;
   QTextBrowser *desc;
