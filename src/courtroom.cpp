@@ -1373,7 +1373,7 @@ void Courtroom::reset_viewport()
   l_chatmessage[CMChrId] = QString::number(SpectatorId);
   l_chatmessage[CMHideCharacter] = "1";
   l_chatmessage[CMClientId] = QString::number(SpectatorId);
-  l_chatmessage[CMPosition] = m_chatmessage.value(CMPosition, "wit");
+  l_chatmessage[CMPosition] = get_current_position(); //m_chatmessage.value(CMPosition, "wit");
 
   next_chatmessage(l_chatmessage);
 }

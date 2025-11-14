@@ -321,6 +321,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
   }
   else if (l_header == "LIST_REASON")
   {
+    if (!is_courtroom_constructed)
+      return;
     int prompt = l_content.at(0).toInt();
 
     if(!LuaBridge::LuaEventCall("AreaDescriptionEvent", l_content.at(1).toStdString()))

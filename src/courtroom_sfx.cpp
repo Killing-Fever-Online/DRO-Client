@@ -202,5 +202,6 @@ void Courtroom::on_sfx_menu_insert_caption_triggered()
       l_caption = l_match.captured(1);
     }
     ui_ic_chat_message_field->insert(l_caption);
+    ui_ic_chat_message_field->setFocus();
   }
 }
