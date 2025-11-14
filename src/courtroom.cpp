@@ -593,12 +593,15 @@ void Courtroom::update_background_scene()
 
 void Courtroom::set_pos_dropdown(QStringList pos_list)
 {
+  QString prev_pos = ui_pos_dropdown->currentData().toString();
+
   ui_pos_dropdown->clear();
   ui_pos_dropdown->addItem(localization::getText("DEFAULT"));
   for (QString key : pos_list)
   {
     ui_pos_dropdown->addItem(key, key);
   }
+  set_character_position(prev_pos);
 }
 
 void Courtroom::display_background_scene()
@@ -651,10 +654,13 @@ DRAreaBackground Courtroom::get_background()
   return m_background;
 }
 
-void Courtroom::set_background(DRAreaBackground p_background)
+void Courtroom::set_background(DRAreaBackground p_background, QString pos)
 {
   replays::recording::backgroundChange(p_background.background);
   m_background = p_background;
+  // If the position argument is not empty, set it to the given position
+  if (!pos.isEmpty())
+    m_chatmessage[CMPosition] = pos;
 
   QStringList l_background_list{m_background.background};
   for (auto it = m_background.background_tod_map.cbegin(); it != m_background.background_tod_map.cend(); ++it)
@@ -897,8 +903,23 @@ QString Courtroom::get_current_position()
 {
   if (ui_pos_dropdown->currentIndex() == DefaultPositionIndex)
   {
-    return actor::user::retrieve()->GetSide();
+    ActorData *actor = actor::user::retrieve();
+    QString pos = "wit";
+    if (actor)
+      pos = actor->GetSide();
+    // If our pos dropdown doesn't have the default position we want
+    if (ui_pos_dropdown->findData(pos) == -1)
+    {
+      // If our pos dropdown EXCLUSIVELY has the "default" postion for some reason
+      if (ui_pos_dropdown->count() <= 1)
+        return "wit";
+      // Grab the immediate next pos after "Default"
+      return ui_pos_dropdown->itemData(1).toString();
+    }
+    // Otherwise, return the default position
+    return pos;
   }
+  // Return the current dropdown selected pos
   return ui_pos_dropdown->currentData(Qt::UserRole).toString();
 }
 
@@ -1373,7 +1394,7 @@ void Courtroom::reset_viewport()
   l_chatmessage[CMChrId] = QString::number(SpectatorId);
   l_chatmessage[CMHideCharacter] = "1";
   l_chatmessage[CMClientId] = QString::number(SpectatorId);
-  l_chatmessage[CMPosition] = get_current_position(); //m_chatmessage.value(CMPosition, "wit");
+  l_chatmessage[CMPosition] = m_chatmessage.value(CMPosition, "wit");
 
   next_chatmessage(l_chatmessage);
 }
@@ -2725,22 +2746,21 @@ void Courtroom::set_hp_bar(int p_bar, int p_state)
 
 void Courtroom::set_character_position(QString p_pos)
 {
-  const bool l_is_default_pos = p_pos == actor::user::retrieve()->GetSide();
+  int l_pos_index = -1;
 
-  int l_pos_index = ui_pos_dropdown->currentIndex();
-  if (!l_is_default_pos)
-  {
-    const int l_new_pos_index = ui_pos_dropdown->findData(p_pos);
-    if (l_new_pos_index != -1)
-    {
-      l_pos_index = l_new_pos_index;
-    }
-  }
-  else
-  {
-    // Set to default pos
+  ActorData *actor = actor::user::retrieve();
+  // If this is the default pos
+  if (actor && p_pos == actor->GetSide())
     l_pos_index = 0;
-  }
+  // NOT the default pos
+  else
+    // check if we have that pos in our dropdown
+    l_pos_index = ui_pos_dropdown->findData(p_pos);
+
+  // couldn't find the pos, fall back to our current index
+  if (l_pos_index == -1)
+    l_pos_index = ui_pos_dropdown->currentIndex();
+
   ui_pos_dropdown->setCurrentIndex(l_pos_index);
 
   // enable judge mechanics if appropriate
