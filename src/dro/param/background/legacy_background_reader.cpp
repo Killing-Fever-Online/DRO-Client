@@ -65,8 +65,10 @@ void LegacyBackgroundReader::processBackgroundNoIni(QString t_backgroundName)
   QStringList blacklist = {};
 
   // Scan directory for valid positions
-  for (auto &filename : l_file_list)
+  for (QString filename : l_file_list)
   {
+    // make sure filename is lowercase
+    filename = filename.toLower();
     QString basicname = filename;
     bool valid_extension = false;
     // NOTE: this will have unintended behavior if both a .png and .webp file exists in the same folder.
