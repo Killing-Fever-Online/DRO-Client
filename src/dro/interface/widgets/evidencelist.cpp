@@ -230,7 +230,7 @@ void EvidenceList::setInfoDesc(QString f_description)
   if (edit_checkbox->isChecked())
   {
     desc->setTextInteractionFlags(desc->textInteractionFlags() & ~Qt::LinksAccessibleByMouse);
-    desc->setHtml(f_description.toHtmlEscaped().replace("\n", "<br />"));
+    desc->setPlainText(f_description);//.toHtmlEscaped().replace("\n", "<br />"));
   }
   else
   {
