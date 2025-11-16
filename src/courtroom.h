@@ -144,7 +144,7 @@ public:
   // sets the current background to argument. also does some checks to see if
   // it's a legacy bg
   DRAreaBackground get_background();
-  void set_background(DRAreaBackground p_area_bg);
+  void set_background(DRAreaBackground p_area_bg, QString pos = "");
 
   void set_tick_rate(const int tick_rate);
 

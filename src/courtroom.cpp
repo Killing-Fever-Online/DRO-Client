@@ -593,12 +593,15 @@ void Courtroom::update_background_scene()
 
 void Courtroom::set_pos_dropdown(QStringList pos_list)
 {
+  QString prev_pos = ui_pos_dropdown->currentData().toString();
+
   ui_pos_dropdown->clear();
   ui_pos_dropdown->addItem(localization::getText("DEFAULT"));
   for (QString key : pos_list)
   {
     ui_pos_dropdown->addItem(key, key);
   }
+  set_character_position(prev_pos);
 }
 
 void Courtroom::display_background_scene()
@@ -651,10 +654,13 @@ DRAreaBackground Courtroom::get_background()
   return m_background;
 }
 
-void Courtroom::set_background(DRAreaBackground p_background)
+void Courtroom::set_background(DRAreaBackground p_background, QString pos)
 {
   replays::recording::backgroundChange(p_background.background);
   m_background = p_background;
+  // If the position argument is not empty, set it to the given position
+  if (!pos.isEmpty())
+    m_chatmessage[CMPosition] = pos;
 
   QStringList l_background_list{m_background.background};
   for (auto it = m_background.background_tod_map.cbegin(); it != m_background.background_tod_map.cend(); ++it)
@@ -897,8 +903,23 @@ QString Courtroom::get_current_position()
 {
   if (ui_pos_dropdown->currentIndex() == DefaultPositionIndex)
   {
-    return actor::user::retrieve()->GetSide();
+    ActorData *actor = actor::user::retrieve();
+    QString pos = "wit";
+    if (actor)
+      pos = actor->GetSide();
+    // If our pos dropdown doesn't have the default position we want
+    if (ui_pos_dropdown->findData(pos) == -1)
+    {
+      // If our pos dropdown EXCLUSIVELY has the "default" postion for some reason
+      if (ui_pos_dropdown->count() <= 1)
+        return "wit";
+      // Grab the immediate next pos after "Default"
+      return ui_pos_dropdown->itemData(1).toString();
+    }
+    // Otherwise, return the default position
+    return pos;
   }
+  // Return the current dropdown selected pos
   return ui_pos_dropdown->currentData(Qt::UserRole).toString();
 }
 
@@ -1076,28 +1097,40 @@ void Courtroom::on_ic_message_return_pressed()
   const DREmote &l_emote = ui_emotes->getSelectedEmote();
 
   const QString l_desk_modifier = l_emote.desk_modifier == -1 ? QString("chat") : QString::number(l_emote.desk_modifier);
-  packet_contents.append(l_desk_modifier);
-
-  packet_contents.append(l_emote.anim);
-
-  packet_contents.append(get_character_ini());
-
-  if (ui_hide_character->isChecked())
-    packet_contents.append("../../misc/blank");
-  else
-    packet_contents.append(l_emote.dialog);
-
-  packet_contents.append(ui_ic_chat_message_field->text());
-
-  packet_contents.append(get_current_position());
-
   // sfx file
-  const QString l_sound_file = current_sfx_file();
-  packet_contents.append(l_sound_file.isEmpty() ? "0" : l_sound_file);
+  QString l_sound_file = current_sfx_file();
 
   int l_emote_mod = l_emote.modifier;
 
-  if (ui_pre->isChecked())
+  QString pre_anim = l_emote.anim;
+
+  int l_sound_delay = l_emote.sound_delay;
+
+  bool pre_anim_enabled = ui_pre->isChecked();
+
+  // index 0 of the sfx list is always "Default", -1 means "nothing selected"
+  bool current_sound_is_default = ui_sfx_list->currentRow() <= 0;
+  // Custom sfx defined when preanim is off means we want to play this sfx regardless of preanim.
+  // The sfx is still tied to preanim this way for the sake of older clients...
+  if (!current_sound_is_default)
+  {
+    // Sound delay is always 0 if custom sfx is defined
+    l_sound_delay = 0;
+    // if preanim is not enabled, we still want to play the custom sfx
+    if (!pre_anim_enabled)
+    {
+      // Wipe out the preanim sprite
+      pre_anim = "";
+      // Enable the preanim so the sound plays
+      pre_anim_enabled = true;
+    }
+  }
+  // if the sfx is default and preanim is disabled...
+  else if(!pre_anim_enabled)
+    // Do not send sfx if we don't intend to play it!!
+    l_sound_file = "";
+
+  if (pre_anim_enabled)
   {
     if (l_emote_mod == ZoomEmoteMod)
       l_emote_mod = PreZoomEmoteMod;
@@ -1120,23 +1153,11 @@ void Courtroom::on_ic_message_return_pressed()
       l_emote_mod = PreEmoteMod;
   }
 
-  packet_contents.append(QString::number(l_emote_mod));
-  packet_contents.append(QString::number(metadata::user::GetCharacterId()));
-
-  if (l_emote.sound_file == current_sfx_file())
-    packet_contents.append(QString::number(l_emote.sound_delay));
-  else
-    packet_contents.append("0");
-
-  packet_contents.append(QString::number(m_shout_state));
-
-  // evidence
-  packet_contents.append("0");
+  QString idle_anim = l_emote.dialog;
+  if (ui_hide_character->isChecked())
+    idle_anim = "../../misc/blank";
 
   QString f_flip = ui_flip->isChecked() ? "1" : "0";
-  packet_contents.append(f_flip);
-
-  packet_contents.append(QString::number(m_effect_state));
 
   QString f_text_color;
   if (m_text_color < 0)
@@ -1145,6 +1166,50 @@ void Courtroom::on_ic_message_return_pressed()
     f_text_color = "0";
   else
     f_text_color = QString::number(m_text_color);
+
+  // Begin constructing the packet
+  packet_contents.append(l_desk_modifier);
+
+  // our preanimation, which is the sprite that plays before displaying text
+  packet_contents.append(pre_anim);
+
+  // our character folder we're currently using
+  packet_contents.append(get_character_ini());
+
+  // our idle_anim sprite, also confusingly named "dialog"
+  packet_contents.append(idle_anim);
+
+  // the text we're sending
+  packet_contents.append(ui_ic_chat_message_field->text());
+
+  // our current position on the background
+  packet_contents.append(get_current_position());
+
+  // sound file to play if preanim is checked
+  packet_contents.append(l_sound_file.isEmpty() ? "0" : l_sound_file);
+
+  // emote modifier
+  packet_contents.append(QString::number(l_emote_mod));
+
+  // character id
+  packet_contents.append(QString::number(metadata::user::GetCharacterId()));
+
+  // sound delay
+  packet_contents.append(QString::number(l_sound_delay));
+
+  // shouting state
+  packet_contents.append(QString::number(m_shout_state));
+
+  // evidence
+  packet_contents.append("0");
+
+  // flipping
+  packet_contents.append(f_flip);
+
+  // effect state
+  packet_contents.append(QString::number(m_effect_state));
+
+  // text color
   packet_contents.append(f_text_color);
 
   // showname
@@ -1156,6 +1221,7 @@ void Courtroom::on_ic_message_return_pressed()
   // hide character
   packet_contents.append(QString::number(ui_hide_character->isChecked()));
 
+  // outfit support means offsets support
   if(ServerMetadata::FeatureSupported("outfits"))
   {
     if(l_emote.ignore_offsets)
@@ -1172,11 +1238,13 @@ void Courtroom::on_ic_message_return_pressed()
     }
   }
 
-
+  // animations and layers support
   if(ServerMetadata::FeatureSupported("sequence"))
   {
     packet_contents.append(l_emote.outfitName);
+    // animation system support
     packet_contents.append(QString::fromStdString(courtroom::lists::getAnimation()));
+    // layers system support
     QStringList layers;
     int layerCount = 0;
     for(const EmoteLayer &layer : l_emote.emoteOverlays)
@@ -2725,22 +2793,21 @@ void Courtroom::set_hp_bar(int p_bar, int p_state)
 
 void Courtroom::set_character_position(QString p_pos)
 {
-  const bool l_is_default_pos = p_pos == actor::user::retrieve()->GetSide();
+  int l_pos_index = -1;
 
-  int l_pos_index = ui_pos_dropdown->currentIndex();
-  if (!l_is_default_pos)
-  {
-    const int l_new_pos_index = ui_pos_dropdown->findData(p_pos);
-    if (l_new_pos_index != -1)
-    {
-      l_pos_index = l_new_pos_index;
-    }
-  }
-  else
-  {
-    // Set to default pos
+  ActorData *actor = actor::user::retrieve();
+  // If this is the default pos
+  if (actor && p_pos == actor->GetSide())
     l_pos_index = 0;
-  }
+  // NOT the default pos
+  else
+    // check if we have that pos in our dropdown
+    l_pos_index = ui_pos_dropdown->findData(p_pos);
+
+  // couldn't find the pos, fall back to our current index
+  if (l_pos_index == -1)
+    l_pos_index = ui_pos_dropdown->currentIndex();
+
   ui_pos_dropdown->setCurrentIndex(l_pos_index);
 
   // enable judge mechanics if appropriate

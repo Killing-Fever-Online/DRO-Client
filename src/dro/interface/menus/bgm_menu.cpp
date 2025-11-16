@@ -110,8 +110,8 @@ void BGMMenu::OnInsertTriggered()
 void BGMMenu::OnStopTriggered()
 {
   Courtroom *courtroom = AOApplication::getInstance()->get_courtroom();
-  // Send a blank song
-  courtroom->send_mc_packet("", courtroom->get_bgm_playback_type());
+  // Send the blank song
+  courtroom->send_mc_packet("~stop.mp3", courtroom->get_bgm_playback_type());
   courtroom::ic::focusMessageBox();
 }
 

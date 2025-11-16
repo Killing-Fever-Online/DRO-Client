@@ -321,6 +321,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
   }
   else if (l_header == "LIST_REASON")
   {
+    if (!is_courtroom_constructed)
+      return;
     int prompt = l_content.at(0).toInt();
 
     if(!LuaBridge::LuaEventCall("AreaDescriptionEvent", l_content.at(1).toStdString()))
@@ -395,18 +397,23 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
 
     DRAreaBackground l_area_bg;
     l_area_bg.background = l_content.at(0);
-
-    for (int i = 1; i < l_content.size(); ++i)
+    // position argument
+    QString pos = "";
+    if (l_area_bg.background_tod_map.isEmpty())
+    {
+      if (l_content.size() >= 2)
+        pos = l_content.at(1);
+    }
+    // Test for Time of Day data
+    for (int i = 2; i < l_content.size(); ++i)
     {
       const QStringList l_tod_data = l_content.at(i).split("|", DR::SplitBehavior::SkipEmptyParts);
       if (l_tod_data.size() < 2)
         continue;
       l_area_bg.background_tod_map.insert(l_tod_data.at(0), l_tod_data.at(1));
     }
-
-    qDebug() << l_area_bg.background << l_area_bg.background_tod_map;
-
-    m_courtroom->set_background(l_area_bg);
+    qDebug() << "bg " << l_area_bg.background << ", pos: "<< pos << ", tod data " << l_area_bg.background_tod_map;
+    m_courtroom->set_background(l_area_bg, pos);
   }
   else if (l_header == "area_ambient")
   {
