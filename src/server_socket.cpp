@@ -203,7 +203,7 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     static QRegularExpression validateFilename(R"([\\/:*?\"<>|\']")");
     QString log_folder = l_current_server.to_info().remove(validateFilename) + "/";
 
-    this->icchatlogsfilename = QDateTime::currentDateTimeUtc().toString("'" + log_folder + "'" + this->log_timestamp);
+    this->icchatlogsfilename = log_folder + QDateTime::currentDateTimeUtc().toString(this->log_timestamp);
     qInfo() << "setting log/replay name to " << this->icchatlogsfilename;
 
     construct_courtroom();
