@@ -12,6 +12,7 @@
 #include <QUrl>
 #include <QDesktopServices>
 #include <QClipboard>
+#include <QProxyStyle>
 
 using namespace dro::network::metadata;
 using namespace dro::system;
@@ -25,6 +26,23 @@ constexpr int NAME_Y_OFFSET = 7;
 constexpr int TYPING_Y_OFFSET = 27;
 }
 
+class DrPlayerListProxyStyle : public QProxyStyle
+{
+public:
+  using QProxyStyle::QProxyStyle;
+
+  int styleHint(StyleHint hint, const QStyleOption* option = nullptr, const QWidget* widget = nullptr, QStyleHintReturn* returnData = nullptr) const override
+  {
+    // Display tooltip instantly instead of a delay
+    if (hint == QStyle::SH_ToolTip_WakeUpDelay)
+    {
+      return 0;
+    }
+
+    return QProxyStyle::styleHint(hint, option, widget, returnData);
+  }
+};
+
 DrPlayerListEntry::DrPlayerListEntry(QWidget *parent, AOApplication *p_ao_app, int p_x, int p_y)
     : QWidget(parent)
 {
@@ -33,6 +51,9 @@ DrPlayerListEntry::DrPlayerListEntry(QWidget *parent, AOApplication *p_ao_app, i
   const int widgetHeight = static_cast<int>(DEFAULT_HEIGHT * themeResize);
   const int widgetWidth = parent->size().width();
   const int statusIconSize = static_cast<int>(STATUS_ICON_SIZE * themeResize);
+
+  // Use custom style for certain setups, including instant tooltips
+  this->setStyle(new DrPlayerListProxyStyle(qApp->style()));
 
   ao_app = p_ao_app;
   this->resize(widgetWidth, widgetHeight);
