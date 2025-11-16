@@ -6,6 +6,7 @@
 #include "dro/interface/menus/area_menu.h"
 #include "dro/interface/menus/bgm_menu.h"
 #include "dro/interface/menus/char_menu.h"
+#include "dro/interface/widgets/aotimer.h"
 #include "dro/interface/widgets/bgm_filter.h"
 #include "dro/interface/widgets/evidencelist.h"
 #include "dro/interface/widgets/screenshot_button.h"
@@ -38,7 +39,6 @@ class AONotepad;
 class AOSfxPlayer;
 class AOShoutPlayer;
 class AOSystemPlayer;
-class AOTimer;
 class DRCharacterMovie;
 class DRChatLog;
 class DRMovie;
@@ -320,6 +320,7 @@ public:
   void set_timer_time(int timer_id, int new_time);
   void set_timer_timestep(int timer_id, int timestep_length);
   void set_timer_firing(int timer_id, int firing_interval);
+  void set_timer_format(int timer_id, QString timer_format = AOTimer::default_format);
   void pause_timer(int timer_id);
 
   template <typename T>

@@ -3945,6 +3945,14 @@ void Courtroom::set_timer_firing(int p_id, int firing_interval)
   l_timer->set_firing_interval(firing_interval);
 }
 
+void Courtroom::set_timer_format(int p_id, QString timer_format)
+{
+  if (p_id < 0 || p_id >= ui_timers.length())
+    return;
+  AOTimer *l_timer = ui_timers.at(p_id);
+  l_timer->set_timer_format(timer_format);
+}
+
 void Courtroom::pause_timer(int p_id)
 {
   if (p_id < 0 || p_id >= ui_timers.length())

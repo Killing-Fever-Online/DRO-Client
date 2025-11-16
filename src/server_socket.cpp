@@ -571,6 +571,17 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     int firing_interval = l_content.at(1).toInt();
     m_courtroom->set_timer_firing(timer_id, firing_interval);
   }
+  else if (l_header == "TSR")
+  {
+    // Timer set Timer Format
+    if (l_content.size() != 2)
+      return;
+    if (!is_courtroom_constructed)
+      return;
+    int timer_id = l_content.at(0).toInt();
+    QString timer_format = l_content.at(1);
+    m_courtroom->set_timer_format(timer_id, timer_format);
+  }
   else if (l_header == "TP")
   {
     // Timer pause

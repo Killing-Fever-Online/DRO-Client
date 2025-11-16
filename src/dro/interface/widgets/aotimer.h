@@ -31,7 +31,6 @@ public:
   {
     current_time = current_time.addMSecs(timestep_length);
   }
-
 private:
   QTime current_time;
   int timestep_length;
@@ -43,6 +42,7 @@ class AOTimer : public RPTextEdit
 
 public:
   AOTimer(QString name, QWidget *p_parent);
+  static const inline QString default_format = "mm:ss.zzz";
 
 public slots:
   void update_time();
@@ -51,6 +51,7 @@ public slots:
   void pause();
   void redraw();
   void set_time(QTime new_time);
+  void set_timer_format(QString new_timer_format = default_format);
   void set_timestep_length(int new_timestep_length);
   void set_firing_interval(int new_firing_interval);
   void set_concentrate_mode();
@@ -62,6 +63,8 @@ private:
   ManualTimer manual_timer;
   QTimer *firing_timer = nullptr;
   QTime start_time = QTime(0, 0);
+  // Formatted according to https://doc.qt.io/qt-6/qtime.html#toString
+  QString timer_format = default_format;
   // All of this is in miliseconds
   int manual_timer_timestep_length = -12;
   int firing_timer_length = 12;
