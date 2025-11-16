@@ -1097,28 +1097,40 @@ void Courtroom::on_ic_message_return_pressed()
   const DREmote &l_emote = ui_emotes->getSelectedEmote();
 
   const QString l_desk_modifier = l_emote.desk_modifier == -1 ? QString("chat") : QString::number(l_emote.desk_modifier);
-  packet_contents.append(l_desk_modifier);
-
-  packet_contents.append(l_emote.anim);
-
-  packet_contents.append(get_character_ini());
-
-  if (ui_hide_character->isChecked())
-    packet_contents.append("../../misc/blank");
-  else
-    packet_contents.append(l_emote.dialog);
-
-  packet_contents.append(ui_ic_chat_message_field->text());
-
-  packet_contents.append(get_current_position());
-
   // sfx file
-  const QString l_sound_file = current_sfx_file();
-  packet_contents.append(l_sound_file.isEmpty() ? "0" : l_sound_file);
+  QString l_sound_file = current_sfx_file();
 
   int l_emote_mod = l_emote.modifier;
 
-  if (ui_pre->isChecked())
+  QString pre_anim = l_emote.anim;
+
+  int l_sound_delay = l_emote.sound_delay;
+
+  bool pre_anim_enabled = ui_pre->isChecked();
+
+  // index 0 of the sfx list is always "Default", -1 means "nothing selected"
+  bool current_sound_is_default = ui_sfx_list->currentRow() <= 0;
+  // Custom sfx defined when preanim is off means we want to play this sfx regardless of preanim.
+  // The sfx is still tied to preanim this way for the sake of older clients...
+  if (!current_sound_is_default)
+  {
+    // Sound delay is always 0 if custom sfx is defined
+    l_sound_delay = 0;
+    // if preanim is not enabled, we still want to play the custom sfx
+    if (!pre_anim_enabled)
+    {
+      // Wipe out the preanim sprite
+      pre_anim = "";
+      // Enable the preanim so the sound plays
+      pre_anim_enabled = true;
+    }
+  }
+  // if the sfx is default and preanim is disabled...
+  else if(!pre_anim_enabled)
+    // Do not send sfx if we don't intend to play it!!
+    l_sound_file = "";
+
+  if (pre_anim_enabled)
   {
     if (l_emote_mod == ZoomEmoteMod)
       l_emote_mod = PreZoomEmoteMod;
@@ -1141,23 +1153,11 @@ void Courtroom::on_ic_message_return_pressed()
       l_emote_mod = PreEmoteMod;
   }
 
-  packet_contents.append(QString::number(l_emote_mod));
-  packet_contents.append(QString::number(metadata::user::GetCharacterId()));
-
-  if (l_emote.sound_file == current_sfx_file())
-    packet_contents.append(QString::number(l_emote.sound_delay));
-  else
-    packet_contents.append("0");
-
-  packet_contents.append(QString::number(m_shout_state));
-
-  // evidence
-  packet_contents.append("0");
+  QString idle_anim = l_emote.dialog;
+  if (ui_hide_character->isChecked())
+    idle_anim = "../../misc/blank";
 
   QString f_flip = ui_flip->isChecked() ? "1" : "0";
-  packet_contents.append(f_flip);
-
-  packet_contents.append(QString::number(m_effect_state));
 
   QString f_text_color;
   if (m_text_color < 0)
@@ -1166,6 +1166,50 @@ void Courtroom::on_ic_message_return_pressed()
     f_text_color = "0";
   else
     f_text_color = QString::number(m_text_color);
+
+  // Begin constructing the packet
+  packet_contents.append(l_desk_modifier);
+
+  // our preanimation, which is the sprite that plays before displaying text
+  packet_contents.append(pre_anim);
+
+  // our character folder we're currently using
+  packet_contents.append(get_character_ini());
+
+  // our idle_anim sprite, also confusingly named "dialog"
+  packet_contents.append(idle_anim);
+
+  // the text we're sending
+  packet_contents.append(ui_ic_chat_message_field->text());
+
+  // our current position on the background
+  packet_contents.append(get_current_position());
+
+  // sound file to play if preanim is checked
+  packet_contents.append(l_sound_file.isEmpty() ? "0" : l_sound_file);
+
+  // emote modifier
+  packet_contents.append(QString::number(l_emote_mod));
+
+  // character id
+  packet_contents.append(QString::number(metadata::user::GetCharacterId()));
+
+  // sound delay
+  packet_contents.append(QString::number(l_sound_delay));
+
+  // shouting state
+  packet_contents.append(QString::number(m_shout_state));
+
+  // evidence
+  packet_contents.append("0");
+
+  // flipping
+  packet_contents.append(f_flip);
+
+  // effect state
+  packet_contents.append(QString::number(m_effect_state));
+
+  // text color
   packet_contents.append(f_text_color);
 
   // showname
@@ -1177,6 +1221,7 @@ void Courtroom::on_ic_message_return_pressed()
   // hide character
   packet_contents.append(QString::number(ui_hide_character->isChecked()));
 
+  // outfit support means offsets support
   if(ServerMetadata::FeatureSupported("outfits"))
   {
     if(l_emote.ignore_offsets)
@@ -1193,11 +1238,13 @@ void Courtroom::on_ic_message_return_pressed()
     }
   }
 
-
+  // animations and layers support
   if(ServerMetadata::FeatureSupported("sequence"))
   {
     packet_contents.append(l_emote.outfitName);
+    // animation system support
     packet_contents.append(QString::fromStdString(courtroom::lists::getAnimation()));
+    // layers system support
     QStringList layers;
     int layerCount = 0;
     for(const EmoteLayer &layer : l_emote.emoteOverlays)
