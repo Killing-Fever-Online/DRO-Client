@@ -449,7 +449,7 @@ void Courtroom::connect_widgets()
 
   connect(m_tick_timer, SIGNAL(timeout()), this, SLOT(next_chat_letter()));
 
-  connect(m_text_queue_timer, &QTimer::timeout, this, &Courtroom::chatmessage_dequeue);
+  connect(m_text_queue_timer, &QTimer::timeout, this, &Courtroom::chatmessage_next);
 
   connect(m_flash_timer, SIGNAL(timeout()), this, SLOT(realization_done()));
 

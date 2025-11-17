@@ -1297,7 +1297,7 @@ void Courtroom::handle_acknowledged_ms()
   clear_sfx_selection();
 }
 
-void Courtroom::next_chatmessage(QStringList p_chatmessage)
+void Courtroom::process_chatmessage_packet(QStringList p_chatmessage)
 {
   if (p_chatmessage.length() < MINIMUM_MESSAGE_SIZE)
   {
@@ -1327,13 +1327,24 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
     handle_acknowledged_ms();
   }
 
-  chatmessage_queue.enqueue(ic_message);
-
   // Check if we should start our queue. Text_state >= 2 means the message is done and a queued message is not pending
-  bool start_queue = text_state >= 2 && !m_text_queue_timer->isActive();
-  // Process the message instantly if conditions are met
-  if (start_queue)
-    chatmessage_dequeue();
+  bool process_now = text_state >= 2 && !m_text_queue_timer->isActive();
+
+  // Test for objection. Objections instantly skip the queue by default!
+  if (!ic_message.characterShout.isEmpty())
+  {
+    // Freeze the text to create a cut-off effect
+    stop_chat_timer();
+    // We wipe out the message queue properly...
+    skip_chatmessage_queue();
+    // And process our message right now!
+    process_now = true;
+  }
+  // Add our message to the queue!
+  chatmessage_queue.enqueue(ic_message);
+  // Process the message instantly if conditions are met, taking it from the queue
+  if (process_now)
+    chatmessage_next();
   // Otherwise, since a message is being parsed, post_chatmessage() will handle the queue instead by starting the timer when needed.
 
   // Make a log entry for the message
@@ -1383,7 +1394,12 @@ void Courtroom::log_chatmessage(MessageMetadata ic_message)
   }
 }
 
-void Courtroom::chatmessage_dequeue()
+MessageMetadata Courtroom::chatmessage_dequeue()
+{
+  return chatmessage_queue.dequeue();
+}
+
+void Courtroom::chatmessage_next()
 {
   // Nothing to parse in the queue
   if (chatmessage_queue.isEmpty())
@@ -1393,45 +1409,65 @@ void Courtroom::chatmessage_dequeue()
   if (m_text_queue_timer->isActive())
     m_text_queue_timer->stop();
 
-  MessageMetadata ic_message = chatmessage_queue.dequeue();
+  // Grab the next ic message and process it!
+  MessageMetadata ic_message = chatmessage_dequeue();
+  process_chatmessage(ic_message);
+}
 
+void Courtroom::process_chatmessage(MessageMetadata ic_message)
+{
   m_SpeakerActor = CharacterManager::get().ReadCharacter(ic_message.characterFolder);
+  // If outfit exists, set up the speaker actor's proper outfit
   if(!ic_message.characterOutfit.isEmpty())
   {
     m_SpeakerActor->SwitchOutfit(ic_message.characterOutfit);
   }
-
+  // Process pairing data if present
   if(ic_message.pairActive)
   {
     m_PairActor = CharacterManager::get().ReadCharacter(ic_message.pairData.characterFolder);
-
     m_PairScaling = mk2::SpritePlayer::AutomaticScaling;
-
     if(m_PairActor != nullptr)
     {
       m_PairScaling = m_PairActor->GetScalingMode();
       m_PairScale = (double)ic_message.pairData.offsetScale / (double)1000.0f;
     }
-
   }
-
+  // Set the relevant scale and scaling data
   int scaleValue = ic_message.offsetScale;
   m_ActorScale = (double)scaleValue / 1000.0f;
-
   m_ActorScaling = mk2::SpritePlayer::AutomaticScaling;
-
   if(m_SpeakerActor != nullptr)
   {
     m_ActorScaling = m_SpeakerActor->GetScalingMode();
   }
-
-  // Process the message
+  // Render the transition from previous screen to this one
   SceneManager::get().RenderTransition();
+  // Process the message!
   preload_chatmessage(ic_message.rawData);
+}
+
+void Courtroom::skip_chatmessage_queue()
+{
+  // Stop the text queue timer
+  if (m_text_queue_timer->isActive())
+    m_text_queue_timer->stop();
+
+  const int total = chatmessage_queue.length();
+  while (!chatmessage_queue.isEmpty())
+  {
+    MessageMetadata ic_message = chatmessage_dequeue();
+    // TODO: catch up the ghost logs
+  }
+  // queue is now cleared!
+  qInfo() << "Queue has skipped " << total << " items.";
 }
 
 void Courtroom::reset_viewport()
 {
+  // Make sure to skip the chatmessage queue so the new blankpost appears instantly
+  skip_chatmessage_queue();
+
   QStringList l_chatmessage;
 
   while (l_chatmessage.length() < OPTIMAL_MESSAGE_SIZE)
@@ -1443,7 +1479,7 @@ void Courtroom::reset_viewport()
   l_chatmessage[CMClientId] = QString::number(SpectatorId);
   l_chatmessage[CMPosition] = m_chatmessage.value(CMPosition, "wit");
 
-  next_chatmessage(l_chatmessage);
+  process_chatmessage_packet(l_chatmessage);
 }
 
 void Courtroom::preload_chatmessage(QStringList p_contents)
@@ -1614,9 +1650,12 @@ void Courtroom::handle_chatmessage()
   ui_vp_chat_arrow->hide();
   audio::effect::StopAll();
 
+  // Make sure to pause all procesisng of text
   text_state = 0;
   anim_state = 0;
   stop_chat_timer();
+
+  // Interrupt whatever objection happened prior
   ui_vp_objection->stop();
 
   m_message_color_name = "";
@@ -1626,25 +1665,28 @@ void Courtroom::handle_chatmessage()
   ui_vp_effect->stop();
   ui_vp_effect->hide();
 
-  if(!m_appendMessage)
-    ui_vp_message->clear();
-
+  // Objections can't be rendered over the chat box/showname right now so we have to hide them ):
   ui_vp_chatbox->hide();
   ui_vp_showname->hide();
   ui_vp_showname_image->hide();
-  ui_vp_showname->setText(m_speaker_showname);
 
-  /**
-   * WARNING No check prior to changing will cause an unrecoverable
-   * exception. You have been warned!
-   *
-   * Qt Version: <= 5.15
-   */
-  if (!ui_video->isVisible())
+  // Play video. If video does not exist, proceed to step video_finished()
+  if (ui_video->set_character_video(m_chatmessage[CMChrName], m_chatmessage[CMVideoName]))
   {
-    ui_video->show();
+    /**
+     * WARNING No check prior to changing will cause an unrecoverable
+     * exception. You have been warned!
+     *      * Qt Version: <= 5.15
+     */
+    if (!ui_video->isVisible())
+    {
+      ui_video->show();
+    }
+    ui_video->play();
+    return;
   }
-  ui_video->play_character_video(m_chatmessage[CMChrName], m_chatmessage[CMVideoName]);
+  // No video detected, proceed to next step - character shout
+  attempt_shout();
 }
 
 QString Courtroom::get_shout_name(int p_shout_index)
@@ -1680,8 +1722,12 @@ void Courtroom::video_finished()
     ui_video->hide();
   }
 
-  const QString l_character = m_chatmessage[CMChrName];
+  // proceed to next step - character shout
+  attempt_shout();
+}
 
+void Courtroom::attempt_shout()
+{
   QString l_shout_name = m_chatmessage[CMShoutModifier];
   // Test if this shout is an index and not a name
   bool l_ok = false;
@@ -1690,17 +1736,26 @@ void Courtroom::video_finished()
   if (l_ok)
     l_shout_name = get_shout_name(l_shout_index);
 
+  // Check if shout is valid.
   if (l_shout_name.isEmpty())
   {
+    // If it isn't, proceed to the next step and check for preanimation.
     handle_chatmessage_2();
     return;
   }
+  // Otherwise, play the character shout!
+  character_shout(l_shout_name);
+}
 
+void Courtroom::character_shout(QString l_shout_name)
+{
   qDebug() << "[viewport] Starting shout..." << l_shout_name;
-  m_play_pre = true;
+  // m_play_pre = true;
   ui_vp_objection->set_play_once(true);
   swap_viewport_reader(ui_vp_objection, ViewportShout);
+  // Next destination is objection_done();
   ui_vp_objection->start();
+  const QString l_character = m_chatmessage[CMChrName];
   audio::shout::Play(l_character.toStdString(), l_shout_name.toStdString());
 }
 
@@ -1715,7 +1770,6 @@ void Courtroom::objection_done()
 
 void Courtroom::handle_chatmessage_2() // handles IC
 {
-
   int selfOffset = metadata::message::horizontalOffset();
   int otherOffset = metadata::message::pair::horizontalOffset();
 
@@ -1770,6 +1824,10 @@ void Courtroom::handle_chatmessage_2() // handles IC
   ui_vp_player_char->stop();
   ui_vp_player_pair->stop();
 
+  if(!m_appendMessage)
+    ui_vp_message->clear();
+
+  ui_vp_showname->setText(m_speaker_showname);
   if(ao_app->current_theme->m_jsonLoaded)
   {
     if(!metadata::message::pair::isActive())
