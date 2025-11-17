@@ -1333,8 +1333,6 @@ void Courtroom::process_chatmessage_packet(QStringList p_chatmessage)
   // Test for objection. Objections instantly skip the queue by default!
   if (!ic_message.characterShout.isEmpty())
   {
-    // Freeze the text to create a cut-off effect
-    stop_chat_timer();
     // We wipe out the message queue properly...
     skip_chatmessage_queue();
     // And process our message right now!
@@ -1467,6 +1465,9 @@ void Courtroom::reset_viewport()
 {
   // Make sure to skip the chatmessage queue so the new blankpost appears instantly
   skip_chatmessage_queue();
+
+  // Set the tick state to "done"
+  text_state = 2;
 
   QStringList l_chatmessage;
 
