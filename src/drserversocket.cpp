@@ -109,8 +109,6 @@ void DRServerSocket::_p_read_socket()
   {
     QStringList l_raw_data_list = i_raw_packet.split("#");
     const QString l_header = l_raw_data_list.takeFirst();
-    for (QString &i_raw_data : l_raw_data_list)
-      i_raw_data = DRPacket::decode(i_raw_data);
     Q_EMIT packet_received(DRPacket(l_header, l_raw_data_list));
   }
 }
