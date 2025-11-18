@@ -255,11 +255,15 @@ public:
   // these functions handle chatmessages sequentially.
   // The process itself is very convoluted and merits separate documentation
   // But the general idea is objection animation->pre animation->talking->idle
-  void next_chatmessage(QStringList p_contents);
+  void process_chatmessage_packet(QStringList p_contents);
   void log_chatmessage(MessageMetadata ic_message);
   void reset_viewport();
   void preload_chatmessage(QStringList p_contents);
   void handle_chatmessage();
+  // Check if a shout is neccessary
+  void attempt_shout();
+  // If it is, show the provided character shout
+  void character_shout(QString l_shout_name);
   void handle_chatmessage_2();
   void handle_chatmessage_3();
 
@@ -780,6 +784,16 @@ private:
   QString get_shout_name(int shout_index);
   QString get_effect_name(int effect_index);
 
+  // Dequeue the chatmessage and return it
+  MessageMetadata chatmessage_dequeue();
+
+  // Process the dequeued chat message
+  void process_chatmessage(MessageMetadata ic_message);
+
+  // Skip the current queue and ensure logs are processed correctly
+  void skip_chatmessage_queue();
+
+
 public slots:
   void video_finished();
   void objection_done();
@@ -946,7 +960,7 @@ private slots:
 
 
   // Proceed to parse the oldest chatmessage and remove it from the stack
-  void chatmessage_dequeue();
+  void chatmessage_next();
 
   // character
   // ===========================================================================

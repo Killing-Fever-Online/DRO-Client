@@ -455,7 +455,7 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
   else if (l_header == "MS")
   {
     if (is_courtroom_constructed && joined_server())
-      m_courtroom->next_chatmessage(l_content);
+      m_courtroom->process_chatmessage_packet(l_content);
   }
   else if (l_header == "ackMS")
   {

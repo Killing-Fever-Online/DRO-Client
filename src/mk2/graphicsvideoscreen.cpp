@@ -80,7 +80,7 @@ void DRVideoScreen::set_file_name(QString p_file_name)
   m_player->setMedia(QUrl::fromLocalFile(m_file_name));
 }
 
-void DRVideoScreen::play_character_video(QString p_character, QString p_video)
+bool DRVideoScreen::set_character_video(QString p_character, QString p_video)
 {
   QStringList l_filepath_list;
   const QString l_video_path = QString("videos/%1").arg(p_video);
@@ -92,11 +92,21 @@ void DRVideoScreen::play_character_video(QString p_character, QString p_video)
   const QString l_filepath = ao_app->find_asset_path(l_filepath_list);
   if (l_filepath.isEmpty())
   {
+    set_file_name("");
+    return false;
+  }
+  set_file_name(l_filepath);
+  return true;
+}
+
+void DRVideoScreen::play_character_video(QString p_character, QString p_video)
+{
+  if (!set_character_video(p_character, p_video))
+  {
     qWarning() << "error: no character media file" << p_character << p_video;
     finish_playback();
     return;
   }
-  set_file_name(l_filepath);
   play();
 }
 
