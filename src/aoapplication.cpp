@@ -221,11 +221,16 @@ QString AOApplication::get_sfx_path(QString p_sfx)
 
 QString AOApplication::get_sfx_noext_path(QString p_file)
 {
+  return get_noext_path(p_file, get_sfx_dir_path());
+}
+
+QString AOApplication::get_noext_path(QString p_file, QString p_dir)
+{
   QString l_asset_path = nullptr;
-  QVector<QString> l_sfx_paths = get_all_package_and_base_paths(get_sfx_dir_path());
-  for(QString &l_sfx_path : l_sfx_paths)
+  QVector<QString> l_dir_paths = get_all_package_and_base_paths(p_dir);
+  for(QString &l_dir_path : l_dir_paths)
   {
-    l_asset_path = find_asset_path(l_sfx_path + "/" + p_file, FS::Formats::SupportedAudio());
+    l_asset_path = find_asset_path(l_dir_path + "/" + p_file, FS::Formats::SupportedAudio());
     if(l_asset_path != nullptr) break;
   }
 

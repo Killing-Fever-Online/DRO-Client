@@ -256,6 +256,7 @@ public:
   QString get_sfx_dir_path();
   QString get_sfx_path(QString sfx);
   QString get_sfx_noext_path(QString p_file);
+  QString get_noext_path(QString p_file, QString p_dir = "");
   QString get_ambient_sfx_path(QString p_file);
   QString get_character_sprite_path(QString character, QString emote, QString prefix, bool use_placeholder);
   QString get_character_sprite_pre_path(QString character, QString emote);
