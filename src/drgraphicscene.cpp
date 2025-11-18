@@ -25,6 +25,7 @@
 #include <QSurfaceFormat>
 
 #include <QDebug>
+#include <courtroom.h>
 
 DRGraphicsView::DRGraphicsView(QWidget *parent)
     : QGraphicsView(parent)
@@ -59,4 +60,13 @@ void DRGraphicsView::resizeEvent(QResizeEvent *event)
   }
   m_scene->setSceneRect(rect());
   setSceneRect(rect());
+}
+
+void DRGraphicsView::closeEvent(QCloseEvent *event)
+{
+  Courtroom *courtroom = AOApplication::getInstance()->get_courtroom();
+  this->setWindowFlag(Qt::Tool, false);
+  this->show();
+  courtroom->setupWidgetElement(this, "viewport");
+  event->ignore();
 }
