@@ -39,3 +39,19 @@ QString DRPacket::to_string(const bool p_encode) const
     r_data += (p_encode ? encode(i_value) : i_value) + "#";
   return m_header + "#" + r_data + "%";
 }
+
+void DRPacket::escape(QStringList &contents)
+{
+  contents.replaceInStrings("#", "<num>")
+          .replaceInStrings("%", "<percent>")
+          .replaceInStrings("$", "<dollar>")
+          .replaceInStrings("&", "<and>");
+}
+
+void DRPacket::unescape(QStringList &contents)
+{
+  contents.replaceInStrings("<num>", "#")
+          .replaceInStrings("<percent>", "%")
+          .replaceInStrings("<dollar>", "$")
+          .replaceInStrings("<and>", "&");
+}

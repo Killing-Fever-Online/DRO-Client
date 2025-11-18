@@ -100,7 +100,12 @@ void AOApplication::_p_handle_server_state_update(DRServerSocket::ConnectionStat
 void AOApplication::_p_handle_server_packet(DRPacket p_packet)
 {
   const QString l_header = p_packet.get_header();
-  const QStringList l_content = p_packet.get_content();
+  // Encoded packet data is useful for LoadEvidence packet "LE"
+  const QStringList l_content_encoded = p_packet.get_content();
+
+  // Decode the content
+  QStringList l_content = l_content_encoded;
+  DRPacket::unescape(l_content);
 
   if (l_header != "checkconnection")
     qDebug().noquote() << "S/R:" << p_packet.to_string();
@@ -619,12 +624,16 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       return;
     qInfo() << "Evidence packet received!";
     QVector<EvidenceData> f_evi_list;
-    for (int i = 0; i < l_content.length(); ++i)
-    {
-      const QString &i_value = l_content.at(i);
-      QStringList sub_contents = i_value.split("&");
+
+    for (const QString &f_string : l_content_encoded) {
+      QStringList sub_contents = f_string.split("&");
       if (sub_contents.size() < 3)
         continue;
+
+      // decoding has to be done here instead of on reception
+      // because this packet uses & as a delimiter for some reason
+      DRPacket::unescape(sub_contents);
+
       f_evi_list.append(EvidenceData(sub_contents.at(0), sub_contents.at(1), sub_contents.at(2)));
     }
     m_courtroom->set_evidence_list(f_evi_list);
