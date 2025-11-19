@@ -64,7 +64,7 @@ QString ApplicationPath()
     l_mac_path.cdUp();
   return l_mac_path.canonicalPath();
 #else
-  return QDir::currentPath();
+  return QDir::currentPath().toUtf8();
 #endif
 }
 
