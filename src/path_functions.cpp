@@ -31,7 +31,7 @@ void AOApplication::reload_packages()
   CharacterManager::get().ResetPackages();
   dro::system::replays::io::resetCache();
   QVector<QString> packageNames = FS::Packages::Scan();
-  QString packagesPath = FS::Paths::ApplicationPath() + "/packages/";
+  QString packagesPath = FS::Paths::PackagesPath();
 
   QDir baseCharactersDir (FS::Paths::BasePath() + "/characters");
   if (baseCharactersDir.exists())
@@ -77,7 +77,7 @@ void AOApplication::reload_packages()
 QVector<QString> AOApplication::get_all_package_and_base_paths(QString p_path)
 {
   QVector<QString> found_paths;
-  QVector<QString> disabledList = FS::Packages::DisabledList();
+  QVector<QString> disabledList = FS::Packages::PackageConfig();
   QVector<QString> packageNames = FS::Packages::CachedNames();
 
   for (int i=0; i< packageNames.size(); i++)

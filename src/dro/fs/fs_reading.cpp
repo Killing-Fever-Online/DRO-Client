@@ -67,15 +67,19 @@ QString ApplicationPath()
   return QDir::currentPath().toUtf8();
 #endif
 }
-
 QString BasePath()
 {
   return FS::Paths::ApplicationPath() + "/base/";
 }
 
+QString PackagesPath()
+{
+  return FS::Paths::ApplicationPath() + "/packages/";
+}
+
 QString Package(const QString& packageName)
 {
-  return FS::Paths::ApplicationPath() + "/packages/" + packageName + "/";
+  return PackagesPath() + packageName + "/";
 }
 
 QString FindFile(const QString &filePath, bool allowPackages, const QStringList &extensions)
@@ -90,7 +94,7 @@ QString FindFile(const QString &filePath, bool allowPackages, const QStringList 
   }
 
   QVector<QString> packageNames = Packages::CachedNames();
-  QVector<QString> disabledList = Packages::DisabledList();
+  QVector<QString> disabledList = Packages::PackageConfig();
 
   for(QString &packageName : packageNames)
   {
@@ -123,7 +127,7 @@ QString FindDirectory(const QString &directoryPath, bool allowPackages, bool abs
   if(!allowPackages) return BasePath() + directoryPath;
 
   QVector<QString> packageNames = Packages::CachedNames();
-  QVector<QString> disabledList = Packages::DisabledList();
+  QVector<QString> disabledList = Packages::PackageConfig();
 
   for (int i=0; i< packageNames.size(); i++)
   {
@@ -229,7 +233,7 @@ QString FindFile(const QStringList &filePaths, bool allowPackages, const QString
   if (allowPackages)
   {
     QVector<QString> packageNames = Packages::CachedNames();
-    QVector<QString> disabledList = Packages::DisabledList();
+    QVector<QString> disabledList = Packages::PackageConfig();
 
     for (const QString &packageName : packageNames)
     {
@@ -286,7 +290,7 @@ QStringList FindFiles(const QString &filePath, const QStringList &extensions)
   }
 
   QVector<QString> packageNames = Packages::CachedNames();
-  QVector<QString> disabledList = Packages::DisabledList();
+  QVector<QString> disabledList = Packages::PackageConfig();
 
   for(QString &packageName : packageNames)
   {
