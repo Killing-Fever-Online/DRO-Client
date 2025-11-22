@@ -16,6 +16,7 @@ DRServerInfoEditor::DRServerInfoEditor(QWidget *parent)
   ui_description = AO_GUI_WIDGET(QPlainTextEdit, "description");
   ui_address = AO_GUI_WIDGET(QLineEdit, "address");
   ui_port = AO_GUI_WIDGET(QSpinBox, "port");
+  ui_ws_port = AO_GUI_WIDGET(QSpinBox, "ws_port");
   ui_button_box = AO_GUI_WIDGET(QDialogButtonBox, "button_box");
 
   connect(ui_button_box->button(QDialogButtonBox::Reset), SIGNAL(clicked()), this, SLOT(clear_server_info()));
@@ -36,6 +37,7 @@ DRServerInfo DRServerInfoEditor::get_server_info()
   l_server_info.description = ui_description->toPlainText();
   l_server_info.address = ui_address->text();
   l_server_info.port = ui_port->value();
+  l_server_info.ws_port = ui_ws_port->value();
 
   return l_server_info;
 }
@@ -46,6 +48,7 @@ void DRServerInfoEditor::set_server_info(DRServerInfo p_server_info)
   ui_description->setPlainText(p_server_info.description);
   ui_address->setText(p_server_info.address);
   ui_port->setValue(p_server_info.port);
+  ui_ws_port->setValue(p_server_info.ws_port);
 }
 
 void DRServerInfoEditor::clear_server_info()
@@ -54,4 +57,5 @@ void DRServerInfoEditor::clear_server_info()
   ui_description->setPlainText(nullptr);
   ui_address->setText(nullptr);
   ui_port->setValue(ui_port->minimum());
+  ui_ws_port->setValue(ui_ws_port->minimum());
 }

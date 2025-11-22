@@ -203,6 +203,13 @@ public:
   bool is_found;
 };
 
+enum class DRServerProtocolType
+{
+  INACTIVE,
+  TCP,
+  WEBSOCKET
+};
+
 class DRServerInfo
 {
 public:
@@ -210,6 +217,8 @@ public:
   QString description;
   QString address;
   int port;
+  int ws_port;
+  DRServerProtocolType protocol;
 
   QString to_info() const;
   QString to_address() const;

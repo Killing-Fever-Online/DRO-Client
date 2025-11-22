@@ -394,6 +394,8 @@ void Lobby::load_favorite_server_list()
     l_server.description = l_ini.value("description").toString();
     l_server.address = l_ini.value("address").toString();
     l_server.port = l_ini.value("port").toInt();
+    l_server.ws_port = l_ini.value("ws_port", 0).toInt();
+    l_server.protocol = l_server.ws_port ? DRServerProtocolType::WEBSOCKET : DRServerProtocolType::TCP;
     l_server_list.append(std::move(l_server));
     l_ini.endGroup();
   }
@@ -437,6 +439,7 @@ void Lobby::save_favorite_server_list()
     l_ini.setValue("description", i_server.description);
     l_ini.setValue("address", i_server.address);
     l_ini.setValue("port", i_server.port);
+    l_ini.setValue("ws_port", i_server.ws_port);
     l_ini.endGroup();
   }
   l_ini.sync();
