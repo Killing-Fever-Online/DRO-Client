@@ -284,6 +284,9 @@ public:
   void update_ic_log(bool p_reset_log);
   void append_ic_text(QString p_name, QString p_line, bool p_system, bool p_music, int p_client_id, bool p_self, bool p_pending = false);
 
+  // Remove the ic ghost pending message from the log
+  void pop_ic_ghost();
+
   void append_system_text(QString p_showname, QString p_line, bool p_pending = false);
 
   // prints who played the song to IC chat and plays said song(if found on

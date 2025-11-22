@@ -1407,6 +1407,12 @@ void Courtroom::chatmessage_next()
   if (m_text_queue_timer->isActive())
     m_text_queue_timer->stop();
 
+  // Clear the first ghost
+  if (!m_ic_record_pending_list.isEmpty())
+  {
+    pop_ic_ghost();
+  }
+
   // Grab the next ic message and process it!
   MessageMetadata ic_message = chatmessage_dequeue();
   process_chatmessage(ic_message);
@@ -2174,6 +2180,8 @@ void Courtroom::update_ic_log(bool p_reset_log)
   const bool l_use_newline = ao_config->log_format_use_newline_enabled();
   QTextCursor l_cursor = ui_ic_chatlog->textCursor();
   const QTextCursor::MoveOperation move_type = l_topdown_orientation ? QTextCursor::End : QTextCursor::Start;
+  l_cursor.clearSelection();
+  l_cursor.movePosition(move_type);
 
   QScrollBar *l_scrollbar = ui_ic_chatlog->verticalScrollBar();
   const int l_scroll_pos = l_scrollbar->value();
@@ -2214,8 +2222,6 @@ void Courtroom::update_ic_log(bool p_reset_log)
       target_name_color.setAlpha(128);
       l_target_name_format.setForeground(target_name_color);
     }
-
-    l_cursor.movePosition(move_type);
 
     const QString l_linefeed(QChar::LineFeed);
     if (!l_log_is_empty)
@@ -2263,17 +2269,19 @@ void Courtroom::update_ic_log(bool p_reset_log)
   };
 
   { // remove unneeded blocks
-    const int l_max_block_count = m_ic_record_list.length() * (1 + l_use_newline) + (l_use_newline * (m_ic_record_list.length() - 1)) + !l_topdown_orientation;
+    const int total_length = m_ic_record_list.length() + m_ic_record_pending_list.length();
+    const int l_max_block_count = total_length * (1 + l_use_newline) + (l_use_newline * (total_length - 1)) + !l_topdown_orientation;
     const QTextCursor::MoveOperation l_orientation = l_topdown_orientation ? QTextCursor::Start : QTextCursor::End;
     const QTextCursor::MoveOperation l_block_orientation = l_topdown_orientation ? QTextCursor::NextBlock : QTextCursor::PreviousBlock;
 
+    QTextCursor remover_cursor = QTextCursor(l_cursor);
     const int l_remove_block_count = ui_ic_chatlog->document()->blockCount() - l_max_block_count;
     if (l_remove_block_count > 0)
     {
-      l_cursor.movePosition(l_orientation);
+      remover_cursor.movePosition(l_orientation);
       for (int i = 0; i < l_remove_block_count; ++i)
-        l_cursor.movePosition(l_block_orientation, QTextCursor::KeepAnchor);
-      l_cursor.removeSelectedText();
+        remover_cursor.movePosition(l_block_orientation, QTextCursor::KeepAnchor);
+      remover_cursor.removeSelectedText();
     }
   };
 
@@ -2313,6 +2321,24 @@ void Courtroom::update_ic_log(bool p_reset_log)
   {
     l_scrollbar->setValue(l_topdown_orientation ? l_scrollbar->maximum() : l_scrollbar->minimum());
   }
+}
+
+void Courtroom::pop_ic_ghost()
+{
+  const bool l_topdown_orientation = ao_config->log_is_topdown_enabled();
+
+  // clear out the popped ghost
+  QTextCursor l_cursor = ui_ic_chatlog->textCursor();
+  const QTextCursor::MoveOperation move_type = l_topdown_orientation ? QTextCursor::End : QTextCursor::Start;
+  l_cursor.clearSelection();
+  l_cursor.movePosition(move_type);
+  const QTextCursor::MoveOperation l_block_orientation = l_topdown_orientation ? QTextCursor::NextBlock : QTextCursor::PreviousBlock;
+  l_cursor.movePosition(l_block_orientation, QTextCursor::KeepAnchor);
+  l_cursor.removeSelectedText();
+
+  DRChatRecord rec = m_ic_record_pending_list.takeFirst();
+  m_ic_record_queue.append(rec);
+  update_ic_log(false);
 }
 
 void Courtroom::on_ic_chatlog_scroll_changed()
@@ -2361,7 +2387,10 @@ void Courtroom::append_ic_text(QString p_name, QString p_line, bool p_system, bo
   new_record.set_client_id(p_client_id);
   new_record.set_self(p_self);
   new_record.set_music(p_music);
-  m_ic_record_queue.append(new_record);
+  if (p_pending)
+    m_ic_record_pending_list.append(new_record);
+  else
+    m_ic_record_queue.append(new_record);
   update_ic_log(false);
 }
 
