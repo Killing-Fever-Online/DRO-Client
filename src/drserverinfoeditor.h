@@ -27,5 +27,6 @@ private:
   QPlainTextEdit *ui_description;
   QLineEdit *ui_address;
   QSpinBox *ui_port;
+  QSpinBox *ui_ws_port;
   QDialogButtonBox *ui_button_box;
 };

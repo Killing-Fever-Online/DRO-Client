@@ -101,6 +101,9 @@ void DRMasterClient::process_server_list(QVariant p_data)
     l_server.description = i_object.value("description").toString();
     l_server.address = i_object.value("ip").toString();
     l_server.port = i_object.value("port").toInt();
+    l_server.ws_port = i_object.value("ws_port").toInt(0);
+    l_server.protocol = bool(l_server.ws_port) ? DRServerProtocolType::WEBSOCKET
+                                               : DRServerProtocolType::TCP; // Evil implicit boolean conversion.
     l_server_list.append(std::move(l_server));
   }
   m_server_list = std::move(l_server_list);

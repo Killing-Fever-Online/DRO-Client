@@ -9,8 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt5 REQUIRED COMPONENTS core gui widgets uitools network multimedia multimediawidgets)
-find_package(Qt5 REQUIRED COMPONENTS core gui widgets uitools network multimedia multimediawidgets)
+find_package(QT NAMES Qt5 REQUIRED COMPONENTS core gui widgets uitools network websockets multimedia multimediawidgets)
+find_package(Qt5 REQUIRED COMPONENTS core gui widgets uitools network websockets multimedia multimediawidgets)
 
 set(HEADERS
   src/dro/animation/keyframe_channel.h
@@ -326,6 +326,7 @@ target_link_libraries(dro-client
   Qt5::Widgets
   Qt5::UiTools
   Qt5::Network
+  Qt5::WebSockets
   Qt5::Multimedia
   Qt5::MultimediaWidgets
   bass
