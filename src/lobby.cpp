@@ -103,6 +103,8 @@ Lobby::Lobby(AOApplication *p_ao_app)
   ui_description = new QTextBrowser(this);
   ui_description->setOpenExternalLinks(true);
   ui_description->setReadOnly(true);
+  // TODO: allow this to be edited through theme stylesheets somehow.
+  ui_description->document()->setDefaultStyleSheet("a {color: cyan;}");
 
   ui_chatbox = new DRChatLog(this);
   ui_chatbox->setOpenExternalLinks(true);
@@ -794,15 +796,13 @@ void Lobby::_p_update_description()
       {AOApplication::Disconnected, localization::getText("CONNECTION_NOT")},
   };
 
-  QString l_message = l_report_map[ao_app->last_server_status()];
+  QString l_status = l_report_map[ao_app->last_server_status()];
+  QString l_message = l_status;
 
   if (!m_current_server.name.isEmpty())
   {
-    l_message = QString("%1\n\n"
-                        "==== STATUS ====\n"
-                        "%2")
-                    .arg(m_current_server.name.toHtmlEscaped())
-                    .arg(l_message);
+    ui_player_count->setText(l_status);
+    ui_player_count->setAlignment(Qt::AlignHCenter);
   }
 
   if (!m_current_server.description.isEmpty())
@@ -813,9 +813,7 @@ void Lobby::_p_update_description()
     {
       l_description.replace(l_regex, "<a href=\"\\1\">\\1</a>");
     }
-    l_message = QString("==== DESCRIPTION ====\n"
-                        "%1")
-                    .arg(l_description);
+    l_message = l_description;
   }
 
   ui_description->setHtml(l_message.replace("\n", "<br />"));

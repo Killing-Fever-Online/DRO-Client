@@ -10,6 +10,11 @@ void BackgroundData::setPosition(QString t_position, DRBackgroundPosition t_data
   mPositions[t_position] = t_data;
 }
 
+QMap<QString, DRBackgroundPosition> BackgroundData::getPositions()
+{
+  return mPositions;
+}
+
 QString BackgroundData::getBackgroundFilename(QString t_position)
 {
   if(mPositions.contains(t_position))

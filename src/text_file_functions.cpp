@@ -154,17 +154,17 @@ QPoint AOApplication::get_button_spacing(QString p_identifier, QString p_file)
   return return_value;
 }
 
-pos_size_type AOApplication::get_element_dimensions(QString p_identifier, QString p_file)
+pos_size_type AOApplication::get_element_dimensions(QString p_identifier, QString p_file, bool ignore_resize)
 {
 
   if(current_theme->m_jsonLoaded)
   {
     pos_size_type json_pos;
 
-    if(p_file == COURTROOM_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(COURTROOM, p_identifier);
-    else if(p_file == LOBBY_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(LOBBY, p_identifier);
-    else if(p_file == REPLAY_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(SceneType_Replay, p_identifier);
-    else if(p_file == VIEWPORT_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(SceneType_Viewport, p_identifier);
+    if(p_file == COURTROOM_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(COURTROOM, p_identifier, ignore_resize);
+    else if(p_file == LOBBY_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(LOBBY, p_identifier, ignore_resize);
+    else if(p_file == REPLAY_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(SceneType_Replay, p_identifier, ignore_resize);
+    else if(p_file == VIEWPORT_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(SceneType_Viewport, p_identifier, ignore_resize);
 
     if(json_pos.width != -1)
     {

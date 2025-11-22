@@ -73,7 +73,25 @@ Courtroom::Courtroom(AOApplication *p_ao_app, QWidget *parent)
 {
   ao_app = p_ao_app;
   ao_config = new AOConfig(this);
+  if (ao_config->manual_resize())
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::WindowMaximizeButtonHint)
+                         & ~Qt::MSWindowsFixedSizeDialogHint);
+  }
+  else
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::MSWindowsFixedSizeDialogHint)
+                         & ~Qt::WindowMaximizeButtonHint);
+  }
   RuntimeLoop::setWindowFocus(true);
+
+  // set black background
+  QPalette pal = palette();
+  pal.setColor(QPalette::Window, Qt::black);
+  setAutoFillBackground(true);
+  setPalette(pal);
 
   m_preloader_sync = new mk2::SpriteReaderSynchronizer(this);
   m_preloader_sync->set_threshold(ao_config->caching_threshold());
@@ -562,12 +580,28 @@ void Courtroom::update_background_scene()
     ui_vp_desk->set_file_name(l_file_name);
   }
 
+  BackgroundData *bg = SceneManager::get().getCurrentBackground();
+  set_pos_dropdown(bg->getPositions().keys());
+
   if (m_preloader_sync->is_waiting())
   {
     preload_chatmessage(m_pre_chatmessage);
   }
 
   display_background_scene();
+}
+
+void Courtroom::set_pos_dropdown(QStringList pos_list)
+{
+  QString prev_pos = ui_pos_dropdown->currentData().toString();
+
+  ui_pos_dropdown->clear();
+  ui_pos_dropdown->addItem(localization::getText("DEFAULT"));
+  for (QString key : pos_list)
+  {
+    ui_pos_dropdown->addItem(key, key);
+  }
+  set_character_position(prev_pos);
 }
 
 void Courtroom::display_background_scene()
@@ -620,10 +654,13 @@ DRAreaBackground Courtroom::get_background()
   return m_background;
 }
 
-void Courtroom::set_background(DRAreaBackground p_background)
+void Courtroom::set_background(DRAreaBackground p_background, QString pos)
 {
   replays::recording::backgroundChange(p_background.background);
   m_background = p_background;
+  // If the position argument is not empty, set it to the given position
+  if (!pos.isEmpty())
+    m_chatmessage[CMPosition] = pos;
 
   QStringList l_background_list{m_background.background};
   for (auto it = m_background.background_tod_map.cbegin(); it != m_background.background_tod_map.cend(); ++it)
@@ -866,8 +903,23 @@ QString Courtroom::get_current_position()
 {
   if (ui_pos_dropdown->currentIndex() == DefaultPositionIndex)
   {
-    return actor::user::retrieve()->GetSide();
+    ActorData *actor = actor::user::retrieve();
+    QString pos = "wit";
+    if (actor)
+      pos = actor->GetSide();
+    // If our pos dropdown doesn't have the default position we want
+    if (ui_pos_dropdown->findData(pos) == -1)
+    {
+      // If our pos dropdown EXCLUSIVELY has the "default" postion for some reason
+      if (ui_pos_dropdown->count() <= 1)
+        return "wit";
+      // Grab the immediate next pos after "Default"
+      return ui_pos_dropdown->itemData(1).toString();
+    }
+    // Otherwise, return the default position
+    return pos;
   }
+  // Return the current dropdown selected pos
   return ui_pos_dropdown->currentData(Qt::UserRole).toString();
 }
 
@@ -1045,28 +1097,40 @@ void Courtroom::on_ic_message_return_pressed()
   const DREmote &l_emote = ui_emotes->getSelectedEmote();
 
   const QString l_desk_modifier = l_emote.desk_modifier == -1 ? QString("chat") : QString::number(l_emote.desk_modifier);
-  packet_contents.append(l_desk_modifier);
-
-  packet_contents.append(l_emote.anim);
-
-  packet_contents.append(get_character_ini());
-
-  if (ui_hide_character->isChecked())
-    packet_contents.append("../../misc/blank");
-  else
-    packet_contents.append(l_emote.dialog);
-
-  packet_contents.append(ui_ic_chat_message_field->text());
-
-  packet_contents.append(get_current_position());
-
   // sfx file
-  const QString l_sound_file = current_sfx_file();
-  packet_contents.append(l_sound_file.isEmpty() ? "0" : l_sound_file);
+  QString l_sound_file = current_sfx_file();
 
   int l_emote_mod = l_emote.modifier;
 
-  if (ui_pre->isChecked())
+  QString pre_anim = l_emote.anim;
+
+  int l_sound_delay = l_emote.sound_delay;
+
+  bool pre_anim_enabled = ui_pre->isChecked();
+
+  // index 0 of the sfx list is always "Default", -1 means "nothing selected"
+  bool current_sound_is_default = ui_sfx_list->currentRow() <= 0;
+  // Custom sfx defined when preanim is off means we want to play this sfx regardless of preanim.
+  // The sfx is still tied to preanim this way for the sake of older clients...
+  if (!current_sound_is_default)
+  {
+    // Sound delay is always 0 if custom sfx is defined
+    l_sound_delay = 0;
+    // if preanim is not enabled, we still want to play the custom sfx
+    if (!pre_anim_enabled)
+    {
+      // Wipe out the preanim sprite
+      pre_anim = "";
+      // Enable the preanim so the sound plays
+      pre_anim_enabled = true;
+    }
+  }
+  // if the sfx is default and preanim is disabled...
+  else if(!pre_anim_enabled)
+    // Do not send sfx if we don't intend to play it!!
+    l_sound_file = "";
+
+  if (pre_anim_enabled)
   {
     if (l_emote_mod == ZoomEmoteMod)
       l_emote_mod = PreZoomEmoteMod;
@@ -1089,23 +1153,11 @@ void Courtroom::on_ic_message_return_pressed()
       l_emote_mod = PreEmoteMod;
   }
 
-  packet_contents.append(QString::number(l_emote_mod));
-  packet_contents.append(QString::number(metadata::user::GetCharacterId()));
-
-  if (l_emote.sound_file == current_sfx_file())
-    packet_contents.append(QString::number(l_emote.sound_delay));
-  else
-    packet_contents.append("0");
-
-  packet_contents.append(QString::number(m_shout_state));
-
-  // evidence
-  packet_contents.append("0");
+  QString idle_anim = l_emote.dialog;
+  if (ui_hide_character->isChecked())
+    idle_anim = "../../misc/blank";
 
   QString f_flip = ui_flip->isChecked() ? "1" : "0";
-  packet_contents.append(f_flip);
-
-  packet_contents.append(QString::number(m_effect_state));
 
   QString f_text_color;
   if (m_text_color < 0)
@@ -1114,6 +1166,50 @@ void Courtroom::on_ic_message_return_pressed()
     f_text_color = "0";
   else
     f_text_color = QString::number(m_text_color);
+
+  // Begin constructing the packet
+  packet_contents.append(l_desk_modifier);
+
+  // our preanimation, which is the sprite that plays before displaying text
+  packet_contents.append(pre_anim);
+
+  // our character folder we're currently using
+  packet_contents.append(get_character_ini());
+
+  // our idle_anim sprite, also confusingly named "dialog"
+  packet_contents.append(idle_anim);
+
+  // the text we're sending
+  packet_contents.append(ui_ic_chat_message_field->text());
+
+  // our current position on the background
+  packet_contents.append(get_current_position());
+
+  // sound file to play if preanim is checked
+  packet_contents.append(l_sound_file.isEmpty() ? "0" : l_sound_file);
+
+  // emote modifier
+  packet_contents.append(QString::number(l_emote_mod));
+
+  // character id
+  packet_contents.append(QString::number(metadata::user::GetCharacterId()));
+
+  // sound delay
+  packet_contents.append(QString::number(l_sound_delay));
+
+  // shouting state
+  packet_contents.append(QString::number(m_shout_state));
+
+  // evidence
+  packet_contents.append("0");
+
+  // flipping
+  packet_contents.append(f_flip);
+
+  // effect state
+  packet_contents.append(QString::number(m_effect_state));
+
+  // text color
   packet_contents.append(f_text_color);
 
   // showname
@@ -1125,6 +1221,7 @@ void Courtroom::on_ic_message_return_pressed()
   // hide character
   packet_contents.append(QString::number(ui_hide_character->isChecked()));
 
+  // outfit support means offsets support
   if(ServerMetadata::FeatureSupported("outfits"))
   {
     if(l_emote.ignore_offsets)
@@ -1141,11 +1238,13 @@ void Courtroom::on_ic_message_return_pressed()
     }
   }
 
-
+  // animations and layers support
   if(ServerMetadata::FeatureSupported("sequence"))
   {
     packet_contents.append(l_emote.outfitName);
+    // animation system support
     packet_contents.append(QString::fromStdString(courtroom::lists::getAnimation()));
+    // layers system support
     QStringList layers;
     int layerCount = 0;
     for(const EmoteLayer &layer : l_emote.emoteOverlays)
@@ -1198,7 +1297,7 @@ void Courtroom::handle_acknowledged_ms()
   clear_sfx_selection();
 }
 
-void Courtroom::next_chatmessage(QStringList p_chatmessage)
+void Courtroom::process_chatmessage_packet(QStringList p_chatmessage)
 {
   if (p_chatmessage.length() < MINIMUM_MESSAGE_SIZE)
   {
@@ -1228,13 +1327,22 @@ void Courtroom::next_chatmessage(QStringList p_chatmessage)
     handle_acknowledged_ms();
   }
 
-  chatmessage_queue.enqueue(ic_message);
-
   // Check if we should start our queue. Text_state >= 2 means the message is done and a queued message is not pending
-  bool start_queue = text_state >= 2 && !m_text_queue_timer->isActive();
-  // Process the message instantly if conditions are met
-  if (start_queue)
-    chatmessage_dequeue();
+  bool process_now = text_state >= 2 && !m_text_queue_timer->isActive();
+
+  // Test for objection. Objections instantly skip the queue by default!
+  if (!ic_message.characterShout.isEmpty())
+  {
+    // We wipe out the message queue properly...
+    skip_chatmessage_queue();
+    // And process our message right now!
+    process_now = true;
+  }
+  // Add our message to the queue!
+  chatmessage_queue.enqueue(ic_message);
+  // Process the message instantly if conditions are met, taking it from the queue
+  if (process_now)
+    chatmessage_next();
   // Otherwise, since a message is being parsed, post_chatmessage() will handle the queue instead by starting the timer when needed.
 
   // Make a log entry for the message
@@ -1284,7 +1392,12 @@ void Courtroom::log_chatmessage(MessageMetadata ic_message, bool is_pending)
   }
 }
 
-void Courtroom::chatmessage_dequeue()
+MessageMetadata Courtroom::chatmessage_dequeue()
+{
+  return chatmessage_queue.dequeue();
+}
+
+void Courtroom::chatmessage_next()
 {
   // Nothing to parse in the queue
   if (chatmessage_queue.isEmpty())
@@ -1294,45 +1407,68 @@ void Courtroom::chatmessage_dequeue()
   if (m_text_queue_timer->isActive())
     m_text_queue_timer->stop();
 
-  MessageMetadata ic_message = chatmessage_queue.dequeue();
+  // Grab the next ic message and process it!
+  MessageMetadata ic_message = chatmessage_dequeue();
+  process_chatmessage(ic_message);
+}
 
+void Courtroom::process_chatmessage(MessageMetadata ic_message)
+{
   m_SpeakerActor = CharacterManager::get().ReadCharacter(ic_message.characterFolder);
+  // If outfit exists, set up the speaker actor's proper outfit
   if(!ic_message.characterOutfit.isEmpty())
   {
     m_SpeakerActor->SwitchOutfit(ic_message.characterOutfit);
   }
-
+  // Process pairing data if present
   if(ic_message.pairActive)
   {
     m_PairActor = CharacterManager::get().ReadCharacter(ic_message.pairData.characterFolder);
-
     m_PairScaling = mk2::SpritePlayer::AutomaticScaling;
-
     if(m_PairActor != nullptr)
     {
       m_PairScaling = m_PairActor->GetScalingMode();
       m_PairScale = (double)ic_message.pairData.offsetScale / (double)1000.0f;
     }
-
   }
-
+  // Set the relevant scale and scaling data
   int scaleValue = ic_message.offsetScale;
   m_ActorScale = (double)scaleValue / 1000.0f;
-
   m_ActorScaling = mk2::SpritePlayer::AutomaticScaling;
-
   if(m_SpeakerActor != nullptr)
   {
     m_ActorScaling = m_SpeakerActor->GetScalingMode();
   }
-
-  // Process the message
+  // Render the transition from previous screen to this one
   SceneManager::get().RenderTransition();
+  // Process the message!
   preload_chatmessage(ic_message.rawData);
+}
+
+void Courtroom::skip_chatmessage_queue()
+{
+  // Stop the text queue timer
+  if (m_text_queue_timer->isActive())
+    m_text_queue_timer->stop();
+
+  const int total = chatmessage_queue.length();
+  while (!chatmessage_queue.isEmpty())
+  {
+    MessageMetadata ic_message = chatmessage_dequeue();
+    // TODO: catch up the ghost logs
+  }
+  // queue is now cleared!
+  qInfo() << "Queue has skipped " << total << " items.";
 }
 
 void Courtroom::reset_viewport()
 {
+  // Make sure to skip the chatmessage queue so the new blankpost appears instantly
+  skip_chatmessage_queue();
+
+  // Set the tick state to "done"
+  text_state = 2;
+
   QStringList l_chatmessage;
 
   while (l_chatmessage.length() < OPTIMAL_MESSAGE_SIZE)
@@ -1344,7 +1480,7 @@ void Courtroom::reset_viewport()
   l_chatmessage[CMClientId] = QString::number(SpectatorId);
   l_chatmessage[CMPosition] = m_chatmessage.value(CMPosition, "wit");
 
-  next_chatmessage(l_chatmessage);
+  process_chatmessage_packet(l_chatmessage);
 }
 
 void Courtroom::preload_chatmessage(QStringList p_contents)
@@ -1515,9 +1651,12 @@ void Courtroom::handle_chatmessage()
   ui_vp_chat_arrow->hide();
   audio::effect::StopAll();
 
+  // Make sure to pause all procesisng of text
   text_state = 0;
   anim_state = 0;
   stop_chat_timer();
+
+  // Interrupt whatever objection happened prior
   ui_vp_objection->stop();
 
   m_message_color_name = "";
@@ -1527,25 +1666,28 @@ void Courtroom::handle_chatmessage()
   ui_vp_effect->stop();
   ui_vp_effect->hide();
 
-  if(!m_appendMessage)
-    ui_vp_message->clear();
-
+  // Objections can't be rendered over the chat box/showname right now so we have to hide them ):
   ui_vp_chatbox->hide();
   ui_vp_showname->hide();
   ui_vp_showname_image->hide();
-  ui_vp_showname->setText(m_speaker_showname);
 
-  /**
-   * WARNING No check prior to changing will cause an unrecoverable
-   * exception. You have been warned!
-   *
-   * Qt Version: <= 5.15
-   */
-  if (!ui_video->isVisible())
+  // Play video. If video does not exist, proceed to step video_finished()
+  if (ui_video->set_character_video(m_chatmessage[CMChrName], m_chatmessage[CMVideoName]))
   {
-    ui_video->show();
+    /**
+     * WARNING No check prior to changing will cause an unrecoverable
+     * exception. You have been warned!
+     *      * Qt Version: <= 5.15
+     */
+    if (!ui_video->isVisible())
+    {
+      ui_video->show();
+    }
+    ui_video->play();
+    return;
   }
-  ui_video->play_character_video(m_chatmessage[CMChrName], m_chatmessage[CMVideoName]);
+  // No video detected, proceed to next step - character shout
+  attempt_shout();
 }
 
 QString Courtroom::get_shout_name(int p_shout_index)
@@ -1581,8 +1723,12 @@ void Courtroom::video_finished()
     ui_video->hide();
   }
 
-  const QString l_character = m_chatmessage[CMChrName];
+  // proceed to next step - character shout
+  attempt_shout();
+}
 
+void Courtroom::attempt_shout()
+{
   QString l_shout_name = m_chatmessage[CMShoutModifier];
   // Test if this shout is an index and not a name
   bool l_ok = false;
@@ -1591,17 +1737,26 @@ void Courtroom::video_finished()
   if (l_ok)
     l_shout_name = get_shout_name(l_shout_index);
 
+  // Check if shout is valid.
   if (l_shout_name.isEmpty())
   {
+    // If it isn't, proceed to the next step and check for preanimation.
     handle_chatmessage_2();
     return;
   }
+  // Otherwise, play the character shout!
+  character_shout(l_shout_name);
+}
 
+void Courtroom::character_shout(QString l_shout_name)
+{
   qDebug() << "[viewport] Starting shout..." << l_shout_name;
-  m_play_pre = true;
+  // m_play_pre = true;
   ui_vp_objection->set_play_once(true);
   swap_viewport_reader(ui_vp_objection, ViewportShout);
+  // Next destination is objection_done();
   ui_vp_objection->start();
+  const QString l_character = m_chatmessage[CMChrName];
   audio::shout::Play(l_character.toStdString(), l_shout_name.toStdString());
 }
 
@@ -1616,7 +1771,6 @@ void Courtroom::objection_done()
 
 void Courtroom::handle_chatmessage_2() // handles IC
 {
-
   int selfOffset = metadata::message::horizontalOffset();
   int otherOffset = metadata::message::pair::horizontalOffset();
 
@@ -1671,6 +1825,10 @@ void Courtroom::handle_chatmessage_2() // handles IC
   ui_vp_player_char->stop();
   ui_vp_player_pair->stop();
 
+  if(!m_appendMessage)
+    ui_vp_message->clear();
+
+  ui_vp_showname->setText(m_speaker_showname);
   if(ao_app->current_theme->m_jsonLoaded)
   {
     if(!metadata::message::pair::isActive())
@@ -2748,17 +2906,21 @@ void Courtroom::set_hp_bar(int p_bar, int p_state)
 
 void Courtroom::set_character_position(QString p_pos)
 {
-  const bool l_is_default_pos = p_pos == actor::user::retrieve()->GetSide();
+  int l_pos_index = -1;
 
-  int l_pos_index = ui_pos_dropdown->currentIndex();
-  if (!l_is_default_pos)
-  {
-    const int l_new_pos_index = ui_pos_dropdown->findData(p_pos);
-    if (l_new_pos_index != -1)
-    {
-      l_pos_index = l_new_pos_index;
-    }
-  }
+  ActorData *actor = actor::user::retrieve();
+  // If this is the default pos
+  if (actor && p_pos == actor->GetSide())
+    l_pos_index = 0;
+  // NOT the default pos
+  else
+    // check if we have that pos in our dropdown
+    l_pos_index = ui_pos_dropdown->findData(p_pos);
+
+  // couldn't find the pos, fall back to our current index
+  if (l_pos_index == -1)
+    l_pos_index = ui_pos_dropdown->currentIndex();
+
   ui_pos_dropdown->setCurrentIndex(l_pos_index);
 
   // enable judge mechanics if appropriate
@@ -2930,8 +3092,12 @@ void Courtroom::on_ooc_message_return_pressed()
 
 void Courtroom::on_pos_dropdown_changed()
 {
-  const QString l_pos = get_current_position();
-  send_ooc_packet("/pos " + l_pos);
+  // Sending the OOC packet spam can result in us being forcibly disconnected
+  // Our new pos is set when we send the message anyway, so rely on that instead.
+
+  // const QString l_pos = get_current_position();
+  // send_ooc_packet("/pos " + l_pos);
+
   ui_ic_chat_message_field->setFocus();
 }
 
@@ -3464,6 +3630,26 @@ void Courtroom::OnCharRandomClicked()
       DRPacket("CC", {QString::number(metadata::user::getOutgoingClientId()), QString::number(n_real_char), "HDID"}));
 }
 
+void Courtroom::toggle_manual_resize(bool p_toggle)
+{
+  if (p_toggle)
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::WindowMaximizeButtonHint)
+                         & ~Qt::MSWindowsFixedSizeDialogHint);
+  }
+  else
+  {
+    this->setWindowFlags((this->windowFlags() | Qt::CustomizeWindowHint
+                          | Qt::MSWindowsFixedSizeDialogHint)
+                         & ~Qt::WindowMaximizeButtonHint);
+  }
+  ThemeManager::get().setResize(ao_config->theme_resize());
+  ThemeManager::get().toggleReload();
+  reload_theme();
+  show();
+}
+
 void Courtroom::SwitchRandomCharacter(QString list)
 {
   int n_real_char = 0;
@@ -3649,9 +3835,18 @@ void Courtroom::changeEvent(QEvent *event)
   QWidget::changeEvent(event);
   if (event->type() == QEvent::WindowStateChange)
   {
+    bool old_max = m_is_maximized;
     m_is_maximized = windowState().testFlag(Qt::WindowMaximized);
     if (!m_is_maximized)
-      resize(m_default_size);
+      resize(m_raw_size);
+    if (event->spontaneous() && old_max != m_is_maximized)
+    {
+      m_user_pending_resize = false;
+      double scale_x = (double)size().width() / (double)m_raw_size.width();
+      ThemeManager::get().setResize(scale_x);
+      ThemeManager::get().toggleReload();
+      reload_theme();
+    }
   }
 }
 
@@ -3682,6 +3877,23 @@ bool Courtroom::event(QEvent *event)
 
   default:
     break;
+  }
+
+  // We need to check for both types of mouse release, because it can vary on which type happens when resizing.
+  if ((event->type() == QEvent::MouseButtonRelease) ||
+      (event->type() == QEvent::MouseButtonDblClick) ||
+      (event->type() == QEvent::NonClientAreaMouseButtonRelease) ||
+      (event->type() == QEvent::NonClientAreaMouseButtonDblClick)
+      ) {
+    QMouseEvent* pMouseEvent = dynamic_cast<QMouseEvent*>(event);
+    if ((pMouseEvent->button() == Qt::MouseButton::LeftButton) && m_user_pending_resize) {
+      // reset user resizing flag
+      m_user_pending_resize = false;
+      if (size() != m_default_size) {
+        ThemeManager::get().toggleReload();
+        reload_theme();
+      }
+    }
   }
 
   return QWidget::event(event);
@@ -3785,6 +3997,14 @@ void Courtroom::resizeEvent(QResizeEvent *event)
   if (event)
   {
     QSize size = event->size();
+    if (event->spontaneous())
+    {
+      double scale_w = (double)size.width() / (double)m_raw_size.width();
+      double scale_h = (double)size.height() / (double)m_raw_size.height();
+      ThemeManager::get().setResize(scale_h);
+      m_user_pending_resize = true;
+    }
+
     LuaBridge::LuaEventCall("OnWindowResized", size.width(), size.height());
   }
 }
@@ -3838,6 +4058,14 @@ void Courtroom::set_timer_firing(int p_id, int firing_interval)
   l_timer->set_firing_interval(firing_interval);
 }
 
+void Courtroom::set_timer_format(int p_id, QString timer_format)
+{
+  if (p_id < 0 || p_id >= ui_timers.length())
+    return;
+  AOTimer *l_timer = ui_timers.at(p_id);
+  l_timer->set_timer_format(timer_format);
+}
+
 void Courtroom::pause_timer(int p_id)
 {
   if (p_id < 0 || p_id >= ui_timers.length())
@@ -3863,12 +4091,12 @@ void Courtroom::construct_playerlist_layout()
 
   set_size_and_pos(ui_player_list, "player_list", COURTROOM_DESIGN_INI, ao_app);
 
-  float resize = ThemeManager::get().getResize();
-  int player_height = (int)((float)50 * resize);
-  int y_spacing = f_spacing.y();
+  double resize = ThemeManager::get().getResize();
+  int player_height = (int)((double)50 * resize);
+  int y_spacing = int((double)f_spacing.y() * resize);
   int max_pages = ceil((SceneManager::get().mPlayerDataList.count() - 1) / m_page_max_player_count);
 
-  player_columns = (( (int)((float)ui_player_list->height() * resize) - player_height) / (y_spacing + player_height)) + 1;
+  player_columns = (int)((((double)ui_player_list->height() * resize) - player_height) / (y_spacing + player_height) + 1);
 
   if(m_current_reportcard_reason != ReportCardReason::None && metadata::user::GetCharacterId() != SpectatorId)
   {
@@ -3990,6 +4218,7 @@ void Courtroom::on_area_look_clicked()
     m_current_reportcard_reason = ReportCardReason::None;
     construct_playerlist_layout();
   }
+  ui_evidence_list->show();
 }
 
 void Courtroom::write_area_desc()
@@ -4026,4 +4255,10 @@ void Courtroom::write_area_desc()
   ui_area_desc->clear();
   QTextCursor l_cursor = ui_area_desc->textCursor();
   l_cursor.insertText(m_area_description, formatting);
+}
+
+void Courtroom::set_evidence_list(QVector<EvidenceData> &f_evidence_list)
+{
+  global_evidence_list = f_evidence_list;
+  ui_evidence_list->setEvidenceList(&global_evidence_list);
 }

@@ -7,6 +7,7 @@
 #include "debug_functions.h"
 #include "drdiscord.h"
 #include "dro/network/metadata/tracklist_metadata.h"
+#include "dro/param/evidence/evidence_data.h"
 #include "drpacket.h"
 #include "modules/managers/character_manager.h"
 #include "dro/system/localization.h"
@@ -99,7 +100,12 @@ void AOApplication::_p_handle_server_state_update(DRServerSocket::ConnectionStat
 void AOApplication::_p_handle_server_packet(DRPacket p_packet)
 {
   const QString l_header = p_packet.get_header();
-  const QStringList l_content = p_packet.get_content();
+  // Encoded packet data is useful for LoadEvidence packet "LE"
+  const QStringList l_content_encoded = p_packet.get_content();
+
+  // Decode the content
+  QStringList l_content = l_content_encoded;
+  DRPacket::unescape(l_content);
 
   if (l_header != "checkconnection")
     qDebug().noquote() << "S/R:" << p_packet.to_string();
@@ -202,7 +208,7 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     static QRegularExpression validateFilename(R"([\\/:*?\"<>|\']")");
     QString log_folder = l_current_server.to_info().remove(validateFilename) + "/";
 
-    this->icchatlogsfilename = QDateTime::currentDateTimeUtc().toString("'" + log_folder + "'" + this->log_timestamp);
+    this->icchatlogsfilename = log_folder + QDateTime::currentDateTimeUtc().toString(this->log_timestamp);
     qInfo() << "setting log/replay name to " << this->icchatlogsfilename;
 
     construct_courtroom();
@@ -320,6 +326,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
   }
   else if (l_header == "LIST_REASON")
   {
+    if (!is_courtroom_constructed)
+      return;
     int prompt = l_content.at(0).toInt();
 
     if(!LuaBridge::LuaEventCall("AreaDescriptionEvent", l_content.at(1).toStdString()))
@@ -394,18 +402,23 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
 
     DRAreaBackground l_area_bg;
     l_area_bg.background = l_content.at(0);
-
-    for (int i = 1; i < l_content.size(); ++i)
+    // position argument
+    QString pos = "";
+    if (l_area_bg.background_tod_map.isEmpty())
+    {
+      if (l_content.size() >= 2)
+        pos = l_content.at(1);
+    }
+    // Test for Time of Day data
+    for (int i = 2; i < l_content.size(); ++i)
     {
       const QStringList l_tod_data = l_content.at(i).split("|", DR::SplitBehavior::SkipEmptyParts);
       if (l_tod_data.size() < 2)
         continue;
       l_area_bg.background_tod_map.insert(l_tod_data.at(0), l_tod_data.at(1));
     }
-
-    qDebug() << l_area_bg.background << l_area_bg.background_tod_map;
-
-    m_courtroom->set_background(l_area_bg);
+    qDebug() << "bg " << l_area_bg.background << ", pos: "<< pos << ", tod data " << l_area_bg.background_tod_map;
+    m_courtroom->set_background(l_area_bg, pos);
   }
   else if (l_header == "area_ambient")
   {
@@ -447,7 +460,7 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
   else if (l_header == "MS")
   {
     if (is_courtroom_constructed && joined_server())
-      m_courtroom->next_chatmessage(l_content);
+      m_courtroom->process_chatmessage_packet(l_content);
   }
   else if (l_header == "ackMS")
   {
@@ -563,6 +576,17 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     int firing_interval = l_content.at(1).toInt();
     m_courtroom->set_timer_firing(timer_id, firing_interval);
   }
+  else if (l_header == "TSR")
+  {
+    // Timer set Timer Format
+    if (l_content.size() != 2)
+      return;
+    if (!is_courtroom_constructed)
+      return;
+    int timer_id = l_content.at(0).toInt();
+    QString timer_format = l_content.at(1);
+    m_courtroom->set_timer_format(timer_id, timer_format);
+  }
   else if (l_header == "TP")
   {
     // Timer pause
@@ -592,5 +616,38 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     if (ao_config->showname() != l_showname)
       m_courtroom->ignore_next_showname();
     ao_config->set_showname(l_showname);
+  }
+  // Load Evidence Packet (legacy support)
+  else if (l_header == "LE")
+  {
+    if (!is_courtroom_constructed)
+      return;
+    qInfo() << "Evidence packet received!";
+    QVector<EvidenceData> f_evi_list;
+
+    for (const QString &f_string : l_content_encoded) {
+      QStringList sub_contents = f_string.split("&");
+      if (sub_contents.size() < 3)
+        continue;
+
+      // decoding has to be done here instead of on reception
+      // because this packet uses & as a delimiter for some reason
+      DRPacket::unescape(sub_contents);
+
+      f_evi_list.append(EvidenceData(sub_contents.at(0), sub_contents.at(1), sub_contents.at(2)));
+    }
+    m_courtroom->set_evidence_list(f_evi_list);
+  }
+  // Set Dropdown Packet
+  else if (l_header == "SD")
+  {
+    if (!is_courtroom_constructed || l_content.isEmpty())
+      return;
+
+    m_courtroom->set_pos_dropdown(l_content.at(0).split("*"));
+  }
+  else
+  {
+    qWarning() << "Unknown packet received: " << p_packet.to_string();
   }
 }

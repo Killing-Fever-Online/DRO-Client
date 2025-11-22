@@ -77,6 +77,8 @@ public:
   QString get_background_path(QString p_background_name);
   QString get_background_dir_path(QString p_identifier);
 
+  QString get_evidence_path(QString p_identifier);
+
   bool is_safe_path(QString p_file);
 
   QString find_asset_path(QStringList file_list, QStringList extension_list);
@@ -130,7 +132,7 @@ public:
   QPoint get_button_spacing(QString p_identifier, QString p_file);
 
   // Returns the dimensions of widget with specified identifier from p_file
-  pos_size_type get_element_dimensions(QString p_identifier, QString p_file);
+  pos_size_type get_element_dimensions(QString p_identifier, QString p_file, bool ignore_resize = false);
 
   // Returns the value of font property p_identifier from p_file
   int get_font_property(QString p_identifier, QString p_file);
@@ -254,6 +256,7 @@ public:
   QString get_sfx_dir_path();
   QString get_sfx_path(QString sfx);
   QString get_sfx_noext_path(QString p_file);
+  QString get_noext_path(QString p_file, QString p_dir = "");
   QString get_ambient_sfx_path(QString p_file);
   QString get_character_sprite_path(QString character, QString emote, QString prefix, bool use_placeholder);
   QString get_character_sprite_pre_path(QString character, QString emote);

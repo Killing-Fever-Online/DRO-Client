@@ -16,6 +16,8 @@ public:
   const QStringList &get_content() const;
   QString to_string(const bool encode = false) const;
 
+  static void escape(QStringList &contents);
+  static void unescape(QStringList &contents);
 private:
   QString m_header;
   QStringList m_content;

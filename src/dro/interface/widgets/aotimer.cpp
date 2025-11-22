@@ -12,6 +12,7 @@ AOTimer::AOTimer(QString name, QWidget *p_parent)
   setFrameStyle(QFrame::NoFrame);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  setWordWrapMode(QTextOption::NoWrap);
   setReadOnly(true);
 
   firing_timer = new QTimer(this);
@@ -97,13 +98,19 @@ void AOTimer::pause()
 
 void AOTimer::redraw()
 {
-  setText(manual_timer.get_time().toString("mm:ss.zzz"));
+  setText(manual_timer.get_time().toString(timer_format));
 }
 
 void AOTimer::set_time(QTime new_time)
 {
   manual_timer.set_time(new_time);
   old_manual_timer.set_time(new_time);
+  redraw();
+}
+
+void AOTimer::set_timer_format(QString new_timer_format)
+{
+  timer_format = new_timer_format;
   redraw();
 }
 

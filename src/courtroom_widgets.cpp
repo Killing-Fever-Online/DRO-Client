@@ -193,6 +193,10 @@ void Courtroom::create_widgets()
     l_view->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAsNeeded);
   }
 
+  ui_pos_dropdown = new QComboBox(this);
+  // Do not hard code position dropdown!
+  ui_pos_dropdown->addItem(localization::getText("DEFAULT"));
+
   ui_ic_chatlog = new RPTextEdit("ic_chatlog", this);
   ui_ic_chatlog->setReadOnly(true);
   ui_ic_chatlog->set_auto_align(false);
@@ -242,6 +246,9 @@ void Courtroom::create_widgets()
   ui_sfx_menu_preview = ui_sfx_menu->addAction(localization::getText("SFX_PREVIEW"));
   ui_sfx_menu_insert_file_name = ui_sfx_menu->addAction(localization::getText("SFX_FILENAME"));
   ui_sfx_menu_insert_caption = ui_sfx_menu->addAction(localization::getText("SFX_CAPTION"));
+
+  // Pop-out evidence list window
+  ui_evidence_list = new EvidenceList(this);
 
   ui_ic_chat_message = new QWidget(this);
 
@@ -442,12 +449,13 @@ void Courtroom::connect_widgets()
 
   connect(m_tick_timer, SIGNAL(timeout()), this, SLOT(next_chat_letter()));
 
-  connect(m_text_queue_timer, &QTimer::timeout, this, &Courtroom::chatmessage_dequeue);
+  connect(m_text_queue_timer, &QTimer::timeout, this, &Courtroom::chatmessage_next);
 
   connect(m_flash_timer, SIGNAL(timeout()), this, SLOT(realization_done()));
 
   connect(ao_config, SIGNAL(searchable_iniswap_changed(bool)), this, SLOT(update_iniswap_dropdown_searchable()));
   connect(ao_config, SIGNAL(emote_preview_changed(bool)), this, SLOT(on_emote_preview_toggled(bool)));
+
   connect(ui_emote_left, SIGNAL(clicked()), this, SLOT(on_emote_left_clicked()));
   connect(ui_emote_right, SIGNAL(clicked()), this, SLOT(on_emote_right_clicked()));
 
@@ -572,6 +580,7 @@ void Courtroom::connect_widgets()
   connect(ui_player_list_right, SIGNAL(clicked()), this, SLOT(on_player_list_right_clicked()));
   connect(ui_area_look, SIGNAL(clicked()), this, SLOT(on_area_look_clicked()));
 
+  connect(ao_config, &AOConfig::manual_resize_changed, this, &Courtroom::toggle_manual_resize);
 }
 
 
@@ -978,7 +987,7 @@ void Courtroom::set_widget_layers_legacy()
 
 void Courtroom::set_widgets()
 {
-  pos_size_type courtroomDimensions = ao_app->get_element_dimensions("courtroom", COURTROOM_DESIGN_INI);
+  pos_size_type courtroomDimensions = ao_app->get_element_dimensions("courtroom", COURTROOM_DESIGN_INI, true);
   if (courtroomDimensions.width < 0 || courtroomDimensions.height < 0)
   {
     qWarning() << "W: did not find courtroom width or height in " << COURTROOM_DESIGN_INI;
@@ -986,12 +995,18 @@ void Courtroom::set_widgets()
     courtroomDimensions.height = DEFAULT_HEIGHT;
   }
 
-  m_default_size = QSize(courtroomDimensions.width, courtroomDimensions.height);
+  // We scale the theme manually but we still want to know the raw size to compare against
+  m_raw_size = QSize(courtroomDimensions.width, courtroomDimensions.height);
+  double client_scale = ThemeManager::get().getResize();
 
+  m_default_size = QSize(int((double)courtroomDimensions.width * client_scale), int((double)courtroomDimensions.height * client_scale));
+
+  qInfo() << "theme size: " << m_raw_size << ", scaled: " << m_default_size;
   if (!m_is_maximized)
   {
     resize(m_default_size);
   }
+
 
   if (m_first_theme_loading)
   {
@@ -1341,6 +1356,9 @@ void Courtroom::set_widgets()
     QLineEdit *f_line = notepicker->findChild<QLineEdit *>();
     set_stylesheet(f_line, "[LINE EDIT]", COURTROOM_STYLESHEETS_CSS, ao_app);
   }
+
+  set_stylesheet(ui_evidence_list, "[EVIDENCE]", COURTROOM_STYLESHEETS_CSS, ao_app);
+  set_stylesheet(ui_evidence_list->info_window, "[EVIDENCE INFO]", COURTROOM_STYLESHEETS_CSS, ao_app);
 
   adapt_numbered_items(ui_timers, "timer_number", "timer");
   set_fonts();

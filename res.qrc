@@ -6,5 +6,8 @@
         <file>res/git/git_hash.txt</file>
         <file>src/drserverinfoeditor.ui</file>
         <file>data/sample.avi</file>
+        <file>res/ui/info.ui</file>
+        <file>data/empty.png</file>
+        <file>res/ui/evidencelist.ui</file>
     </qresource>
 </RCC>

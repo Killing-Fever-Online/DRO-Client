@@ -14,6 +14,7 @@ public:
   void setSettings(DRBackgroundSettings t_settings);
   DRBackgroundSettings getSettings();
 
+  QMap<QString, DRBackgroundPosition> getPositions();
 
   virtual void execLoadBackground(QString t_backgroundName) = 0;
 

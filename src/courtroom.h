@@ -6,12 +6,15 @@
 #include "dro/interface/menus/area_menu.h"
 #include "dro/interface/menus/bgm_menu.h"
 #include "dro/interface/menus/char_menu.h"
+#include "dro/interface/widgets/aotimer.h"
 #include "dro/interface/widgets/bgm_filter.h"
+#include "dro/interface/widgets/evidencelist.h"
 #include "dro/interface/widgets/screenshot_button.h"
 #include "dro/interface/widgets/health_bar.h"
 #include "dro/interface/widgets/rp_slider.h"
 #include "dro/network/metadata/message_metadata.h"
 #include "dro/network/metadata/user_metadata.h"
+#include "dro/param/evidence/evidence_data.h"
 #include "dro/system/audio/music_player.h"
 #include "drposition.h"
 #include "drthememovie.h"
@@ -36,7 +39,6 @@ class AONotepad;
 class AOSfxPlayer;
 class AOShoutPlayer;
 class AOSystemPlayer;
-class AOTimer;
 class DRCharacterMovie;
 class DRChatLog;
 class DRMovie;
@@ -142,7 +144,7 @@ public:
   // sets the current background to argument. also does some checks to see if
   // it's a legacy bg
   DRAreaBackground get_background();
-  void set_background(DRAreaBackground p_area_bg);
+  void set_background(DRAreaBackground p_area_bg, QString pos = "");
 
   void set_tick_rate(const int tick_rate);
 
@@ -167,6 +169,9 @@ public:
 
   // updates background based on the position given from the chatmessage; will reset preloading if active
   void update_background_scene();
+
+  // Sets the positions dropdown to a list of positions provided
+  void set_pos_dropdown(QStringList pos_list);
 
   // displays the current background
   void display_background_scene();
@@ -211,6 +216,7 @@ public:
   void setPlayerTyping(int client, bool active);
   void construct_emotes();
   void write_area_desc();
+  void set_evidence_list(QVector<EvidenceData> &f_evidence_list);
 
   // Set the showname of the client
   void set_showname(QString p_showname);
@@ -249,11 +255,15 @@ public:
   // these functions handle chatmessages sequentially.
   // The process itself is very convoluted and merits separate documentation
   // But the general idea is objection animation->pre animation->talking->idle
-  void next_chatmessage(QStringList p_contents);
+  void process_chatmessage_packet(QStringList p_contents);
   void log_chatmessage(MessageMetadata ic_message, bool is_pending);
   void reset_viewport();
   void preload_chatmessage(QStringList p_contents);
   void handle_chatmessage();
+  // Check if a shout is neccessary
+  void attempt_shout();
+  // If it is, show the provided character shout
+  void character_shout(QString l_shout_name);
   void handle_chatmessage_2();
   void handle_chatmessage_3();
 
@@ -314,6 +324,7 @@ public:
   void set_timer_time(int timer_id, int new_time);
   void set_timer_timestep(int timer_id, int timestep_length);
   void set_timer_firing(int timer_id, int firing_interval);
+  void set_timer_format(int timer_id, QString timer_format = AOTimer::default_format);
   void pause_timer(int timer_id);
 
   template <typename T>
@@ -330,14 +341,18 @@ public:
 
 private:
   bool m_first_theme_loading = true;
+  QSize m_raw_size;
   QSize m_default_size;
   bool m_is_maximized = false;
+  bool m_user_pending_resize = false;
 
   AOApplication *ao_app = nullptr;
 
   QStringList m_area_list;
   QStringList m_music_list;
   QString m_current_song;
+
+  QVector<EvidenceData> global_evidence_list;
 
   QSignalMapper *char_button_mapper = nullptr;
 
@@ -556,6 +571,9 @@ private:
 
   QListWidget *animList = nullptr;
   QListWidget *ui_sfx_list = nullptr;
+
+  EvidenceList *ui_evidence_list = nullptr;
+
   QVector<DRSfx> m_sfx_list;
   const QString m_sfx_default_file = "__DEFAULT__";
   QColor m_animListIdle;
@@ -769,6 +787,16 @@ private:
   QString get_shout_name(int shout_index);
   QString get_effect_name(int effect_index);
 
+  // Dequeue the chatmessage and return it
+  MessageMetadata chatmessage_dequeue();
+
+  // Process the dequeued chat message
+  void process_chatmessage(MessageMetadata ic_message);
+
+  // Skip the current queue and ensure logs are processed correctly
+  void skip_chatmessage_queue();
+
+
 public slots:
   void video_finished();
   void objection_done();
@@ -920,6 +948,8 @@ private slots:
   void OnCharRefreshClicked();
   void OnCharRandomClicked();
 
+  void toggle_manual_resize(bool p_toggle);
+
   //Player List
 
   void on_player_list_left_clicked();
@@ -933,7 +963,7 @@ private slots:
 
 
   // Proceed to parse the oldest chatmessage and remove it from the stack
-  void chatmessage_dequeue();
+  void chatmessage_next();
 
   // character
   // ===========================================================================

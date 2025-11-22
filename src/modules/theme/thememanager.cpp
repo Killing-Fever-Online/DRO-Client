@@ -316,6 +316,16 @@ double ThemeManager::getViewporResize()
   return mViewportResize;
 }
 
+void ThemeManager::setFontResize(double size)
+{
+  mFontResize = size;
+}
+
+double ThemeManager::getFontResize()
+{
+  return mFontResize;
+}
+
 void ThemeManager::addComboBox(QString name, RPComboBox *comboBox)
 {
   mComboBoxWidgets[name] = comboBox;

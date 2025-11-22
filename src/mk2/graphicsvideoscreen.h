@@ -40,7 +40,9 @@ public:
 public slots:
   void set_file_name(QString file_name);
 
-  void play_character_video(QString character, QString video);
+  bool set_character_video(QString p_character, QString p_video);
+
+  void play_character_video(QString p_character, QString p_video);
 
   void play();
 

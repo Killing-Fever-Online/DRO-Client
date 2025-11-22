@@ -218,7 +218,10 @@ private:
 
   //Theme
   QDoubleSpinBox *ui_theme_resize = nullptr;
+  QDoubleSpinBox *ui_font_resize = nullptr;
   QSpinBox *ui_fade_duration = nullptr;
+
+  QCheckBox *ui_manual_resize = nullptr;
 
 
 private slots:

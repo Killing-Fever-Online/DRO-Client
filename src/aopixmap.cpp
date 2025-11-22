@@ -22,7 +22,8 @@ void AOPixmap::clear()
 QPixmap AOPixmap::scale(QSize p_size)
 {
   const bool l_pixmap_is_larger = m_pixmap.width() > p_size.width() || m_pixmap.height() > p_size.height();
-  const Qt::TransformationMode f_mode = l_pixmap_is_larger ? Qt::SmoothTransformation : Qt::FastTransformation;
+  // If we are downscaling, force smooth transformation as downscaling assets using fast algorithm looks like crap
+  const Qt::TransformationMode f_mode = l_pixmap_is_larger ? Qt::SmoothTransformation : m_mode;
   return m_pixmap.scaled(p_size, Qt::IgnoreAspectRatio, f_mode);
 }
 
@@ -30,5 +31,5 @@ QPixmap AOPixmap::scale_to_height(QSize p_size)
 {
   const bool l_pixmap_is_larger = m_pixmap.width() > p_size.width() || m_pixmap.height() > p_size.height();
   return m_pixmap.scaledToHeight(p_size.height(),
-                                 l_pixmap_is_larger ? Qt::SmoothTransformation : Qt::FastTransformation);
+                                 l_pixmap_is_larger ? Qt::SmoothTransformation : m_mode);
 }

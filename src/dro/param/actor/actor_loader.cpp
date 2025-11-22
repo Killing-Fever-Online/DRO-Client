@@ -345,7 +345,12 @@ QVector<DREmote> LegacyActorReader::GetEmotes()
       l_emote.emoteName = l_emotions.at(Dialog);
       l_emote.modifier = qMax(l_emotions.at(Modifier).toInt(), 0);
       if (DeskModifier < l_emotions.length())
-        l_emote.desk_modifier = l_emotions.at(DeskModifier).toInt();
+      {
+        QString deskmod = l_emotions.at(DeskModifier);
+        if (deskmod.isEmpty())
+          deskmod = "-1";
+        l_emote.desk_modifier = deskmod.toInt();
+      }
 
       l_chrini.beginGroup(l_fetcher.lookup_group("soundn"));
       l_emote.sound_file = l_chrini.value(i_key).toString();

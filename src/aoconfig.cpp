@@ -92,6 +92,7 @@ private:
   bool log_format_use_newline;
   bool log_display_music_switch;
   bool log_is_recording;
+  bool manual_resize;
 
   // performance
   bool focus_performance_mode;
@@ -117,6 +118,7 @@ private:
   int blip_rate;
   int punctuation_delay;
   double theme_resize;
+  double font_resize;
   int fade_duration;
   bool blank_blips;
 
@@ -192,8 +194,8 @@ void AOConfigPrivate::load_file()
   manual_timeofday = cfg.value("timeofday").toString();
   manual_timeofday_selection = cfg.value("manual_timeofday", false).toBool();
   searchable_iniswap = cfg.value("searchable_iniswap", true).toBool();
-  always_pre = cfg.value("always_pre", true).toBool();
-  chat_tick_interval = cfg.value("chat_tick_interval", 60).toInt();
+  always_pre = cfg.value("always_pre", false).toBool();
+  chat_tick_interval = cfg.value("chat_tick_interval", 40).toInt();
   chat_ratelimit = cfg.value("chat_ratelimit", 500).toInt();
   emote_preview = cfg.value("emote_preview", true).toBool();
   sticky_sfx = cfg.value("sticky_sfx", false).toBool();
@@ -244,9 +246,12 @@ void AOConfigPrivate::load_file()
   punctuation_delay = cfg.value("punctuation_delay", 110).toInt();
   theme_resize = cfg.value("theme_resize", 1).toDouble();
   ThemeManager::get().setResize(theme_resize);
+  font_resize = cfg.value("font_resize", 1).toDouble();
+  ThemeManager::get().setFontResize(font_resize);
   fade_duration = cfg.value("fade_duration", 200).toInt();
   SceneManager::get().setFadeDuration(fade_duration);
   blank_blips = cfg.value("blank_blips").toBool();
+  manual_resize = cfg.value("manual_resize", true).toBool();
 
   // audio update
   audio_engine->set_volume(master_volume);
@@ -360,8 +365,10 @@ void AOConfigPrivate::save_file()
   cfg.setValue("blip_rate", blip_rate);
   cfg.setValue("punctuation_delay", punctuation_delay);
   cfg.setValue("theme_resize", theme_resize);
+  cfg.setValue("font_resize", font_resize);
   cfg.setValue("fade_duration", fade_duration);
   cfg.setValue("blank_blips", blank_blips);
+  cfg.setValue("manual_resize", manual_resize);
 
   cfg.remove("character_ini");
   { // ini swap
@@ -771,6 +778,16 @@ bool AOConfig::blank_blips_enabled() const
 double AOConfig::theme_resize() const
 {
   return d->theme_resize;
+}
+
+double AOConfig::font_resize() const
+{
+  return d->font_resize;
+}
+
+bool AOConfig::manual_resize() const
+{
+  return d->manual_resize;
 }
 
 int AOConfig::fade_duration() const
@@ -1306,6 +1323,24 @@ void AOConfig::setThemeResize(double resize)
   d->theme_resize = resize;
   ThemeManager::get().setResize(resize);
   d->invoke_signal("theme_resize_changed", Q_ARG(double, resize));
+}
+
+void AOConfig::setFontResize(double resize)
+{
+  if (d->font_resize == resize)
+    return;
+  d->font_resize = resize;
+  ThemeManager::get().setFontResize(resize);
+  d->invoke_signal("font_resize_changed", Q_ARG(double, resize));
+}
+
+
+void AOConfig::set_manual_resize(bool p_enabled)
+{
+  if (d->manual_resize == p_enabled)
+    return;
+  d->manual_resize = p_enabled;
+  d->invoke_signal("manual_resize_changed", Q_ARG(bool, p_enabled));
 }
 
 void AOConfig::setFadeDuration(int duration)

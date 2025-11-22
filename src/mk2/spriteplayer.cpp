@@ -313,10 +313,6 @@ void SpritePlayer::resolve_scaling_mode(ScalingMode scalingMode, double scale)
   }
 
   m_transform = Qt::SmoothTransformation;
-  if (l_image_size.width() < m_size.width() || l_image_size.height() < m_size.height())
-  {
-    m_transform = Qt::FastTransformation;
-  }
 }
 
 void SpritePlayer::fetch_next_frame()

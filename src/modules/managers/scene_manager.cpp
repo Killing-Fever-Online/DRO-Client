@@ -46,6 +46,11 @@ DRBackgroundSettings SceneManager::getBackgroundSettings()
   return pCurrentBackground->getSettings();
 }
 
+BackgroundData *SceneManager::getCurrentBackground()
+{
+  return pCurrentBackground;
+}
+
 RPLabel *SceneManager::CreateTransition(QWidget *parents, AOApplication *ao_app, DRGraphicsView *viewport)
 {
   pUiTransition = new RPLabel(parents, ao_app);

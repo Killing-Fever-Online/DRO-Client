@@ -20,6 +20,7 @@ public:
 
 public slots:
   void set_blips(QString p_sfx);
+  void set_sound(QString p_sfx);
   void blip_tick();
 
 private:

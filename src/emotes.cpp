@@ -51,14 +51,6 @@ void Courtroom::construct_emotes()
   }
 
   ui_emote_dropdown = new QComboBox(this);
-  ui_pos_dropdown = new QComboBox(this);
-  ui_pos_dropdown->addItem(system::localization::getText("DEFAULT"));
-  ui_pos_dropdown->addItem(system::localization::getText("POS_WIT"), "wit");
-  ui_pos_dropdown->addItem(system::localization::getText("POS_DEF"), "def");
-  ui_pos_dropdown->addItem(system::localization::getText("POS_PRO"), "pro");
-  ui_pos_dropdown->addItem(system::localization::getText("POS_JUD"), "jud");
-  ui_pos_dropdown->addItem(system::localization::getText("POS_DEF_ASS"), "hld");
-  ui_pos_dropdown->addItem(system::localization::getText("POS_PRO_ASS"), "hlp");
 }
 
 void Courtroom::show_emote_tooltip(int p_id, QPoint p_global_pos)

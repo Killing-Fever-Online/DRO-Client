@@ -140,12 +140,12 @@ namespace audio
 
     void SetGender(const char *gender)
     {
-      s_blipPlayer->set_blips("sfx-blip" + QString(gender) + ".wav");
+      s_blipPlayer->set_blips(gender);
     }
 
     void SetSound(const char *sound)
     {
-      s_blipPlayer->set_blips(sound);
+      s_blipPlayer->set_sound(sound);
     }
 
     int getBlipRate()

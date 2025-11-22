@@ -125,6 +125,11 @@ QString AOApplication::get_background_dir_path(QString p_identifier)
   return get_case_sensitive_path(get_background_path(p_identifier));
 }
 
+QString AOApplication::get_evidence_path(QString p_identifier)
+{
+  return get_case_sensitive_path(FS::Paths::FindFile("evidence/" + p_identifier));
+}
+
 /**
  * @brief Returns the 'correct' path for the file given as the parameter by
  * trying to match the case of the actual path.

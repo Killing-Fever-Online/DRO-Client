@@ -334,11 +334,13 @@ widgetFontStruct ThemeReader::GetFontData(RPSceneType sceneType, QString element
   return return_value;
 }
 
-pos_size_type ThemeReader::GetWidgetTransform(RPSceneType sceneType, QString element)
+pos_size_type ThemeReader::GetWidgetTransform(RPSceneType sceneType, QString element, bool ignore_resize)
 {
   pos_size_type return_value;
 
   double resize = ThemeManager::get().getResize();
+  if (ignore_resize)
+    resize = 1.0;
 
   if(m_GameModeCurrent != nullptr)
   {
