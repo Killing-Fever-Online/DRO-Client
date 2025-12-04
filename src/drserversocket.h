@@ -3,8 +3,9 @@
 #include "datatypes.h"
 #include "drpacket.h"
 
-#include <QAbstractSocket>
 #include <QObject>
+#include <QTcpSocket>
+#include <QtWebSockets/QWebSocket>
 
 class QTcpSocket;
 class QTimer;
@@ -33,21 +34,32 @@ public slots:
   void send_packet(DRPacket packet);
 
 signals:
-  void connection_state_changed(ConnectionState);
+  void connection_state_changed(DRServerSocket::ConnectionState);
   void packet_received(DRPacket);
   void socket_error(QString);
 
 private:
   static const int CONNECTING_DELAY;
 
+  struct DRSocket
+  {
+    DRServerProtocolType m_active_type = DRServerProtocolType::INACTIVE;
+    union
+    {
+      QTcpSocket *tcp;
+      QWebSocket *ws;
+    };
+  };
+
   DRServerInfo m_server;
-  QTcpSocket *m_socket = nullptr;
+  DRSocket m_socket;
   QTimer *m_connecting_timeout = nullptr;
   ConnectionState m_state = NotConnected;
   QString m_buffer;
 
 private slots:
   void _p_update_state(QAbstractSocket::SocketState);
-  void _p_check_socket_error();
+  void _p_check_socket_error(QAbstractSocket::SocketError error);
   void _p_read_socket();
+  void _p_read_ws_socket(const QString &message);
 };
