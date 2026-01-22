@@ -1,4 +1,5 @@
 #include "fs_mounting.h"
+#include "commondefs.h"
 #include "fs_reading.h"
 
 #include <QDir>
@@ -11,7 +12,7 @@ QVector<QString> &FS::Packages::Scan()
 {
   s_foundPackages.clear();
 
-  QString packagesPath = FS::Paths::ApplicationPath() + "/packages/";
+  QString packagesPath = FS::Paths::PackagesPath();
   QList<QFileInfo> packagesFileinfo = QDir(packagesPath).entryInfoList();
 
   for(QFileInfo packageDirectory : packagesFileinfo)
@@ -27,7 +28,7 @@ QVector<QString> &FS::Packages::Scan()
   }
 
   //Check for disabled packages configuration
-  const QString iniPath = Paths::BasePath() + "packages.ini";
+  const QString iniPath = Paths::BasePath() + BASE_PACKAGES_INI;
   QFile iniFile(iniPath);
   if (!iniFile.open(QFile::ReadOnly)) return s_foundPackages;
 
@@ -46,21 +47,21 @@ QVector<QString> &FS::Packages::CachedNames()
   return s_foundPackages;
 }
 
-QVector<QString> &FS::Packages::DisabledList()
+QVector<QString> &FS::Packages::PackageConfig()
 {
   return s_disabledPackages;
 }
 
-void FS::Packages::SetDisabled(QVector<QString> disableList)
+void FS::Packages::SetConfig(QVector<QString> disableList)
 {
   s_disabledPackages.clear();
   s_disabledPackages = disableList;
-  SaveDisabled();
+  SaveConfig();
 }
 
-void FS::Packages::SaveDisabled()
+void FS::Packages::SaveConfig()
 {
-  const QString iniPath = Paths::BasePath() + "packages.ini";
+  const QString iniPath = Paths::BasePath() + BASE_PACKAGES_INI;
   QFile iniFile(iniPath);
   iniFile.open(QIODevice::WriteOnly);
   QTextStream out(&iniFile);

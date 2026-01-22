@@ -85,7 +85,7 @@ void Courtroom::SearchForCharacterListAsync()
 
   QStringList l_package_folders{};
   QVector<QString> packageNames = FS::Packages::CachedNames();
-  QVector<QString> disabledPackages = FS::Packages::DisabledList();
+  QVector<QString> disabledPackages = FS::Packages::PackageConfig();
 
   for (int i=0; i< packageNames.size(); i++)
   {
