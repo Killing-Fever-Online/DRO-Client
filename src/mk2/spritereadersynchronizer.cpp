@@ -75,7 +75,7 @@ void SpriteReaderSynchronizer::add(mk2::SpriteReader::ptr p_reader)
   }
   m_finished = false;
   m_reader_list.append(p_reader);
-  connect(p_reader.data(), SIGNAL(loading_progress_changed(int)), this, SLOT(_p_check_progress()));
+  connect(p_reader.data(), &SpriteReader::loading_progress_changed, this, &SpriteReaderSynchronizer::_p_check_progress);
   _p_check_progress();
 }
 
@@ -83,7 +83,7 @@ void SpriteReaderSynchronizer::clear()
 {
   m_waiting = false;
   m_finished = false;
-  for (const mk2::SpriteReader::ptr &i_reader : qAsConst(m_reader_list))
+  for (const mk2::SpriteReader::ptr &i_reader : std::as_const(m_reader_list))
   {
     i_reader->disconnect(this);
   }
@@ -110,7 +110,7 @@ void SpriteReaderSynchronizer::_p_check_progress()
     return;
   }
 
-  for (const mk2::SpriteReader::ptr &i_reader : qAsConst(m_reader_list))
+  for (const mk2::SpriteReader::ptr &i_reader : std::as_const(m_reader_list))
   {
     // if the reader is invalid, it's the same as being fully loaded
     if (i_reader->is_valid() && i_reader->get_loading_progress() < m_threshold)

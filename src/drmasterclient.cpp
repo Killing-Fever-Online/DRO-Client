@@ -61,7 +61,7 @@ void DRMasterClient::send_get_request(QString request, Delegate delegate)
   QNetworkReply *l_reply = m_network->get(l_request);
   l_reply->setParent(this);
   m_pending_delegates.insert(l_reply, delegate);
-  connect(l_reply, SIGNAL(finished()), this, SLOT(process_request()));
+  connect(l_reply, &QNetworkReply::finished, this, &DRMasterClient::process_request);
 }
 
 void DRMasterClient::process_request()

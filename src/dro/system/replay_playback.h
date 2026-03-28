@@ -3,7 +3,7 @@
 
 class ReplayWindow;
 class RPViewport;
-class QStringList;
+#include <QtCore/qcontainerfwd.h>
 class QString;
 
 namespace dro::system::replays

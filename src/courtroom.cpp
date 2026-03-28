@@ -96,9 +96,9 @@ Courtroom::Courtroom(AOApplication *p_ao_app, QWidget *parent)
   m_preloader_sync = new mk2::SpriteReaderSynchronizer(this);
   m_preloader_sync->set_threshold(ao_config->caching_threshold());
 
-  connect(ao_app, SIGNAL(reload_theme()), this, SLOT(reload_theme()));
-  connect(ao_app, SIGNAL(reload_character()), this, SLOT(load_character()));
-  connect(ao_app, SIGNAL(reload_audiotracks()), this, SLOT(load_audiotracks()));
+  connect(ao_app, &AOApplication::reload_theme, this, &Courtroom::reload_theme);
+  connect(ao_app, &AOApplication::reload_character, this, &Courtroom::load_character);
+  connect(ao_app, &AOApplication::reload_audiotracks, this, &Courtroom::load_audiotracks);
   ThemeManager::get().toggleReload();
 
   create_widgets();
@@ -191,7 +191,7 @@ void Courtroom::setup_courtroom()
   reconstruct_char_select();
   ui_char_select_background->setVisible(l_chr_select_visible);
 
-  for (AOTimer *i_timer : qAsConst(ui_timers))
+  for (AOTimer *i_timer : std::as_const(ui_timers))
   {
     i_timer->redraw();
   }
@@ -214,9 +214,7 @@ void Courtroom::map_viewers()
   });
 
   // backgrounds
-  m_mapped_viewer_list[SpriteWeather].append({
-    ui_vp_weather->get_player()
-  });
+  m_mapped_viewer_list[SpriteWeather].append(ui_vp_weather->get_player());
 
   m_mapped_viewer_list[SpriteStage].append({
       ui_vp_background->get_player(),
@@ -235,7 +233,7 @@ void Courtroom::map_viewers()
   m_mapped_viewer_list[SpriteEffect].append(ui_vp_effect->get_player());
 
   // stickers
-  for (DRStickerViewer *i_sticker : qAsConst(ui_free_blocks))
+  for (DRStickerViewer *i_sticker : std::as_const(ui_free_blocks))
   {
     m_mapped_viewer_list[SpriteSticker].append(i_sticker->get_player());
   }
@@ -257,7 +255,7 @@ void Courtroom::map_viewport_viewers()
 void Courtroom::map_viewport_readers()
 {
   const QList<ViewportSprite> l_type_list = m_viewport_viewer_map.keys();
-  for (const ViewportSprite i_type : qAsConst(l_type_list))
+  for (const ViewportSprite i_type : std::as_const(l_type_list))
   {
     m_reader_cache.insert(i_type, m_viewport_viewer_map[i_type]->get_reader());
   }
@@ -303,7 +301,7 @@ void Courtroom::assign_readers_for_viewers(int p_category, bool p_caching)
 
   // viewport readers
   const auto &l_viewer_list = m_mapped_viewer_list[l_category];
-  for (auto i_viewer : qAsConst(l_viewer_list))
+  for (auto i_viewer : std::as_const(l_viewer_list))
   {
     mk2::SpriteReader::ptr l_new_reader;
     if (p_caching)
@@ -322,7 +320,7 @@ void Courtroom::assign_readers_for_viewers(int p_category, bool p_caching)
 
     { // update reader cache
       const QList<ViewportSprite> l_type_list = m_reader_cache.keys();
-      for (const ViewportSprite i_type : qAsConst(l_type_list))
+      for (const ViewportSprite i_type : std::as_const(l_type_list))
       {
         const mk2::SpriteReader::ptr l_current_reader = m_reader_cache.value(i_type);
         if (l_prev_reader == l_current_reader)
@@ -637,8 +635,9 @@ DRPositionMap Courtroom::get_legacy_background(QString p_background)
     QString l_position_id = it.key();
     DRPosition l_position = it.value();
 
-    auto l_get_position_filename = [this, &p_background](QString p_filename) {
-      const QFileInfo l_filepath = ao_app->get_background_sprite_noext_path(p_background, p_filename);
+    auto l_get_position_filename = [this, &p_background](QString p_filename)
+    {
+      const QFileInfo l_filepath(ao_app->get_background_sprite_noext_path(p_background, p_filename));
       return l_filepath.fileName();
     };
     l_position.set_back(l_get_position_filename(l_position.get_back()));
@@ -669,7 +668,7 @@ void Courtroom::set_background(DRAreaBackground p_background, QString pos)
   }
 
   QStringList l_missing_backgrounds;
-  for (const QString &i_background : qAsConst(l_background_list))
+  for (const QString &i_background : std::as_const(l_background_list))
   {
     const QString l_background_path = ao_app->get_case_sensitive_path(ao_app->get_background_path(i_background));
     if (!FS::Checks::DirectoryExists(l_background_path))
@@ -806,7 +805,7 @@ void Courtroom::list_music()
 
   ui_music_list->clear();
   QTreeWidgetItem *parent = nullptr;
-  for (const QString &i_song : qAsConst(m_music_list))
+  for (const QString &i_song : std::as_const(m_music_list))
   {
     // Grab a human-readable song name here by stripping out the category folder
     // (if track title name is not defined)
@@ -851,7 +850,7 @@ void Courtroom::list_areas()
 
   const QBrush l_area_brush = ao_app->current_theme->get_widget_settings_color("area_list", "courtroom", "area_free", "area_free_color");
   ui_area_list->clear();
-  for (const QString &i_item_name : qAsConst(m_area_list))
+  for (const QString &i_item_name : std::as_const(m_area_list))
   {
     QListWidgetItem *l_item = new QListWidgetItem(i_item_name, ui_area_list);
     l_item->setBackground(l_area_brush);
@@ -2476,12 +2475,12 @@ void Courtroom::precalculate_ic_message()
 
     if(!is_ignore_next_letter)
     {
-      if (f_character == Qt::Key_Backslash)
+      if (f_character.toLatin1() == Qt::Key_Backslash)
       {
         is_ignore_next_letter = true;
         continue;
       }
-      if ((f_character == Qt::Key_BraceLeft || f_character == Qt::Key_BraceRight))
+      if ((f_character.toLatin1() == Qt::Key_BraceLeft || f_character.toLatin1() == Qt::Key_BraceRight))
       {
         m_tick_speed = qBound(-3, m_tick_speed + (f_character == '}' ? 1 : -1), 3);
         message_components.append(DR::CommandData(DR::MidLineCommand::SetInterval, calculate_chat_tick_interval(m_tick_speed)));
@@ -2536,7 +2535,7 @@ void Courtroom::precalculate_ic_message()
 
       if (!is_ignore_next_letter)
       {
-        for (const auto &col : qAsConst(m_chatbox_message_highlight_colors))
+        for (const auto &col : std::as_const(m_chatbox_message_highlight_colors))
         {
           if (f_character == col[0][0] && m_message_color_name != col[1])
           {
@@ -2555,7 +2554,7 @@ void Courtroom::precalculate_ic_message()
 
       if (!highlight_found && !is_ignore_next_letter)
       {
-        for (const auto &col : qAsConst(m_chatbox_message_highlight_colors))
+        for (const auto &col : std::as_const(m_chatbox_message_highlight_colors))
         {
           if (f_character == col[0][1])
           {
@@ -3059,7 +3058,7 @@ void Courtroom::on_area_list_double_clicked(QModelIndex p_model)
   ui_ic_chat_message_field->setFocus();
 }
 
-void Courtroom::on_area_search_edited(QString p_filter)
+void Courtroom::on_area_search_edited(const QString &p_filter)
 {
   filter_list_widget(ui_area_list, p_filter);
 }
@@ -3092,7 +3091,7 @@ void Courtroom::on_music_menu_insert_ooc_triggered()
   ui_ooc_chat_message->setFocus();
 }
 
-void Courtroom::on_music_search_edited(QString p_filter)
+void Courtroom::on_music_search_edited(const QString &p_filter)
 {
   filter_tree_widget(ui_music_list, p_filter);
 }
@@ -3184,7 +3183,7 @@ void Courtroom::send_play_random_music(QString category, BGMPlayback playbackTyp
  */
 void Courtroom::reset_shout_buttons()
 {
-  for (RPButton *i_button : qAsConst(ui_shouts))
+  for (RPButton *i_button : std::as_const(ui_shouts))
     i_button->setChecked(false);
   m_shout_state = 0;
 }
@@ -3201,7 +3200,7 @@ void Courtroom::on_shout_button_clicked(const bool p_checked)
     return;
 
   // disable all other buttons
-  for (RPButton *i_button : qAsConst(ui_shouts))
+  for (RPButton *i_button : std::as_const(ui_shouts))
   {
     if (i_button == l_button)
       continue;
@@ -3309,7 +3308,7 @@ void Courtroom::cycle_wtce(int p_delta)
  */
 void Courtroom::reset_effect_buttons()
 {
-  for (RPButton *i_button : qAsConst(ui_effects))
+  for (RPButton *i_button : std::as_const(ui_effects))
     i_button->setChecked(false);
   m_effect_state = 0;
 }
@@ -3326,7 +3325,7 @@ void Courtroom::on_effect_button_clicked(const bool p_checked)
     return;
 
   // disable all other buttons
-  for (RPButton *i_button : qAsConst(ui_effects))
+  for (RPButton *i_button : std::as_const(ui_effects))
   {
     if (i_button == l_button)
       continue;
@@ -3890,7 +3889,8 @@ void Courtroom::mousePressEvent(QMouseEvent *event)
 {
   if (event)
   {
-    LuaBridge::LuaEventCall("OnMousePressed", event->button(), event->x(), event->y());
+    const QPointF l_position = event->position();
+    LuaBridge::LuaEventCall("OnMousePressed", event->button(), l_position.x(), l_position.y());
   }
 }
 
@@ -3898,7 +3898,8 @@ void Courtroom::mouseReleaseEvent(QMouseEvent *event)
 {
   if (event)
   {
-    LuaBridge::LuaEventCall("OnMouseReleased", event->button(), event->x(), event->y());
+    const QPointF l_position = event->position();
+    LuaBridge::LuaEventCall("OnMouseReleased", event->button(), l_position.x(), l_position.y());
   }
 }
 
@@ -3906,7 +3907,8 @@ void Courtroom::mouseMoveEvent(QMouseEvent *event)
 {
   if (event)
   {
-    LuaBridge::LuaEventCall("OnMouseMoved", event->x(), event->y());
+    const QPointF l_position = event->position();
+    LuaBridge::LuaEventCall("OnMouseMoved", l_position.x(), l_position.y());
   }
 }
 

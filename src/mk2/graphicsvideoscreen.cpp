@@ -19,37 +19,30 @@
 **************************************************************************/
 #include "graphicsvideoscreen.h"
 
-#include <QAudioDeviceInfo>
-#include <QAudioOutputSelectorControl>
-#include <QMediaService>
+#include <QAudioOutput>
+#include <QMediaDevices>
 #include <QStyleOptionGraphicsItem>
 #include <QUrl>
 
 DRVideoScreen::DRVideoScreen(AOApplication *ao_app, QGraphicsItem *parent)
-    : QGraphicsVideoItem(parent)
-    , ao_app(ao_app)
-    , m_config(new AOConfig(this))
-    , m_engine(new DRAudioEngine(this))
-    , m_family(m_engine->get_family(DRAudio::Family::FVideo))
-    , m_scanned(false)
-    , m_video_available(false)
-    , m_running(false)
-    , m_player(new QMediaPlayer(this, QMediaPlayer::LowLatency))
+    : QGraphicsVideoItem(parent), ao_app(ao_app), m_config(new AOConfig(this)), m_engine(new DRAudioEngine(this)),
+      m_family(m_engine->get_family(DRAudio::Family::FVideo)), m_scanned(false), m_video_available(false),
+      m_running(false), m_player(new QMediaPlayer(this))
 {
   setAspectRatioMode(Qt::KeepAspectRatioByExpanding);
 
   m_player->setVideoOutput(this);
 
-  connect(m_player, SIGNAL(videoAvailableChanged(bool)), this, SLOT(update_video_availability(bool)));
-  connect(m_player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(check_status(QMediaPlayer::MediaStatus)));
-  connect(m_player, SIGNAL(stateChanged(QMediaPlayer::State)), this, SLOT(check_state(QMediaPlayer::State)));
+  connect(m_player, &QMediaPlayer::hasVideoChanged, this, &DRVideoScreen::update_video_availability);
+  connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &DRVideoScreen::check_status);
+  connect(m_player, &QMediaPlayer::playbackStateChanged, this, &DRVideoScreen::check_state);
 
-  connect(m_engine, SIGNAL(current_device_changed(DRAudioDevice)), this, SLOT(update_audio_output()));
-  connect(m_config, SIGNAL(video_volume_changed(int)), this, SLOT(update_volume()));
-  connect(m_engine, SIGNAL(volume_changed(int32_t)), this, SLOT(update_volume()));
-  connect(m_engine, SIGNAL(options_changed(DRAudio::Options)), this, SLOT(update_volume()));
-  connect(m_family.get(), SIGNAL(volume_changed(int32_t)), this, SLOT(update_volume()));
-  connect(m_family.get(), SIGNAL(options_changed(DRAudio::Options)), this, SLOT(update_volume()));
+  connect(m_engine, &DRAudioEngine::current_device_changed, this, &DRVideoScreen::update_audio_output);
+  connect(m_config, &AOConfig::video_volume_changed, this, &DRVideoScreen::update_volume);
+  connect(m_engine, &DRAudioEngine::volume_changed, this, &DRVideoScreen::update_volume);
+  connect(m_engine, &DRAudioEngine::options_changed, this, &DRVideoScreen::update_volume);
+  connect(m_family.get(), &DRAudioStreamFamily::volume_changed, this, &DRVideoScreen::update_volume);
+  connect(m_family.get(), &DRAudioStreamFamily::options_changed, this, &DRVideoScreen::update_volume);
 
   update_audio_output();
 }
@@ -77,7 +70,7 @@ void DRVideoScreen::set_file_name(QString p_file_name)
   {
     m_scanned = true;
   }
-  m_player->setMedia(QUrl::fromLocalFile(m_file_name));
+  m_player->setSource(QUrl::fromLocalFile(m_file_name));
 }
 
 bool DRVideoScreen::set_character_video(QString p_character, QString p_video)
@@ -129,7 +122,7 @@ void DRVideoScreen::play()
 void DRVideoScreen::stop()
 {
   m_running = false;
-  if (m_player->state() != QMediaPlayer::StoppedState)
+  if (m_player->playbackState() != QMediaPlayer::StoppedState)
   {
     m_player->stop();
   }
@@ -174,7 +167,7 @@ void DRVideoScreen::check_status(QMediaPlayer::MediaStatus p_status)
   }
 }
 
-void DRVideoScreen::check_state(QMediaPlayer::State p_state)
+void DRVideoScreen::check_state(QMediaPlayer::PlaybackState p_state)
 {
   switch (p_state)
   {
@@ -196,7 +189,7 @@ void DRVideoScreen::check_state(QMediaPlayer::State p_state)
 
 void DRVideoScreen::start_playback()
 {
-  if (m_player->state() == QMediaPlayer::StoppedState)
+  if (m_player->playbackState() == QMediaPlayer::StoppedState)
   {
     update_audio_output();
 
@@ -219,34 +212,38 @@ void DRVideoScreen::update_audio_output()
     return;
   }
 
-  QMediaService *l_service = m_player->service();
-  if (!l_service)
+  // Find matching QAudioDevice from available outputs
+  const QList<QAudioDevice> l_device_list = QMediaDevices::audioOutputs();
+  QAudioDevice l_matched_device;
+
+  for (const QAudioDevice &i_device : l_device_list)
   {
-    qWarning() << "error: missing media service, device unchanged";
+    const QString l_device_id = QString::fromUtf8(i_device.id());
+    const QString l_device_desc = i_device.description();
+
+    if (l_device_id == l_target_device->get_name() || l_device_id == l_target_device->get_driver() ||
+        l_device_desc == l_target_device->get_name() || l_device_desc == l_target_device->get_driver())
+    {
+      l_matched_device = i_device;
+      break;
+    }
+  }
+
+  if (l_matched_device.isNull())
+  {
+    qWarning() << "error: no matching audio device found, device unchanged";
     return;
   }
 
-  QAudioOutputSelectorControl *l_control = l_service->requestControl<QAudioOutputSelectorControl *>();
-  if (!l_control)
+  qDebug() << "Media player changed audio device to" << l_target_device->get_name();
+
+  if (!m_audio_output)
   {
-    qWarning() << "error: missing audio output control, device unchanged";
+    m_audio_output = new QAudioOutput(this);
+    m_player->setAudioOutput(m_audio_output);
   }
-  else
-  {
-    const QStringList l_device_name_list = l_control->availableOutputs();
-    for (const QString &i_device_name : l_device_name_list)
-    {
-      const QString l_device_description = l_control->outputDescription(i_device_name);
-      if (i_device_name == l_target_device->get_name() || i_device_name == l_target_device->get_driver() || l_device_description == l_target_device->get_name() || l_device_description == l_target_device->get_driver())
-      {
-        qDebug() << "Media player changed audio device to" << l_target_device->get_name();
-        l_control->setActiveOutput(i_device_name);
-        break;
-      }
-    }
-    return;
-  }
-  l_service->releaseControl(l_control);
+
+  m_audio_output->setDevice(l_matched_device);
 
   update_volume();
 }
@@ -260,9 +257,9 @@ void DRVideoScreen::update_volume()
     l_volume = 0;
   }
 
-  if (m_player->volume() == l_volume)
+  if (m_player->audioOutput()->volume() == l_volume)
   {
     return;
   }
-  m_player->setVolume(l_volume);
+  m_player->audioOutput()->setVolume(l_volume);
 }

@@ -27,20 +27,12 @@ DRAudioEnginePrivate::~DRAudioEnginePrivate()
   BASS_Free();
 }
 
-void DRAudioEnginePrivate::invoke_signal(QString p_method_name, QGenericArgument p_arg1)
-{
-  for (QObject *i_child : qAsConst(children))
-  {
-    QMetaObject::invokeMethod(i_child, p_method_name.toStdString().c_str(), p_arg1);
-  }
-}
-
 void DRAudioEnginePrivate::update_current_device()
 {
   update_device_list();
 
   DRAudioDevice l_target_device;
-  for (const DRAudioDevice &i_device : qAsConst(device_list))
+  for (const DRAudioDevice &i_device : std::as_const(device_list))
   {
     if (!favorite_device_driver.isEmpty() && i_device.get_driver() == favorite_device_driver)
     {

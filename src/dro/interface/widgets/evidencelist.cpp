@@ -235,7 +235,7 @@ void EvidenceList::setInfoDesc(QString f_description)
   else
   {
     QString l_description = f_description.toHtmlEscaped();
-    const QRegExp l_regex("(https?://[^\\s/$.?#].[^\\s]*)");
+    const QRegularExpression l_regex("(https?://[^\\s/$.?#].[^\\s]*)");
     if (l_description.contains(l_regex))
     {
       l_description.replace(l_regex, "<a href=\"\\1\">\\1</a>");

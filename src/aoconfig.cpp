@@ -41,7 +41,8 @@ public slots:
   void save_file();
 
 private:
-  void invoke_signal(QString p_method_name, QGenericArgument p_arg1 = QGenericArgument(nullptr), QGenericArgument p_arg2 = QGenericArgument());
+  template <typename... Args>
+  void invoke_signal(const QString &p_method_name, Args &&...args);
   void update_favorite_device();
 
 private slots:
@@ -132,7 +133,7 @@ AOConfigPrivate::AOConfigPrivate()
     , audio_engine(new DRAudioEngine(this))
 {
   Q_ASSERT_X(qApp, "initialization", "QGuiApplication is required");
-  connect(qApp, SIGNAL(applicationStateChanged(Qt::ApplicationState)), this, SLOT(on_application_state_changed(Qt::ApplicationState)));
+  connect(qApp, &QGuiApplication::applicationStateChanged, this, &AOConfigPrivate::on_application_state_changed);
 
   load_file();
 }
@@ -383,11 +384,13 @@ void AOConfigPrivate::save_file()
   cfg.sync();
 }
 
-void AOConfigPrivate::invoke_signal(QString p_method_name, QGenericArgument p_arg1, QGenericArgument p_arg2)
+template <typename... Args>
+void AOConfigPrivate::invoke_signal(const QString &p_method_name, Args &&...args)
 {
-  for (QObject *i_child : qAsConst(children))
+  const auto method_name = p_method_name.toUtf8();
+  for (QObject *i_child : std::as_const(children))
   {
-    QMetaObject::invokeMethod(i_child, p_method_name.toStdString().c_str(), p_arg1, p_arg2);
+    QMetaObject::invokeMethod(i_child, method_name.constData(), std::forward<Args>(args)...);
   }
 }
 

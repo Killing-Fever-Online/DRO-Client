@@ -199,127 +199,127 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
 
   // input
   // meta
-  connect(m_config, SIGNAL(autosave_changed(bool)), ui_autosave, SLOT(setChecked(bool)));
+  connect(m_config, &AOConfig::autosave_changed, ui_autosave, &QAbstractButton::setChecked);
 
   // notifications
-  connect(ui_clear_notifications, SIGNAL(clicked()), m_config, SLOT(clear_notification_filter()));
+  connect(ui_clear_notifications, &QPushButton::clicked, m_config, &AOConfig::clear_notification_filter);
 
   // general
-  connect(m_config, SIGNAL(username_changed(QString)), ui_username, SLOT(setText(QString)));
-  connect(m_config, SIGNAL(callwords_changed(QString)), ui_callwords, SLOT(setText(QString)));
-  connect(m_config, SIGNAL(server_advertiser_changed(QString)), ui_advertiser, SLOT(setText(QString)));
-  connect(m_config, SIGNAL(server_alerts_changed(bool)), ui_server_alerts, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(discord_presence_changed(bool)), ui_discord_presence, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(discord_hide_server_changed(bool)), ui_discord_hide_server, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(discord_hide_character_changed(bool)), ui_discord_hide_character, SLOT(setChecked(bool)));
+  connect(m_config, &AOConfig::username_changed, ui_username, &QLineEdit::setText);
+  connect(m_config, &AOConfig::callwords_changed, ui_callwords, &QLineEdit::setText);
+  connect(m_config, &AOConfig::server_advertiser_changed, ui_advertiser, &QLineEdit::setText);
+  connect(m_config, &AOConfig::server_alerts_changed, ui_server_alerts, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::discord_presence_changed, ui_discord_presence, &QGroupBox::setChecked);
+  connect(m_config, &AOConfig::discord_hide_server_changed, ui_discord_hide_server, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::discord_hide_character_changed, ui_discord_hide_character, &QAbstractButton::setChecked);
 
   // game
-  connect(m_config, SIGNAL(theme_changed(QString)), this, SLOT(on_theme_changed(QString)));
-  connect(m_config, SIGNAL(gamemode_changed(QString)), this, SLOT(on_gamemode_changed(QString)));
-  connect(m_config, SIGNAL(manual_gamemode_changed(QString)), this, SLOT(on_manual_gamemode_changed(QString)));
-  connect(m_config, SIGNAL(manual_gamemode_selection_changed(bool)), this, SLOT(on_manual_gamemode_selection_changed(bool)));
-  connect(m_config, SIGNAL(timeofday_changed(QString)), this, SLOT(on_timeofday_changed(QString)));
-  connect(m_config, SIGNAL(manual_timeofday_changed(QString)), this, SLOT(on_manual_timeofday_changed(QString)));
-  connect(m_config, SIGNAL(manual_timeofday_selection_changed(bool)), this, SLOT(on_manual_timeofday_selection_changed(bool)));
-  connect(m_config, SIGNAL(showname_changed(QString)), ui_showname, SLOT(setText(QString)));
-  connect(m_config, SIGNAL(showname_placeholder_changed(QString)), this, SLOT(on_showname_placeholder_changed(QString)));
-  connect(m_config, SIGNAL(searchable_iniswap_changed(bool)), ui_searchable_iniswap, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(always_pre_changed(bool)), ui_always_pre, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(chat_tick_interval_changed(int)), ui_chat_tick_interval, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(chat_ratelimit_changed(int)), ui_chat_ratelimit, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(emote_preview_changed(bool)), ui_emote_preview, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(sticky_sfx_changed(bool)), ui_sticky_sfx, SLOT(setChecked(bool)));
+  connect(m_config, &AOConfig::theme_changed, this, &AOConfigPanel::on_theme_changed);
+  connect(m_config, &AOConfig::gamemode_changed, this, &AOConfigPanel::on_gamemode_changed);
+  connect(m_config, &AOConfig::manual_gamemode_changed, this, &AOConfigPanel::on_manual_gamemode_changed);
+  connect(m_config, &AOConfig::manual_gamemode_selection_changed, this, &AOConfigPanel::on_manual_gamemode_selection_changed);
+  connect(m_config, &AOConfig::timeofday_changed, this, &AOConfigPanel::on_timeofday_changed);
+  connect(m_config, &AOConfig::manual_timeofday_changed, this, &AOConfigPanel::on_manual_timeofday_changed);
+  connect(m_config, &AOConfig::manual_timeofday_selection_changed, this, &AOConfigPanel::on_manual_timeofday_selection_changed);
+  connect(m_config, &AOConfig::showname_changed, ui_showname, &QLineEdit::setText);
+  connect(m_config, &AOConfig::showname_placeholder_changed, this, &AOConfigPanel::on_showname_placeholder_changed);
+  connect(m_config, &AOConfig::searchable_iniswap_changed, ui_searchable_iniswap, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::always_pre_changed, ui_always_pre, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::chat_tick_interval_changed, ui_chat_tick_interval, &QSpinBox::setValue);
+  connect(m_config, &AOConfig::chat_ratelimit_changed, ui_chat_ratelimit, &QSpinBox::setValue);
+  connect(m_config, &AOConfig::emote_preview_changed, ui_emote_preview, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::sticky_sfx_changed, ui_sticky_sfx, &QAbstractButton::setChecked);
 
   // log
-  connect(m_config, SIGNAL(log_max_lines_changed(int)), ui_log_max_lines, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(log_display_timestamp_changed(bool)), ui_log_display_timestamp, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(log_display_client_id_changed(bool)), ui_log_display_client_id, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(log_display_self_highlight_changed(bool)), ui_log_display_self_highlight, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(log_format_use_newline_changed(bool)), ui_log_format_use_newline, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(log_display_empty_messages_changed(bool)), ui_log_display_empty_messages, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(log_display_music_switch_changed(bool)), ui_log_display_music_switch, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(log_is_topdown_changed(bool)), this, SLOT(on_log_is_topdown_changed(bool)));
-  connect(m_config, SIGNAL(log_is_recording_changed(bool)), ui_log_is_recording, SLOT(setChecked(bool)));
+  connect(m_config, &AOConfig::log_max_lines_changed, ui_log_max_lines, &QSpinBox::setValue);
+  connect(m_config, &AOConfig::log_display_timestamp_changed, ui_log_display_timestamp, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::log_display_client_id_changed, ui_log_display_client_id, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::log_display_self_highlight_changed, ui_log_display_self_highlight, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::log_format_use_newline_changed, ui_log_format_use_newline, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::log_display_empty_messages_changed, ui_log_display_empty_messages, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::log_display_music_switch_changed, ui_log_display_music_switch, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::log_is_topdown_changed, this, &AOConfigPanel::on_log_is_topdown_changed);
+  connect(m_config, &AOConfig::log_is_recording_changed, ui_log_is_recording, &QAbstractButton::setChecked);
 
   // audio
-  connect(m_config, SIGNAL(master_volume_changed(int)), ui_master, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(suppress_background_audio_changed(bool)), ui_suppress_background_audio, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(system_volume_changed(int)), ui_system, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(effect_volume_changed(int)), ui_effect, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(effect_ignore_suppression_changed(bool)), ui_effect_ignore_suppression, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(music_volume_changed(int)), ui_music, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(music_ignore_suppression_changed(bool)), ui_music_ignore_suppression, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(video_volume_changed(int)), ui_video, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(video_ignore_suppression_changed(bool)), ui_video_ignore_suppression, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(blip_volume_changed(int)), ui_blip, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(blip_ignore_suppression_changed(bool)), ui_blip_ignore_suppression, SLOT(setChecked(bool)));
-  connect(m_config, SIGNAL(blip_rate_changed(int)), ui_blip_rate, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(punctuation_delay_changed(int)), ui_punctuation_delay, SLOT(setValue(int)));
-  connect(m_config, SIGNAL(blank_blips_changed(bool)), ui_blank_blips, SLOT(setChecked(bool)));
+  connect(m_config, &AOConfig::master_volume_changed, ui_master, &QSlider::setValue);
+  connect(m_config, &AOConfig::suppress_background_audio_changed, ui_suppress_background_audio, &QGroupBox::setChecked);
+  connect(m_config, &AOConfig::system_volume_changed, ui_system, &QSlider::setValue);
+  connect(m_config, &AOConfig::effect_volume_changed, ui_effect, &QSlider::setValue);
+  connect(m_config, &AOConfig::effect_ignore_suppression_changed, ui_effect_ignore_suppression, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::music_volume_changed, ui_music, &QSlider::setValue);
+  connect(m_config, &AOConfig::music_ignore_suppression_changed, ui_music_ignore_suppression, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::video_volume_changed, ui_video, &QSlider::setValue);
+  connect(m_config, &AOConfig::video_ignore_suppression_changed, ui_video_ignore_suppression, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::blip_volume_changed, ui_blip, &QSlider::setValue);
+  connect(m_config, &AOConfig::blip_ignore_suppression_changed, ui_blip_ignore_suppression, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::blip_rate_changed, ui_blip_rate, &QSpinBox::setValue);
+  connect(m_config, &AOConfig::punctuation_delay_changed, ui_punctuation_delay, &QSpinBox::setValue);
+  connect(m_config, &AOConfig::blank_blips_changed, ui_blank_blips, &QAbstractButton::setChecked);
 
   connect(m_config, &AOConfig::theme_resize_changed, ui_theme_resize, &QDoubleSpinBox::setValue);
   connect(m_config, &AOConfig::font_resize_changed, ui_font_resize, &QDoubleSpinBox::setValue);
   connect(m_config, &AOConfig::fade_duration_changed, ui_fade_duration, &QSpinBox::setValue);
 
-  connect(m_engine, SIGNAL(current_device_changed(DRAudioDevice)), this, SLOT(on_audio_device_changed(DRAudioDevice)));
-  connect(m_engine, SIGNAL(device_list_changed(QVector<DRAudioDevice>)), this, SLOT(on_audio_device_list_changed(QVector<DRAudioDevice>)));
-  connect(m_engine, SIGNAL(favorite_device_changed(DRAudioDevice)), this, SLOT(on_favorite_audio_device_changed(DRAudioDevice)));
+  connect(m_engine, &DRAudioEngine::current_device_changed, this, &AOConfigPanel::on_audio_device_changed);
+  connect(m_engine, &DRAudioEngine::device_list_changed, this, &AOConfigPanel::on_audio_device_list_changed);
+  connect(m_engine, &DRAudioEngine::favorite_device_changed, this, &AOConfigPanel::on_favorite_audio_device_changed);
 
-  connect(m_config, SIGNAL(manual_resize_changed(bool)), ui_manual_resize, SLOT(setChecked(bool)));
+  connect(m_config, &AOConfig::manual_resize_changed, ui_manual_resize, &QAbstractButton::setChecked);
 
   // meta
-  connect(ui_close, SIGNAL(clicked()), this, SLOT(close()));
-  connect(ui_save, SIGNAL(clicked()), m_config, SLOT(save_file()));
-  connect(ui_autosave, SIGNAL(toggled(bool)), m_config, SLOT(set_autosave(bool)));
+  connect(ui_close, &QPushButton::clicked, this, &QWidget::close);
+  connect(ui_save, &QPushButton::clicked, m_config, &AOConfig::save_file);
+  connect(ui_autosave, &QAbstractButton::toggled, m_config, &AOConfig::set_autosave);
 
   // general
-  connect(ui_username, SIGNAL(editingFinished()), this, SLOT(username_editing_finished()));
-  connect(ui_callwords, SIGNAL(editingFinished()), this, SLOT(callwords_editing_finished()));
-  connect(ui_advertiser, SIGNAL(editingFinished()), this, SLOT(advertiser_editing_finished()));
-  connect(ui_server_alerts, SIGNAL(toggled(bool)), m_config, SLOT(set_server_alerts(bool)));
-  connect(ui_discord_presence, SIGNAL(toggled(bool)), m_config, SLOT(set_discord_presence(bool)));
-  connect(ui_discord_hide_server, SIGNAL(toggled(bool)), m_config, SLOT(set_discord_hide_server(const bool)));
-  connect(ui_discord_hide_character, SIGNAL(toggled(bool)), m_config, SLOT(set_discord_hide_character(const bool)));
+  connect(ui_username, &QLineEdit::editingFinished, this, &AOConfigPanel::username_editing_finished);
+  connect(ui_callwords, &QLineEdit::editingFinished, this, &AOConfigPanel::callwords_editing_finished);
+  connect(ui_advertiser, &QLineEdit::editingFinished, this, &AOConfigPanel::advertiser_editing_finished);
+  connect(ui_server_alerts, &QAbstractButton::toggled, m_config, &AOConfig::set_server_alerts);
+  connect(ui_discord_presence, &QGroupBox::toggled, m_config, &AOConfig::set_discord_presence);
+  connect(ui_discord_hide_server, &QAbstractButton::toggled, m_config, &AOConfig::set_discord_hide_server);
+  connect(ui_discord_hide_character, &QAbstractButton::toggled, m_config, &AOConfig::set_discord_hide_character);
 
   // game
-  connect(wSettingsLanguage, SIGNAL(currentIndexChanged(QString)), this, SLOT(updateLanguage(QString)));
-  connect(ui_theme, SIGNAL(currentTextChanged(QString)), this, SLOT(update_theme_controls()));
-  connect(ui_switch_theme, SIGNAL(clicked()), this, SLOT(on_switch_theme_clicked()));
-  connect(ui_reload_theme, SIGNAL(clicked()), this, SLOT(on_reload_theme_clicked()));
-  connect(ui_reload_character, SIGNAL(clicked()), this, SLOT(on_reload_character_clicked()));
-  connect(ui_reload_audiotracks, SIGNAL(clicked()), this, SLOT(on_reload_audiotracks_clicked()));
-  connect(ui_manual_gamemode, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_manual_gamemode_index_changed(QString)));
-  connect(ui_manual_gamemode_selection, SIGNAL(toggled(bool)), m_config, SLOT(set_manual_gamemode_selection_enabled(bool)));
-  connect(ui_manual_timeofday, SIGNAL(currentIndexChanged(QString)), this, SLOT(on_manual_timeofday_index_changed(QString)));
-  connect(ui_manual_timeofday_selection, SIGNAL(toggled(bool)), m_config, SLOT(set_manual_timeofday_selection_enabled(bool)));
-  connect(ui_showname, SIGNAL(editingFinished()), this, SLOT(showname_editing_finished()));
-  connect(ui_searchable_iniswap, SIGNAL(toggled(bool)), m_config, SLOT(set_searchable_iniswap(bool)));
-  connect(ui_always_pre, SIGNAL(toggled(bool)), m_config, SLOT(set_always_pre(bool)));
-  connect(ui_chat_tick_interval, SIGNAL(valueChanged(int)), m_config, SLOT(set_chat_tick_interval(int)));
-  connect(ui_chat_ratelimit, SIGNAL(valueChanged(int)), m_config, SLOT(set_chat_ratelimit(int)));
-  connect(ui_emote_preview, SIGNAL(toggled(bool)), m_config, SLOT(set_emote_preview(bool)));
-  connect(ui_sticky_sfx, SIGNAL(toggled(bool)), m_config, SLOT(set_sticky_sfx(bool)));
+  connect(wSettingsLanguage, &QComboBox::currentTextChanged, this, &AOConfigPanel::updateLanguage);
+  connect(ui_theme, &QComboBox::currentTextChanged, this, &AOConfigPanel::update_theme_controls);
+  connect(ui_switch_theme, &QPushButton::clicked, this, &AOConfigPanel::on_switch_theme_clicked);
+  connect(ui_reload_theme, &QPushButton::clicked, this, &AOConfigPanel::on_reload_theme_clicked);
+  connect(ui_reload_character, &QPushButton::clicked, this, &AOConfigPanel::on_reload_character_clicked);
+  connect(ui_reload_audiotracks, &QPushButton::clicked, this, &AOConfigPanel::on_reload_audiotracks_clicked);
+  connect(ui_manual_gamemode, &QComboBox::currentTextChanged, this, &AOConfigPanel::on_manual_gamemode_index_changed);
+  connect(ui_manual_gamemode_selection, &QAbstractButton::toggled, m_config, &AOConfig::set_manual_gamemode_selection_enabled);
+  connect(ui_manual_timeofday, &QComboBox::currentTextChanged, this, &AOConfigPanel::on_manual_timeofday_index_changed);
+  connect(ui_manual_timeofday_selection, &QAbstractButton::toggled, m_config, &AOConfig::set_manual_timeofday_selection_enabled);
+  connect(ui_showname, &QLineEdit::editingFinished, this, &AOConfigPanel::showname_editing_finished);
+  connect(ui_searchable_iniswap, &QAbstractButton::toggled, m_config, &AOConfig::set_searchable_iniswap);
+  connect(ui_always_pre, &QAbstractButton::toggled, m_config, &AOConfig::set_always_pre);
+  connect(ui_chat_tick_interval, &QSpinBox::valueChanged, m_config, &AOConfig::set_chat_tick_interval);
+  connect(ui_chat_ratelimit, &QSpinBox::valueChanged, m_config, &AOConfig::set_chat_ratelimit);
+  connect(ui_emote_preview, &QAbstractButton::toggled, m_config, &AOConfig::set_emote_preview);
+  connect(ui_sticky_sfx, &QAbstractButton::toggled, m_config, &AOConfig::set_sticky_sfx);
 
   //packages
-  connect(ui_load_new_packages, SIGNAL(clicked()), this, SLOT(on_load_packages_clicked()));
+  connect(ui_load_new_packages, &QPushButton::clicked, this, &AOConfigPanel::on_load_packages_clicked);
 
   // ic message
-  connect(m_config, SIGNAL(message_length_threshold_changed(int)), ui_length_threshold, SLOT(setValue(int)));
-  connect(ui_length_threshold, SIGNAL(valueChanged(int)), m_config, SLOT(set_message_length_threshold(int)));
-  connect(ui_length_threshold, SIGNAL(valueChanged(int)), this, SLOT(on_length_threshold_value_changed(int)));
+  connect(m_config, &AOConfig::message_length_threshold_changed, ui_length_threshold, &QSlider::setValue);
+  connect(ui_length_threshold, &QSlider::valueChanged, m_config, &AOConfig::set_message_length_threshold);
+  connect(ui_length_threshold, &QSlider::valueChanged, this, &AOConfigPanel::on_length_threshold_value_changed);
 
   // out, log
-  connect(ui_log_max_lines, SIGNAL(valueChanged(int)), m_config, SLOT(set_log_max_lines(int)));
-  connect(ui_log_display_timestamp, SIGNAL(toggled(bool)), m_config, SLOT(set_log_display_timestamp(bool)));
-  connect(ui_log_display_client_id, SIGNAL(toggled(bool)), m_config, SLOT(set_log_display_client_id(bool)));
-  connect(ui_log_display_self_highlight, SIGNAL(toggled(bool)), m_config, SLOT(set_log_display_self_highlight(bool)));
-  connect(ui_log_format_use_newline, SIGNAL(toggled(bool)), m_config, SLOT(set_log_format_use_newline(bool)));
-  connect(ui_log_display_empty_messages, SIGNAL(toggled(bool)), m_config, SLOT(set_log_display_empty_messages(bool)));
-  connect(ui_log_display_music_switch, SIGNAL(toggled(bool)), m_config, SLOT(set_log_display_music_switch(bool)));
-  connect(ui_log_orientation_top_down, SIGNAL(toggled(bool)), m_config, SLOT(set_log_is_topdown(bool)));
-  connect(ui_log_is_recording, SIGNAL(toggled(bool)), m_config, SLOT(set_log_is_recording(bool)));
-  connect(ui_suppress_background_audio, SIGNAL(toggled(bool)), m_config, SLOT(set_suppress_background_audio(bool)));
-  connect(ui_device, SIGNAL(currentIndexChanged(int)), this, SLOT(on_device_current_index_changed(int)));
+  connect(ui_log_max_lines, &QSpinBox::valueChanged, m_config, &AOConfig::set_log_max_lines);
+  connect(ui_log_display_timestamp, &QAbstractButton::toggled, m_config, &AOConfig::set_log_display_timestamp);
+  connect(ui_log_display_client_id, &QAbstractButton::toggled, m_config, &AOConfig::set_log_display_client_id);
+  connect(ui_log_display_self_highlight, &QAbstractButton::toggled, m_config, &AOConfig::set_log_display_self_highlight);
+  connect(ui_log_format_use_newline, &QAbstractButton::toggled, m_config, &AOConfig::set_log_format_use_newline);
+  connect(ui_log_display_empty_messages, &QAbstractButton::toggled, m_config, &AOConfig::set_log_display_empty_messages);
+  connect(ui_log_display_music_switch, &QAbstractButton::toggled, m_config, &AOConfig::set_log_display_music_switch);
+  connect(ui_log_orientation_top_down, &QAbstractButton::toggled, m_config, &AOConfig::set_log_is_topdown);
+  connect(ui_log_is_recording, &QAbstractButton::toggled, m_config, &AOConfig::set_log_is_recording);
+  connect(ui_suppress_background_audio, &QGroupBox::toggled, m_config, &AOConfig::set_suppress_background_audio);
+  connect(ui_device, &QComboBox::currentIndexChanged, this, &AOConfigPanel::on_device_current_index_changed);
 
 
   for (auto it = volumeSliderMap.constBegin(); it != volumeSliderMap.constEnd(); ++it)
@@ -339,15 +339,15 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   connect(ui_video, &QAbstractSlider::valueChanged, m_config, &AOConfig::set_video_volume);
   connect(ui_blip, &QAbstractSlider::valueChanged, m_config, &AOConfig::set_blip_volume);
 
-  connect(ui_blip_rate, SIGNAL(valueChanged(int)), m_config, SLOT(set_blip_rate(int)));
-  connect(ui_punctuation_delay, SIGNAL(valueChanged(int)), m_config, SLOT(set_punctuation_delay(int)));
-  connect(ui_blank_blips, SIGNAL(toggled(bool)), m_config, SLOT(set_blank_blips(bool)));
+  connect(ui_blip_rate, &QSpinBox::valueChanged, m_config, &AOConfig::set_blip_rate);
+  connect(ui_punctuation_delay, &QSpinBox::valueChanged, m_config, &AOConfig::set_punctuation_delay);
+  connect(ui_blank_blips, &QAbstractButton::toggled, m_config, &AOConfig::set_blank_blips);
 
-  connect(ui_theme_resize, SIGNAL(valueChanged(double)), m_config, SLOT(setThemeResize(double)));
-  connect(ui_font_resize, SIGNAL(valueChanged(double)), m_config, SLOT(setFontResize(double)));
-  connect(ui_fade_duration, SIGNAL(valueChanged(int)), m_config, SLOT(setFadeDuration(int)));
+  connect(ui_theme_resize, &QDoubleSpinBox::valueChanged, m_config, &AOConfig::setThemeResize);
+  connect(ui_font_resize, &QDoubleSpinBox::valueChanged, m_config, &AOConfig::setFontResize);
+  connect(ui_fade_duration, &QSpinBox::valueChanged, m_config, &AOConfig::setFadeDuration);
 
-  connect(ui_manual_resize, SIGNAL(toggled(bool)), m_config, SLOT(set_manual_resize(bool)));
+  connect(ui_manual_resize, &QAbstractButton::toggled, m_config, &AOConfig::set_manual_resize);
   // set values
   // meta
   ui_autosave->setChecked(m_config->autosave());
@@ -412,25 +412,25 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
 
   ui_focus_performance_mode->setChecked(m_config->focus_performance_mode_enabled());
 
-  connect(m_config, SIGNAL(sprite_caching_toggled(int, bool)), this, SLOT(set_sprite_caching_toggled(int, bool)));
-  connect(this, SIGNAL(emit_sprite_caching_toggled(int, bool)), m_config, SLOT(set_sprite_caching(int, bool)));
+  connect(m_config, &AOConfig::sprite_caching_toggled, this, &AOConfigPanel::set_sprite_caching_toggled);
+  connect(this, &AOConfigPanel::emit_sprite_caching_toggled, m_config, &AOConfig::set_sprite_caching);
   for (auto it = m_cache_checkbox_map.cbegin(); it != m_cache_checkbox_map.cend(); ++it)
   {
     QCheckBox *l_checkbox = it.value();
-    connect(l_checkbox, SIGNAL(toggled(bool)), this, SLOT(handle_sprite_caching_toggled(bool)));
+    connect(l_checkbox, &QAbstractButton::toggled, this, &AOConfigPanel::handle_sprite_caching_toggled);
     l_checkbox->setChecked(m_config->sprite_caching_enabled(it.key()));
   }
 
-  connect(m_config, SIGNAL(system_memory_threshold_changed(int)), this, SLOT(set_system_memory_threshold(int)));
-  connect(ui_system_memory_threshold, SIGNAL(valueChanged(int)), m_config, SLOT(set_system_memory_threshold(int)));
+  connect(m_config, &AOConfig::system_memory_threshold_changed, this, &AOConfigPanel::set_system_memory_threshold);
+  connect(ui_system_memory_threshold, &QSlider::valueChanged, m_config, &AOConfig::set_system_memory_threshold);
   set_system_memory_threshold(m_config->system_memory_threshold());
 
-  connect(m_config, SIGNAL(loading_bar_delay_changed(int)), this, SLOT(set_loading_bar_delay(int)));
-  connect(ui_loading_bar_delay, SIGNAL(valueChanged(int)), m_config, SLOT(set_loading_bar_delay(int)));
+  connect(m_config, &AOConfig::loading_bar_delay_changed, this, &AOConfigPanel::set_loading_bar_delay);
+  connect(ui_loading_bar_delay, &QSlider::valueChanged, m_config, &AOConfig::set_loading_bar_delay);
   set_loading_bar_delay(m_config->loading_bar_delay());
 
-  connect(m_config, SIGNAL(caching_threshold_changed(int)), this, SLOT(set_caching_threshold(int)));
-  connect(ui_caching_threshold, SIGNAL(valueChanged(int)), m_config, SLOT(set_caching_threshold(int)));
+  connect(m_config, &AOConfig::caching_threshold_changed, this, &AOConfigPanel::set_caching_threshold);
+  connect(ui_caching_threshold, &QSlider::valueChanged, m_config, &AOConfig::set_caching_threshold);
   set_caching_threshold(m_config->caching_threshold());
 
   // audio

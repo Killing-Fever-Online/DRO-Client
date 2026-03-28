@@ -6,7 +6,7 @@
 ScreenshotButton::ScreenshotButton(QWidget *parent, AOApplication *p_ao_app) : RPButton(parent)
 {
   ao_app = p_ao_app;
-  connect(this, SIGNAL(clicked()), this, SLOT(OnButtonClicked()));
+  connect(this, &ScreenshotButton::clicked, this, &ScreenshotButton::OnButtonClicked);
   UpdateDimensions();
   show();
 }

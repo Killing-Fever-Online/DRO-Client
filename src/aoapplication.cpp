@@ -56,27 +56,27 @@ AOApplication::AOApplication(int &argc, char **argv)
   setInstance(this);
   audio::Initialize();
 
-  connect(ao_config, SIGNAL(theme_changed(QString)), this, SLOT(handle_theme_modification()));
-  connect(ao_config, SIGNAL(gamemode_changed(QString)), this, SLOT(handle_theme_modification()));
-  connect(ao_config, SIGNAL(timeofday_changed(QString)), this, SLOT(handle_theme_modification()));
-  connect(ao_config, SIGNAL(manual_gamemode_changed(QString)), this, SLOT(handle_theme_modification()));
-  connect(ao_config, SIGNAL(manual_gamemode_selection_changed(bool)), this, SLOT(handle_theme_modification()));
-  connect(ao_config, SIGNAL(manual_timeofday_changed(QString)), this, SLOT(handle_theme_modification()));
-  connect(ao_config, SIGNAL(manual_timeofday_selection_changed(bool)), this, SLOT(handle_theme_modification()));
-  connect(ao_config_panel, SIGNAL(reload_theme()), this, SLOT(handle_theme_modification()));
-  connect(ao_config_panel, SIGNAL(reload_character()), this, SLOT(handle_character_reloading()));
-  connect(ao_config_panel, SIGNAL(reload_audiotracks()), this, SLOT(handle_audiotracks_reloading()));
+  connect(ao_config, &AOConfig::theme_changed, this, &AOApplication::handle_theme_modification);
+  connect(ao_config, &AOConfig::gamemode_changed, this, &AOApplication::handle_theme_modification);
+  connect(ao_config, &AOConfig::timeofday_changed, this, &AOApplication::handle_theme_modification);
+  connect(ao_config, &AOConfig::manual_gamemode_changed, this, &AOApplication::handle_theme_modification);
+  connect(ao_config, &AOConfig::manual_gamemode_selection_changed, this, &AOApplication::handle_theme_modification);
+  connect(ao_config, &AOConfig::manual_timeofday_changed, this, &AOApplication::handle_theme_modification);
+  connect(ao_config, &AOConfig::manual_timeofday_selection_changed, this, &AOApplication::handle_theme_modification);
+  connect(ao_config_panel, &AOConfigPanel::reload_theme, this, &AOApplication::handle_theme_modification);
+  connect(ao_config_panel, &AOConfigPanel::reload_character, this, &AOApplication::handle_character_reloading);
+  connect(ao_config_panel, &AOConfigPanel::reload_audiotracks, this, &AOApplication::handle_audiotracks_reloading);
   ao_config_panel->hide();
 
   dr_discord->set_presence(ao_config->discord_presence());
   dr_discord->set_hide_server(ao_config->discord_hide_server());
   dr_discord->set_hide_character(ao_config->discord_hide_character());
-  connect(ao_config, SIGNAL(discord_presence_changed(bool)), dr_discord, SLOT(set_presence(bool)));
-  connect(ao_config, SIGNAL(discord_hide_server_changed(bool)), dr_discord, SLOT(set_hide_server(bool)));
-  connect(ao_config, SIGNAL(discord_hide_character_changed(bool)), dr_discord, SLOT(set_hide_character(bool)));
+  connect(ao_config, &AOConfig::discord_presence_changed, dr_discord, &DRDiscord::set_presence);
+  connect(ao_config, &AOConfig::discord_hide_server_changed, dr_discord, &DRDiscord::set_hide_server);
+  connect(ao_config, &AOConfig::discord_hide_character_changed, dr_discord, &DRDiscord::set_hide_character);
 
   connect(m_server_socket, &DRServerSocket::connection_state_changed, this, &AOApplication::_p_handle_server_state_update);
-  connect(m_server_socket, SIGNAL(packet_received(DRPacket)), this, SLOT(_p_handle_server_packet(DRPacket)));
+  connect(m_server_socket, &DRServerSocket::packet_received, this, &AOApplication::_p_handle_server_packet);
 
   CharacterManager::get().LoadFavoritesList();
   reload_packages();
@@ -150,8 +150,8 @@ void AOApplication::construct_courtroom()
   }
 
   m_courtroom = new Courtroom(this);
-  connect(m_courtroom, SIGNAL(closing()), this, SLOT(on_courtroom_closing()));
-  connect(m_courtroom, SIGNAL(destroyed()), this, SLOT(on_courtroom_destroyed()));
+  connect(m_courtroom, &Courtroom::closing, this, &AOApplication::on_courtroom_closing);
+  connect(m_courtroom, &QObject::destroyed, this, &AOApplication::on_courtroom_destroyed);
   is_courtroom_constructed = true;
   center_widget_to_screen(m_courtroom);
 }
@@ -285,13 +285,13 @@ QString AOApplication::get_character_sprite_path(QString p_character, QString p_
     QStringList l_file_path_list;
     for (const QString &i_chr_name : get_char_include_tree(p_character))
     {
-      for (const QString &i_file_name : qAsConst(l_file_name_list))
+      for (const QString &i_file_name : std::as_const(l_file_name_list))
       {
         l_file_path_list.append(get_character_path(i_chr_name, i_file_name));
       }
     }
 
-    for (const QString &i_file_path : qAsConst(l_file_path_list))
+    for (const QString &i_file_path : std::as_const(l_file_path_list))
     {
       const QString l_resolved_file_path = find_asset_path(i_file_path);
       if (!l_resolved_file_path.isEmpty())

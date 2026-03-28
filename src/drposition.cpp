@@ -97,7 +97,6 @@ void DRPositionMap::set_position(QString p_id, DRPosition p_position)
 bool DRPositionMap::load_file(QString p_filename)
 {
   QSettings l_settings(p_filename, QSettings::IniFormat);
-  l_settings.setIniCodec("UTF-8");
   if (l_settings.status() != QSettings::NoError)
   {
     qWarning() << "[Position Map]"

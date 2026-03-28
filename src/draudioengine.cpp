@@ -39,7 +39,7 @@ public:
       d->update_timer->setInterval(UPDATE_TIMER_INTERVAL);
       d->update_timer->setSingleShot(false);
 
-      QObject::connect(d->update_timer, SIGNAL(timeout()), d, SLOT(update_current_device()));
+      QObject::connect(d->update_timer, &QTimer::timeout, d, &DRAudioEnginePrivate::update_current_device);
       d->update_timer->start();
       d->update_current_device();
     }

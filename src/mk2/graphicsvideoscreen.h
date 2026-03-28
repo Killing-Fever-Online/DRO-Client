@@ -24,6 +24,7 @@
 #include "draudioengine.h"
 #include "draudiostreamfamily.h"
 
+#include <QAudioDevice>
 #include <QGraphicsVideoItem>
 #include <QMediaPlayer>
 
@@ -72,6 +73,8 @@ private:
 
   QMediaPlayer *m_player;
 
+  QAudioOutput *m_audio_output = nullptr;
+
   void start_playback();
 
   void finish_playback();
@@ -81,7 +84,7 @@ private slots:
 
   void check_status(QMediaPlayer::MediaStatus);
 
-  void check_state(QMediaPlayer::State);
+  void check_state(QMediaPlayer::PlaybackState);
 
   void update_audio_output();
 

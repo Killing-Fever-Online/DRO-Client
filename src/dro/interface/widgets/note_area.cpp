@@ -64,9 +64,9 @@ void Courtroom::on_add_button_clicked()
 
   set_stylesheet(f_line, "[LINE EDIT]", COURTROOM_STYLESHEETS_CSS, ao_app);
 
-  connect(f_button, SIGNAL(clicked(bool)), this, SLOT(on_set_file_button_clicked()));
-  connect(f_delete, SIGNAL(clicked(bool)), this, SLOT(on_delete_button_clicked()));
-  connect(f_hover, SIGNAL(clicked(bool)), this, SLOT(on_file_selected()));
+  connect(f_button, &RPButton::clicked, this, &Courtroom::on_set_file_button_clicked);
+  connect(f_delete, &RPButton::clicked, this, &Courtroom::on_delete_button_clicked);
+  connect(f_hover, &RPButton::clicked, this, &Courtroom::on_file_selected);
 }
 
 void Courtroom::set_note_files()

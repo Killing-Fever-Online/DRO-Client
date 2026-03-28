@@ -63,7 +63,7 @@ void AOApplication::write_note(QString p_text, QString p_file)
   if (f_log.open(QIODevice::WriteOnly | QFile::Text | QIODevice::Truncate))
   {
     QTextStream out(&f_log);
-    out.setCodec("UTF-8");
+    out.setEncoding(QStringConverter::Utf8);
 
     out << p_text;
 
@@ -85,7 +85,7 @@ void AOApplication::append_note(QString p_line, QString p_file)
   if (f_log.open(QIODevice::WriteOnly | QIODevice::Append))
   {
     QTextStream out(&f_log);
-    out.setCodec("UTF-8");
+    out.setEncoding(QStringConverter::Utf8);
 
     out << p_line << "\r\n";
 
@@ -457,7 +457,7 @@ QStringList AOApplication::get_sfx_list()
 
   l_file_list.append(FS::Paths::FindFiles(CONFIG_SOUNDS_INI));
 
-  for (const QString &i_file_path : qAsConst(l_file_list))
+  for (const QString &i_file_path : std::as_const(l_file_list))
   {
     QFile l_file(i_file_path);
     if (l_file.open(QIODevice::ReadOnly))
@@ -486,7 +486,6 @@ QStringList AOApplication::get_sfx_list()
 QVariant AOApplication::read_char_ini(QString p_chr, QString p_group, QString p_key, QVariant p_def)
 {
   QSettings s(get_character_path(p_chr, CHARACTER_CHAR_INI), QSettings::IniFormat);
-  s.setIniCodec("UTF-8");
   utils::QSettingsKeyFetcher l_fetcher(s);
   s.beginGroup(l_fetcher.lookup_group(p_group));
   return s.value(l_fetcher.lookup_value(p_key), p_def);
@@ -549,7 +548,7 @@ QString AOApplication::get_chat(QString p_chr)
 QString drLookupKey(const QStringList &keyList, const QString &targetKey)
 {
   const QString finalTargetKey = targetKey.toLower();
-  for (const QString &i_key : qAsConst(keyList))
+  for (const QString &i_key : std::as_const(keyList))
     if (i_key.toLower() == finalTargetKey)
       return i_key;
   return targetKey;

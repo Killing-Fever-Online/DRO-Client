@@ -808,6 +808,7 @@ public slots:
   void on_char_select_left_clicked();
   void on_char_select_right_clicked();
   void hide_emote_tooltip(int id);
+  void show_emote_tooltip(int id, QPoint global_pos);
 
   void send_mc_packet(QString p_song, BGMPlayback playbackType = BGMPlayback_Standard);
   void send_play_music(QString p_song, BGMPlayback playbackType = BGMPlayback_Standard);
@@ -855,18 +856,16 @@ private slots:
 
   void on_area_list_clicked();
   void on_area_list_double_clicked(QModelIndex p_model);
-  void on_area_search_edited(QString);
+  void on_area_search_edited(const QString &);
   void on_area_search_edited();
 
   void on_music_list_clicked();
   void on_music_list_double_clicked(QTreeWidgetItem *p_item, int column);
   void on_music_menu_insert_ooc_triggered();
-  void on_music_search_edited(QString);
+  void on_music_search_edited(const QString &);
   void on_music_search_edited();
 
-  void show_emote_tooltip(int id, QPoint global_pos);
   void on_emote_preview_toggled(bool);
-
 
   void on_emote_dropdown_changed(int p_index);
   void on_iniswap_dropdown_changed(int p_index);
@@ -984,7 +983,7 @@ public:
   void update_all_sfx_item_color();
 
 public slots:
-  void filter_sfx_list(QString);
+  void filter_sfx_list(const QString &);
   void filter_sfx_list();
 
 private:

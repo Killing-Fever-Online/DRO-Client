@@ -32,11 +32,11 @@ SpriteViewer::SpriteViewer(QWidget *parent)
 {
   setAlignment(Qt::AlignCenter);
 
-  connect(m_player.get(), SIGNAL(current_frame_changed()), this, SLOT(paint_frame()));
-  connect(m_player.get(), SIGNAL(file_name_changed(QString)), this, SIGNAL(file_name_changed(QString)));
-  connect(m_player.get(), SIGNAL(reader_changed()), this, SIGNAL(reader_changed()));
-  connect(m_player.get(), SIGNAL(started()), this, SIGNAL(started()));
-  connect(m_player.get(), SIGNAL(finished()), this, SIGNAL(finished()));
+  connect(m_player.get(), &SpritePlayer::current_frame_changed, this, &SpriteViewer::paint_frame);
+  connect(m_player.get(), &SpritePlayer::file_name_changed, this, &SpriteViewer::file_name_changed);
+  connect(m_player.get(), &SpritePlayer::reader_changed, this, &SpriteViewer::reader_changed);
+  connect(m_player.get(), &SpritePlayer::started, this, &SpriteViewer::started);
+  connect(m_player.get(), &SpritePlayer::finished, this, &SpriteViewer::finished);
 }
 
 SpriteViewer::~SpriteViewer()

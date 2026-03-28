@@ -3,7 +3,7 @@
 
 
 class QString;
-class QStringList;
+#include <QtCore/qcontainerfwd.h>
 namespace dro::system::encoding::text
 {
   QString EncodePacketContents(const QStringList& list);

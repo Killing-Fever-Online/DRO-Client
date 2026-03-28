@@ -89,7 +89,7 @@ void Courtroom::load_current_character_sfx_list()
   filter_sfx_list();
 }
 
-void Courtroom::filter_sfx_list(QString p_filter)
+void Courtroom::filter_sfx_list(const QString &p_filter)
 {
   filter_list_widget(ui_sfx_list, p_filter);
 }

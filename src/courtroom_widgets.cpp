@@ -182,7 +182,7 @@ void Courtroom::create_widgets()
   m_loading_timer->setInterval(ao_config->loading_bar_delay());
 
   ui_bgm_filter = new BGMFilter(this);
-  connect(ui_bgm_filter, SIGNAL(activated(int)), this, SLOT(OnBgmFilterChanged()));
+  connect(ui_bgm_filter, &BGMFilter::activated, this, &Courtroom::OnBgmFilterChanged);
 
   ui_iniswap_dropdown = new QComboBox(this);
   ui_iniswap_dropdown->setInsertPolicy(QComboBox::NoInsert);
@@ -441,144 +441,144 @@ void Courtroom::connect_widgets()
 {
   connect(m_keepalive_timer, &QTimer::timeout, this, &Courtroom::ping_server);
 
-  connect(ui_video, SIGNAL(finished()), this, SLOT(video_finished()));
-  connect(ui_vp_objection, SIGNAL(done()), this, SLOT(objection_done()));
-  connect(ui_vp_player_char, SIGNAL(done()), this, SLOT(preanim_done()));
+  connect(ui_video, &DRVideoScreen::finished, this, &Courtroom::video_finished);
+  connect(ui_vp_objection, &DRMovie::done, this, &Courtroom::objection_done);
+  connect(ui_vp_player_char, &DRMovie::done, this, &Courtroom::preanim_done);
 
-  connect(m_sound_timer, SIGNAL(timeout()), this, SLOT(play_sfx()));
+  connect(m_sound_timer, &QTimer::timeout, this, &Courtroom::play_sfx);
 
-  connect(m_tick_timer, SIGNAL(timeout()), this, SLOT(next_chat_letter()));
+  connect(m_tick_timer, &QTimer::timeout, this, &Courtroom::next_chat_letter);
 
   connect(m_text_queue_timer, &QTimer::timeout, this, &Courtroom::chatmessage_next);
 
-  connect(m_flash_timer, SIGNAL(timeout()), this, SLOT(realization_done()));
+  connect(m_flash_timer, &QTimer::timeout, this, &Courtroom::realization_done);
 
-  connect(ao_config, SIGNAL(searchable_iniswap_changed(bool)), this, SLOT(update_iniswap_dropdown_searchable()));
-  connect(ao_config, SIGNAL(emote_preview_changed(bool)), this, SLOT(on_emote_preview_toggled(bool)));
+  connect(ao_config, &AOConfig::searchable_iniswap_changed, this, &Courtroom::update_iniswap_dropdown_searchable);
+  connect(ao_config, &AOConfig::emote_preview_changed, this, &Courtroom::on_emote_preview_toggled);
 
-  connect(ui_emote_left, SIGNAL(clicked()), this, SLOT(on_emote_left_clicked()));
-  connect(ui_emote_right, SIGNAL(clicked()), this, SLOT(on_emote_right_clicked()));
+  connect(ui_emote_left, &RPButton::clicked, this, &Courtroom::on_emote_left_clicked);
+  connect(ui_emote_right, &RPButton::clicked, this, &Courtroom::on_emote_right_clicked);
 
-  connect(ui_emote_dropdown, SIGNAL(activated(int)), this, SLOT(on_emote_dropdown_changed(int)));
-  connect(ui_iniswap_dropdown, SIGNAL(activated(int)), this, SLOT(on_iniswap_dropdown_changed(int)));
-  connect(ui_pos_dropdown, SIGNAL(activated(int)), this, SLOT(on_pos_dropdown_changed()));
+  connect(ui_emote_dropdown, &QComboBox::activated, this, &Courtroom::on_emote_dropdown_changed);
+  connect(ui_iniswap_dropdown, &QComboBox::activated, this, &Courtroom::on_iniswap_dropdown_changed);
+  connect(ui_pos_dropdown, &QComboBox::activated, this, &Courtroom::on_pos_dropdown_changed);
 
 
-  connect(pCharaSelectSeries, SIGNAL(activated(int)), this, SLOT(onCharacterSelectPackageChanged(int)));
+  connect(pCharaSelectSeries, &QComboBox::activated, this, &Courtroom::onCharacterSelectPackageChanged);
 
-  connect(ao_config, SIGNAL(showname_changed(QString)), this, SLOT(on_showname_changed(QString)));
-  connect(ao_config, SIGNAL(showname_placeholder_changed(QString)), this, SLOT(on_showname_placeholder_changed(QString)));
-  connect(ao_config, SIGNAL(character_ini_changed(QString)), this, SLOT(on_character_ini_changed()));
-  connect(ui_ic_chat_showname, SIGNAL(editingFinished()), this, SLOT(on_ic_showname_editing_finished()));
+  connect(ao_config, &AOConfig::showname_changed, this, &Courtroom::on_showname_changed);
+  connect(ao_config, &AOConfig::showname_placeholder_changed, this, &Courtroom::on_showname_placeholder_changed);
+  connect(ao_config, &AOConfig::character_ini_changed, this, &Courtroom::on_character_ini_changed);
+  connect(ui_ic_chat_showname, &QLineEdit::editingFinished, this, &Courtroom::on_ic_showname_editing_finished);
 
   // When the "emit" signal is sent in RPLineEditFilter, we call on_ic_message_return_pressed
   connect(ui_ic_chat_message_filter, &RPLineEditFilter::chat_return_pressed, this,
           &Courtroom::on_ic_message_return_pressed);
 
-  connect(ao_config, SIGNAL(message_length_threshold_changed(int)), this, SLOT(handle_ic_message_length()));
-  connect(ui_ic_chat_message_field, SIGNAL(textChanged(QString)), this, SLOT(handle_ic_message_length()));
-  connect(ui_ic_chatlog->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(on_ic_chatlog_scroll_changed()));
-  connect(ui_ic_chatlog_scroll_topdown, SIGNAL(clicked()), this, SLOT(on_ic_chatlog_scroll_topdown_clicked()));
-  connect(ui_ic_chatlog_scroll_bottomup, SIGNAL(clicked()), this, SLOT(on_ic_chatlog_scroll_bottomup_clicked()));
-  connect(ao_config, SIGNAL(username_changed(QString)), ui_ooc_chat_name, SLOT(setText(QString)));
-  connect(ui_ooc_chat_name, SIGNAL(editingFinished()), this, SLOT(on_ooc_name_editing_finished()));
-  connect(ui_ooc_chat_message, SIGNAL(returnPressed()), this, SLOT(on_ooc_message_return_pressed()));
+  connect(ao_config, &AOConfig::message_length_threshold_changed, this, &Courtroom::handle_ic_message_length);
+  connect(ui_ic_chat_message_field, &QLineEdit::textChanged, this, &Courtroom::handle_ic_message_length);
+  connect(ui_ic_chatlog->verticalScrollBar(), &QScrollBar::valueChanged, this, &Courtroom::on_ic_chatlog_scroll_changed);
+  connect(ui_ic_chatlog_scroll_topdown, &RPButton::clicked, this, &Courtroom::on_ic_chatlog_scroll_topdown_clicked);
+  connect(ui_ic_chatlog_scroll_bottomup, &RPButton::clicked, this, &Courtroom::on_ic_chatlog_scroll_bottomup_clicked);
+  connect(ao_config, &AOConfig::username_changed, ui_ooc_chat_name, &QLineEdit::setText);
+  connect(ui_ooc_chat_name, &QLineEdit::editingFinished, this, &Courtroom::on_ooc_name_editing_finished);
+  connect(ui_ooc_chat_message, &QLineEdit::returnPressed, this, &Courtroom::on_ooc_message_return_pressed);
 
-  connect(ui_music_list, SIGNAL(clicked(QModelIndex)), this, SLOT(on_music_list_clicked()));
+  connect(ui_music_list, &QAbstractItemView::clicked, this, &Courtroom::on_music_list_clicked);
   connect(ui_music_list, &QTreeWidget::itemDoubleClicked, this, &Courtroom::on_music_list_double_clicked);
   connect(ui_music_list, &QTreeWidget::customContextMenuRequested, p_MenuBGM, &BGMMenu::OnMenuRequested);
 
   connect(p_MenuBGM, &BGMMenu::expandAll, ui_music_list, &QTreeWidget::expandAll);
   connect(p_MenuBGM, &BGMMenu::collapseAll, ui_music_list, &QTreeWidget::collapseAll);
 
-  connect(ui_area_list, SIGNAL(clicked(QModelIndex)), this, SLOT(on_area_list_clicked()));
-  connect(ui_area_list, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(on_area_list_double_clicked(QModelIndex)));
+  connect(ui_area_list, &QAbstractItemView::clicked, this, &Courtroom::on_area_list_clicked);
+  connect(ui_area_list, &QAbstractItemView::doubleClicked, this, &Courtroom::on_area_list_double_clicked);
 
   // connect events for shout/effect/wtce buttons happen in load_shouts(),
   // load_effects(), load_wtce()
-  connect(ui_shout_up, SIGNAL(clicked(bool)), this, SLOT(on_cycle_clicked()));
-  connect(ui_shout_down, SIGNAL(clicked(bool)), this, SLOT(on_cycle_clicked()));
+  connect(ui_shout_up, &RPButton::clicked, this, &Courtroom::on_cycle_clicked);
+  connect(ui_shout_down, &RPButton::clicked, this, &Courtroom::on_cycle_clicked);
 
-  connect(ui_effect_up, SIGNAL(clicked(bool)), this, SLOT(on_cycle_clicked()));
-  connect(ui_effect_down, SIGNAL(clicked(bool)), this, SLOT(on_cycle_clicked()));
+  connect(ui_effect_up, &RPButton::clicked, this, &Courtroom::on_cycle_clicked);
+  connect(ui_effect_down, &RPButton::clicked, this, &Courtroom::on_cycle_clicked);
 
-  connect(ui_wtce_up, SIGNAL(clicked(bool)), this, SLOT(on_cycle_clicked()));
-  connect(ui_wtce_down, SIGNAL(clicked(bool)), this, SLOT(on_cycle_clicked()));
+  connect(ui_wtce_up, &RPButton::clicked, this, &Courtroom::on_cycle_clicked);
+  connect(ui_wtce_down, &RPButton::clicked, this, &Courtroom::on_cycle_clicked);
 
-  connect(ui_defense_minus, SIGNAL(clicked()), ui_defense_bar, SLOT(OnSubtractClicked()));
-  connect(ui_defense_plus, SIGNAL(clicked()), ui_defense_bar, SLOT(OnAddClicked()));
-  connect(ui_prosecution_minus, SIGNAL(clicked()), ui_prosecution_bar, SLOT(OnSubtractClicked()));
-  connect(ui_prosecution_plus, SIGNAL(clicked()), ui_prosecution_bar, SLOT(OnAddClicked()));
+  connect(ui_defense_minus, &RPButton::clicked, ui_defense_bar, &HealthBar::OnSubtractClicked);
+  connect(ui_defense_plus, &RPButton::clicked, ui_defense_bar, &HealthBar::OnAddClicked);
+  connect(ui_prosecution_minus, &RPButton::clicked, ui_prosecution_bar, &HealthBar::OnSubtractClicked);
+  connect(ui_prosecution_plus, &RPButton::clicked, ui_prosecution_bar, &HealthBar::OnAddClicked);
 
-  connect(ui_text_color, SIGNAL(currentIndexChanged(int)), this, SLOT(on_text_color_changed(int)));
-
-
-  connect(ui_chat_type_dropdown, SIGNAL(currentIndexChanged(int)), this, SLOT(on_chat_type_changed(int)));
-  connect(wOutfitDropdown, SIGNAL(currentIndexChanged(int)), this, SLOT(onOutfitChanged(int)));
-
-  connect(this, SIGNAL(loaded_theme()), this, SLOT(on_chat_config_changed()));
-  connect(ao_config, SIGNAL(log_max_lines_changed(int)), this, SLOT(on_chat_config_changed()));
-  connect(ao_config, SIGNAL(log_display_timestamp_changed(bool)), this, SLOT(on_chat_config_changed()));
-  connect(ao_config, SIGNAL(log_display_client_id_changed(bool)), this, SLOT(on_chat_config_changed()));
-  connect(ao_config, SIGNAL(log_display_self_highlight_changed(bool)), this, SLOT(on_chat_config_changed()));
-  connect(ao_config, SIGNAL(log_format_use_newline_changed(bool)), this, SLOT(on_chat_config_changed()));
-  connect(ao_config, SIGNAL(log_display_empty_messages_changed(bool)), this, SLOT(on_chat_config_changed()));
-  connect(ao_config, SIGNAL(log_display_music_switch_changed(bool)), this, SLOT(on_chat_config_changed()));
-  connect(ao_config, SIGNAL(log_is_topdown_changed(bool)), this, SLOT(on_chat_config_changed()));
-
-  connect(ui_area_search, SIGNAL(textChanged(QString)), this, SLOT(on_area_search_edited(QString)));
-  connect(ui_music_search, SIGNAL(textChanged(QString)), this, SLOT(on_music_search_edited(QString)));
-  connect(ui_sfx_search, SIGNAL(textChanged(QString)), this, SLOT(filter_sfx_list(QString)));
-
-  connect(ui_change_character, SIGNAL(clicked()), this, SLOT(on_change_character_clicked()));
-  connect(pCharaSelectSearch, SIGNAL(textChanged(QString)), this, SLOT(CharacterSearchUpdated()));
+  connect(ui_text_color, &QComboBox::currentIndexChanged, this, &Courtroom::on_text_color_changed);
 
 
-  connect(ui_call_mod, SIGNAL(clicked()), this, SLOT(on_call_mod_clicked()));
+  connect(ui_chat_type_dropdown, &QComboBox::currentIndexChanged, this, &Courtroom::on_chat_type_changed);
+  connect(wOutfitDropdown, &QComboBox::currentIndexChanged, this, &Courtroom::onOutfitChanged);
+
+  connect(this, &Courtroom::loaded_theme, this, &Courtroom::on_chat_config_changed);
+  connect(ao_config, &AOConfig::log_max_lines_changed, this, &Courtroom::on_chat_config_changed);
+  connect(ao_config, &AOConfig::log_display_timestamp_changed, this, &Courtroom::on_chat_config_changed);
+  connect(ao_config, &AOConfig::log_display_client_id_changed, this, &Courtroom::on_chat_config_changed);
+  connect(ao_config, &AOConfig::log_display_self_highlight_changed, this, &Courtroom::on_chat_config_changed);
+  connect(ao_config, &AOConfig::log_format_use_newline_changed, this, &Courtroom::on_chat_config_changed);
+  connect(ao_config, &AOConfig::log_display_empty_messages_changed, this, &Courtroom::on_chat_config_changed);
+  connect(ao_config, &AOConfig::log_display_music_switch_changed, this, &Courtroom::on_chat_config_changed);
+  connect(ao_config, &AOConfig::log_is_topdown_changed, this, &Courtroom::on_chat_config_changed);
+
+  connect(ui_area_search, &QLineEdit::textChanged, this, qOverload<const QString &>(&Courtroom::on_area_search_edited));
+  connect(ui_music_search, &QLineEdit::textChanged, this, qOverload<const QString &>(&Courtroom::on_music_search_edited));
+  connect(ui_sfx_search, &QLineEdit::textChanged, this, qOverload<const QString &>(&Courtroom::filter_sfx_list));
+
+  connect(ui_change_character, &RPButton::clicked, this, &Courtroom::on_change_character_clicked);
+  connect(pCharaSelectSearch, &QLineEdit::textChanged, this, &Courtroom::CharacterSearchUpdated);
+
+
+  connect(ui_call_mod, &RPButton::clicked, this, &Courtroom::on_call_mod_clicked);
 
 
 
-  connect(ui_switch_area_music, SIGNAL(clicked()), this, SLOT(on_switch_area_music_clicked()));
+  connect(ui_switch_area_music, &RPButton::clicked, this, &Courtroom::on_switch_area_music_clicked);
 
-  connect(ui_config_panel, SIGNAL(clicked()), this, SLOT(on_config_panel_clicked()));
-  connect(ui_note_button, SIGNAL(clicked()), this, SLOT(on_note_button_clicked()));
+  connect(ui_config_panel, &RPButton::clicked, this, &Courtroom::on_config_panel_clicked);
+  connect(ui_note_button, &RPButton::clicked, this, &Courtroom::on_note_button_clicked);
 
-  connect(ui_vp_notepad, SIGNAL(textChanged()), this, SLOT(on_note_text_changed()));
+  connect(ui_vp_notepad, &RPTextEdit::textChanged, this, &Courtroom::on_note_text_changed);
 
-  connect(ui_pre, SIGNAL(clicked()), this, SLOT(on_pre_clicked()));
-  connect(ui_flip, SIGNAL(clicked()), this, SLOT(on_flip_clicked()));
-  connect(ui_hide_character, SIGNAL(clicked()), this, SLOT(on_hidden_clicked()));
+  connect(ui_pre, &QCheckBox::clicked, this, &Courtroom::on_pre_clicked);
+  connect(ui_flip, &QCheckBox::clicked, this, &Courtroom::on_flip_clicked);
+  connect(ui_hide_character, &QCheckBox::clicked, this, &Courtroom::on_hidden_clicked);
 
-  connect(ui_sfx_list, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)), this, SLOT(on_sfx_list_current_item_changed(QListWidgetItem *, QListWidgetItem *)));
-  connect(ui_sfx_list, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(on_sfx_list_context_menu_requested(QPoint)));
+  connect(ui_sfx_list, &QListWidget::currentItemChanged, this, &Courtroom::on_sfx_list_current_item_changed);
+  connect(ui_sfx_list, &QWidget::customContextMenuRequested, this, &Courtroom::on_sfx_list_context_menu_requested);
   connect(animList, &QListWidget::currentItemChanged, this, &Courtroom::onAnimListItemChanged);
 
-  connect(ui_sfx_menu_preview, SIGNAL(triggered()), this, SLOT(on_sfx_menu_preview_triggered()));
-  connect(ui_sfx_menu_insert_file_name, SIGNAL(triggered()), this, SLOT(on_sfx_menu_insert_file_name_triggered()));
-  connect(ui_sfx_menu_insert_caption, SIGNAL(triggered()), this, SLOT(on_sfx_menu_insert_caption_triggered()));
+  connect(ui_sfx_menu_preview, &QAction::triggered, this, &Courtroom::on_sfx_menu_preview_triggered);
+  connect(ui_sfx_menu_insert_file_name, &QAction::triggered, this, &Courtroom::on_sfx_menu_insert_file_name_triggered);
+  connect(ui_sfx_menu_insert_caption, &QAction::triggered, this, &Courtroom::on_sfx_menu_insert_caption_triggered);
 
 
 
-  connect(ui_slider_horizontal_axis, SIGNAL(sliderReleased()), this, SLOT(on_pair_offset_changed()));
-  connect(ui_slider_horizontal_axis, SIGNAL(valueChanged(int)), this, SLOT(OnPlayerOffsetsChanged(int)));
-  connect(ui_slider_vertical_axis, SIGNAL(valueChanged(int)), this, SLOT(OnPlayerOffsetsChanged(int)));
-  connect(ui_slider_scale, SIGNAL(valueChanged(int)), this, SLOT(OnPlayerOffsetsChanged(int)));
+  connect(ui_slider_horizontal_axis, &QAbstractSlider::sliderReleased, this, &Courtroom::on_pair_offset_changed);
+  connect(ui_slider_horizontal_axis, &QAbstractSlider::valueChanged, this, &Courtroom::OnPlayerOffsetsChanged);
+  connect(ui_slider_vertical_axis, &QAbstractSlider::valueChanged, this, &Courtroom::OnPlayerOffsetsChanged);
+  connect(ui_slider_scale, &QAbstractSlider::valueChanged, this, &Courtroom::OnPlayerOffsetsChanged);
 
-  connect(ui_note_area->add_button, SIGNAL(clicked(bool)), this, SLOT(on_add_button_clicked()));
-  connect(ui_set_notes, SIGNAL(clicked(bool)), this, SLOT(on_set_notes_clicked()));
+  connect(ui_note_area->add_button, &RPButton::clicked, this, &Courtroom::on_add_button_clicked);
+  connect(ui_set_notes, &RPButton::clicked, this, &Courtroom::on_set_notes_clicked);
 
   // performance
-  connect(ao_config, SIGNAL(sprite_caching_toggled(int, bool)), this, SLOT(assign_readers_for_viewers(int, bool)));
-  connect(ao_config, SIGNAL(caching_threshold_changed(int)), m_preloader_sync, SLOT(set_threshold(int)));
-  connect(m_preloader_sync, SIGNAL(finished()), this, SLOT(start_chatmessage()));
-  connect(ao_config, SIGNAL(loading_bar_delay_changed(int)), this, SLOT(on_loading_bar_delay_changed(int)));
-  connect(m_loading_timer, SIGNAL(timeout()), ui_vp_loading, SLOT(show()));
+  connect(ao_config, &AOConfig::sprite_caching_toggled, this, &Courtroom::assign_readers_for_viewers);
+  connect(ao_config, &AOConfig::caching_threshold_changed, m_preloader_sync, &mk2::SpriteReaderSynchronizer::set_threshold);
+  connect(m_preloader_sync, &mk2::SpriteReaderSynchronizer::finished, this, &Courtroom::start_chatmessage);
+  connect(ao_config, &AOConfig::loading_bar_delay_changed, this, &Courtroom::on_loading_bar_delay_changed);
+  connect(m_loading_timer, &QTimer::timeout, ui_vp_loading, &QWidget::show);
 
 
   //Player List
-  connect(ui_player_list_left, SIGNAL(clicked()), this, SLOT(on_player_list_left_clicked()));
-  connect(ui_player_list_right, SIGNAL(clicked()), this, SLOT(on_player_list_right_clicked()));
-  connect(ui_area_look, SIGNAL(clicked()), this, SLOT(on_area_look_clicked()));
+  connect(ui_player_list_left, &RPButton::clicked, this, &Courtroom::on_player_list_left_clicked);
+  connect(ui_player_list_right, &RPButton::clicked, this, &Courtroom::on_player_list_right_clicked);
+  connect(ui_area_look, &RPButton::clicked, this, &Courtroom::on_area_look_clicked);
 
   connect(ao_config, &AOConfig::manual_resize_changed, this, &Courtroom::toggle_manual_resize);
 }
@@ -799,7 +799,7 @@ void Courtroom::set_widget_names()
   insert_widget_names(shout_names, ui_shouts);
   insert_widget_names(wtce_names, ui_wtce);
 
-  for (auto *i_block : qAsConst(ui_free_blocks))
+  for (auto *i_block : std::as_const(ui_free_blocks))
   {
     widget_names.insert(i_block->objectName(), i_block);
     ThemeManager::get().addWidgetName(i_block->objectName(), i_block);
@@ -1553,7 +1553,7 @@ void Courtroom::delete_widget(QWidget *p_widget)
 void Courtroom::load_effects()
 {
   // Close any existing effects to prevent memory leaks
-  for (QWidget *widget : qAsConst(ui_effects))
+  for (QWidget *widget : std::as_const(ui_effects))
     delete_widget(widget);
 
   // And create new effects
@@ -1570,8 +1570,8 @@ void Courtroom::load_effects()
     l_button->stackUnder(ui_effect_up);
     l_button->stackUnder(ui_effect_down);
 
-    connect(l_button, SIGNAL(clicked(bool)), this, SLOT(on_effect_button_clicked(bool)));
-    connect(l_button, SIGNAL(toggled(bool)), this, SLOT(on_effect_button_toggled(bool)));
+    connect(l_button, &RPButton::clicked, this, &Courtroom::on_effect_button_clicked);
+    connect(l_button, &RPButton::toggled, this, &Courtroom::on_effect_button_toggled);
   }
 
   // And add names
@@ -1592,7 +1592,7 @@ void Courtroom::load_effects()
 
 void Courtroom::load_free_blocks()
 {
-  for (QWidget *widget : qAsConst(ui_free_blocks))
+  for (QWidget *widget : std::as_const(ui_free_blocks))
     delete_widget(widget);
 
   ui_free_blocks.clear();
@@ -1625,7 +1625,7 @@ void Courtroom::load_free_blocks()
 
 void Courtroom::load_shouts()
 {
-  for (QWidget *widget : qAsConst(ui_shouts))
+  for (QWidget *widget : std::as_const(ui_shouts))
     delete_widget(widget);
 
   // And create new shouts
@@ -1645,8 +1645,8 @@ void Courtroom::load_shouts()
     l_button->stackUnder(ui_shout_up);
     l_button->stackUnder(ui_shout_down);
 
-    connect(l_button, SIGNAL(clicked(bool)), this, SLOT(on_shout_button_clicked(bool)));
-    connect(l_button, SIGNAL(toggled(bool)), this, SLOT(on_shout_button_toggled(bool)));
+    connect(l_button, &RPButton::clicked, this, &Courtroom::on_shout_button_clicked);
+    connect(l_button, &RPButton::toggled, this, &Courtroom::on_shout_button_toggled);
 
 
     if(!shout_name.isEmpty())
@@ -1664,7 +1664,7 @@ void Courtroom::load_shouts()
 
 void Courtroom::load_wtce()
 {
-  for (QWidget *widget : qAsConst(ui_wtce))
+  for (QWidget *widget : std::as_const(ui_wtce))
     delete_widget(widget);
 
   // And create new wtce buttons
@@ -1680,7 +1680,7 @@ void Courtroom::load_wtce()
     l_button->setProperty("wtce_id", i + 1);
     l_button->stackUnder(ui_wtce_up);
     l_button->stackUnder(ui_wtce_down);
-    connect(l_button, SIGNAL(clicked(bool)), this, SLOT(on_wtce_clicked()));
+    connect(l_button, &RPButton::clicked, this, &Courtroom::on_wtce_clicked);
 
     QString wtce_name = ao_app->current_theme->get_wtce(i + 1);
 
@@ -1764,7 +1764,7 @@ void Courtroom::set_judge_wtce()
   }
   else
   {
-    for (RPButton *i_wtce : qAsConst(ui_wtce))
+    for (RPButton *i_wtce : std::as_const(ui_wtce))
       i_wtce->show();
   }
 }

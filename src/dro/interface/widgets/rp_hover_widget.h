@@ -20,7 +20,7 @@ public:
   };
 
 protected:
-  void enterEvent(QEvent *event) override
+  void enterEvent(QEnterEvent *event) override
   {
     for(QWidget * r_widget : m_Widgets) { r_widget->setVisible(true); }
     QWidget::enterEvent(event);

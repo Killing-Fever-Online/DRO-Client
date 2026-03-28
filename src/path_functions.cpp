@@ -9,7 +9,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QRegExp>
+#include <QRegularExpression>
 
 #include <modules/theme/thememanager.h>
 #include "dro/fs/fs_reading.h"
@@ -167,7 +167,7 @@ QString AOApplication::get_case_sensitive_path(QString p_file)
 
   const QDir l_dir(l_dir_path);
   const auto l_file_list = l_dir.entryList(QDir::Files);
-  const auto l_regex = QRegExp(p_file, Qt::CaseInsensitive, QRegExp::FixedString);
+  const auto l_regex = QRegularExpression(p_file, Qt::CaseInsensitive, QRegularExpression::FixedString);
   for (auto &i_file : l_file_list)
   {
     const QString l_file_path = l_dir.absoluteFilePath(i_file);
@@ -198,11 +198,11 @@ QString AOApplication::get_case_sensitive_path(QString p_file)
  */
 QString AOApplication::find_asset_path(QStringList p_file_list, QStringList p_extension_list)
 {
-  for (const QString &i_file : qAsConst(p_file_list))
+  for (const QString &i_file : std::as_const(p_file_list))
   {
     const QDir l_dir(get_case_sensitive_path(QFileInfo(i_file).absolutePath()));
 
-    for (const QString &i_extension : qAsConst(p_extension_list))
+    for (const QString &i_extension : std::as_const(p_extension_list))
     {
       const QString l_file_path = get_case_sensitive_path(l_dir.filePath(i_file + i_extension));
       if (FS::Checks::FileExists(l_file_path))

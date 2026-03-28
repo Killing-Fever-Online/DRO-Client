@@ -11,11 +11,9 @@ LegacyBackgroundReader::LegacyBackgroundReader()
 
 void LegacyBackgroundReader::execLoadBackground(QString t_backgroundName)
 {
-
   const QString l_positions_ini = AOApplication::getInstance()->find_asset_path(AOApplication::getInstance()->get_background_path(t_backgroundName) + "/" + "positions.ini");
 
   QSettings l_settings(l_positions_ini, QSettings::IniFormat);
-  l_settings.setIniCodec("UTF-8");
   // If the positions.ini doesn't exist...
   if (l_positions_ini.isEmpty() || l_settings.status() != QSettings::NoError)
   {

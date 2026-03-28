@@ -111,7 +111,7 @@ void AOCharButton::clearIniswap()
   ui_character->hide();
 }
 
-void AOCharButton::enterEvent(QEvent *e)
+void AOCharButton::enterEvent(QEnterEvent *e)
 {
   setFlat(false);
   QPushButton::enterEvent(e);

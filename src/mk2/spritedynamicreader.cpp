@@ -201,9 +201,9 @@ void SpriteDynamicReader::_p_create_reader(bool p_caching)
   {
     l_reader = new SpriteSeekingReader;
   }
-  connect(l_reader, SIGNAL(state_changed(mk2::SpriteReader::State)), this, SLOT(set_state(mk2::SpriteReader::State)));
-  connect(l_reader, SIGNAL(loading_progress_changed(int)), this, SLOT(set_loading_progress(int)));
-  connect(l_reader, SIGNAL(error(mk2::SpriteReader::Error)), this, SLOT(set_error(mk2::SpriteReader::Error)));
+  connect(l_reader, &SpriteReader::state_changed, this, &SpriteDynamicReader::set_state);
+  connect(l_reader, &SpriteReader::loading_progress_changed, this, &SpriteDynamicReader::set_loading_progress);
+  connect(l_reader, &SpriteReader::error, this, &SpriteDynamicReader::set_error);
   m_reader = mk2::SpriteReader::ptr(l_reader);
 }
 
