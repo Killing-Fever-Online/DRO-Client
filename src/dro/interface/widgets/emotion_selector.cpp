@@ -94,11 +94,11 @@ void EmotionSelector::constructEmotes()
     f_emote->set_emote_number(n);
 
     Courtroom *courtroom = static_cast<Courtroom*>(ThemeManager::get().getWidget("courtroom"));
-    connect(f_emote, SIGNAL(emote_clicked(int)), this, SLOT(emoteClicked(int)));
+    connect(f_emote, &AOEmoteButton::emote_clicked, this, &EmotionSelector::emoteClicked);
     if(courtroom != nullptr)
     {
-      connect(f_emote, SIGNAL(tooltip_requested(int, QPoint)), courtroom, SLOT(show_emote_tooltip(int, QPoint)));
-      connect(f_emote, SIGNAL(mouse_left(int)), courtroom, SLOT(hide_emote_tooltip(int)));
+      connect(f_emote, &AOEmoteButton::tooltip_requested, courtroom, &Courtroom::show_emote_tooltip);
+      connect(f_emote, &AOEmoteButton::mouse_left, courtroom, &Courtroom::hide_emote_tooltip);
     }
 
     ++x_mod_count;
@@ -121,7 +121,7 @@ void EmotionSelector::refreshEmotes(bool scrollToCurrent)
   l_emotesLeft->hide();
   l_emotesRight->hide();
 
-  for (AOEmoteButton *i_button : qAsConst(m_EmotionButtons)) i_button->hide();
+  for (AOEmoteButton *i_button : std::as_const(m_EmotionButtons)) i_button->hide();
 
 
   const int l_emote_count = m_ActorEmotions.length();
@@ -130,7 +130,7 @@ void EmotionSelector::refreshEmotes(bool scrollToCurrent)
   if (scrollToCurrent)
     m_PageIndex = m_SelectedIndex / m_PageLimit;
 
-  m_PageIndex = qBound(0, m_PageIndex, l_page_count - 1);
+  m_PageIndex = qBound(0, m_PageIndex, qMax(0, l_page_count - 1));
 
   const int l_current_page_emote_count = qBound(0, l_emote_count - m_PageIndex * m_PageLimit, m_PageLimit);
 
@@ -165,7 +165,7 @@ void EmotionSelector::refreshSelection(bool changedActor)
     l_emoteCombobox->clear();
 
     QStringList l_emote_list;
-    for (const DREmote &i_emote : qAsConst(m_ActorEmotions))
+    for (const DREmote &i_emote : std::as_const(m_ActorEmotions))
       l_emote_list.append(i_emote.comment);
     l_emoteCombobox->addItems(l_emote_list);
   }

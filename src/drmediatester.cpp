@@ -7,11 +7,11 @@
 DRMediaTester::DRMediaTester(QObject *parent)
     : QObject(parent)
 {
-  m_player.setMuted(true);
+  m_player.setAudioOutput(nullptr);
 
-  connect(&m_player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(p_check_status(QMediaPlayer::MediaStatus)));
+  connect(&m_player, &QMediaPlayer::mediaStatusChanged, this, &DRMediaTester::p_check_status);
 
-  m_player.setMedia(QUrl("qrc:/data/sample.avi"));
+  m_player.setSource(QUrl("qrc:/data/sample.avi"));
 }
 
 DRMediaTester::~DRMediaTester()

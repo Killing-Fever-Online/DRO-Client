@@ -110,7 +110,7 @@ DRAudioStream::ptr DRAudioStreamFamily::create_stream(QString p_filename)
 
   m_stream_list.append(l_stream);
 
-  connect(l_stream.get(), SIGNAL(finished()), this, SLOT(on_stream_finished()));
+  connect(l_stream.get(), &DRAudioStream::finished, this, &DRAudioStreamFamily::on_stream_finished);
 
   update_capacity();
 
@@ -130,7 +130,7 @@ DRAudioStream::ptr DRAudioStreamFamily::create_url_stream(QString t_url)
 
   m_stream_list.append(l_stream);
 
-  connect(l_stream.get(), SIGNAL(finished()), this, SLOT(on_stream_finished()));
+  connect(l_stream.get(), &DRAudioStream::finished, this, &DRAudioStreamFamily::on_stream_finished);
 
   update_capacity();
 

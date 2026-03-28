@@ -106,7 +106,7 @@ void SpriteCachingReader::load()
   }
 
   m_exit_task = false;
-  m_task = QtConcurrent::run(this, &SpriteCachingReader::_p_preload, l_raw_data);
+  m_task = QtConcurrent::run(&SpriteCachingReader::_p_preload, this, l_raw_data);
 }
 
 void SpriteCachingReader::_p_stop_preload()

@@ -22,11 +22,12 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: 5.15.2
+          version: 6.8.3
           target: desktop
-          arch: win64_msvc2019_64
+          arch: win64_msvc2022_64
           cache: true
           cache-key-prefix: install-qt-action
+          modules: 'qtimageformats qtwebsockets qtmultimedia'
 
       - name: Configure MSVC (Windows)
         uses: ilammy/msvc-dev-cmd@v1
@@ -97,7 +98,7 @@ jobs:
       - name: Build Apng plugin
         run: |
           cd ./qtapng
-          cmake . -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE="${{ github.workspace }}/bin/imageformats/" -DAPNG_QT6=OFF
+          cmake . -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE="${{ github.workspace }}/bin/imageformats/" -DAPNG_QT6=ON
           cmake --build . --config Release
 
       - name: Build

@@ -262,7 +262,7 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       return;
 
     QVector<char_type> l_chr_list;
-    for (const QString &i_chr_name : qAsConst(l_content))
+    for (const QString &i_chr_name : std::as_const(l_content))
     {
       char_type l_chr;
       l_chr.name = i_chr_name;

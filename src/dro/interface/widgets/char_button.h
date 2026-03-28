@@ -29,7 +29,7 @@ private slots:
   void clearIniswap();
 
 protected:
-  void enterEvent(QEvent *e);
+  void enterEvent(QEnterEvent *e);
   void leaveEvent(QEvent *e);
 
 private:

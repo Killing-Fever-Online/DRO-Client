@@ -49,8 +49,8 @@ SpritePlayer::SpritePlayer(QObject *parent)
   m_repaint_timer.setInterval(200);
   m_repaint_timer.setSingleShot(true);
 
-  connect(&m_frame_timer, SIGNAL(timeout()), this, SLOT(fetch_next_frame()));
-  connect(&m_repaint_timer, SIGNAL(timeout()), this, SLOT(scale_current_frame()));
+  connect(&m_frame_timer, &QTimer::timeout, this, &SpritePlayer::fetch_next_frame);
+  connect(&m_repaint_timer, &QTimer::timeout, this, &SpritePlayer::scale_current_frame);
 }
 
 SpritePlayer::~SpritePlayer()

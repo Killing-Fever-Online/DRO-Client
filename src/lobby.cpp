@@ -134,38 +134,37 @@ Lobby::Lobby(AOApplication *p_ao_app)
   ui_gallery_categories = new QComboBox(ui_gallery_background);
 
 
-  connect(ui_gallery_categories, SIGNAL(currentIndexChanged(int)), this, SLOT(onGalleryCategoryChanged(int)));
-  connect(ui_gallery_packages, SIGNAL(currentIndexChanged(int)), this, SLOT(onGalleryPackageChanged(int)));
+  connect(ui_gallery_categories, &QComboBox::currentIndexChanged, this, &Lobby::onGalleryCategoryChanged);
+  connect(ui_gallery_packages, &QComboBox::currentIndexChanged, this, &Lobby::onGalleryPackageChanged);
 
-  connect(ui_replay_list, SIGNAL(currentRowChanged(int)), this, SLOT(onReplayRowChanged(int)));
 
-  connect(ao_app, SIGNAL(reload_theme()), this, SLOT(update_widgets()));
+  connect(ao_app, &AOApplication::reload_theme, this, &Lobby::update_widgets);
   connect(ao_app, &AOApplication::server_status_changed, this, &Lobby::_p_update_description);
 
-  connect(ao_config, SIGNAL(theme_changed(QString)), this, SLOT(update_widgets()));
-  connect(ao_config, SIGNAL(server_advertiser_changed(QString)), m_master_client, SLOT(set_address(QString)));
+  connect(ao_config, &AOConfig::theme_changed, this, &Lobby::update_widgets);
+  connect(ao_config, &AOConfig::server_advertiser_changed, m_master_client, &DRMasterClient::set_address);
 
-  connect(m_master_client, SIGNAL(address_changed()), this, SLOT(request_advertiser_update()));
-  connect(m_master_client, SIGNAL(motd_changed()), this, SLOT(update_motd()));
-  connect(m_master_client, SIGNAL(server_list_changed()), this, SLOT(update_server_list()));
+  connect(m_master_client, &DRMasterClient::address_changed, this, &Lobby::request_advertiser_update);
+  connect(m_master_client, &DRMasterClient::motd_changed, this, &Lobby::update_motd);
+  connect(m_master_client, &DRMasterClient::server_list_changed, this, &Lobby::update_server_list);
 
-  connect(ui_public_server_filter, SIGNAL(clicked()), this, SLOT(toggle_public_server_filter()));
+  connect(ui_public_server_filter, &RPButton::clicked, this, &Lobby::toggle_public_server_filter);
 
-  connect(ui_favorite_server_filter, SIGNAL(clicked()), this, SLOT(toggle_favorite_server_filter()));
+  connect(ui_favorite_server_filter, &RPButton::clicked, this, &Lobby::toggle_favorite_server_filter);
 
-  connect(ui_config_panel, SIGNAL(pressed()), this, SLOT(on_config_pressed()));
-  connect(ui_config_panel, SIGNAL(released()), this, SLOT(on_config_released()));
+  connect(ui_config_panel, &RPButton::pressed, this, &Lobby::on_config_pressed);
+  connect(ui_config_panel, &RPButton::released, this, &Lobby::on_config_released);
 
-  connect(ui_server_list, SIGNAL(currentRowChanged(int)), this, SLOT(connect_to_server(int)));
-  connect(ui_server_list, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(show_server_context_menu(QPoint)));
+  connect(ui_server_list, &QListWidget::currentRowChanged, this, &Lobby::connect_to_server);
+  connect(ui_server_list, &QWidget::customContextMenuRequested, this, &Lobby::show_server_context_menu);
 
-  connect(ui_create_server, SIGNAL(triggered(bool)), this, SLOT(create_server_info()));
-  connect(ui_modify_server, SIGNAL(triggered(bool)), this, SLOT(modify_server_info()));
-  connect(ui_delete_server, SIGNAL(triggered(bool)), this, SLOT(prompt_delete_server()));
-  connect(ui_move_up_server, SIGNAL(triggered(bool)), this, SLOT(move_up_server()));
-  connect(ui_move_down_server, SIGNAL(triggered(bool)), this, SLOT(move_down_server()));
+  connect(ui_create_server, &QAction::triggered, this, &Lobby::create_server_info);
+  connect(ui_modify_server, &QAction::triggered, this, &Lobby::modify_server_info);
+  connect(ui_delete_server, &QAction::triggered, this, &Lobby::prompt_delete_server);
+  connect(ui_move_up_server, &QAction::triggered, this, &Lobby::move_up_server);
+  connect(ui_move_down_server, &QAction::triggered, this, &Lobby::move_down_server);
 
-  connect(ui_cancel, SIGNAL(clicked()), ao_app, SLOT(loading_cancelled()));
+  connect(ui_cancel, &RPButton::clicked, ao_app, &AOApplication::loading_cancelled);
 
   load_settings();
   load_favorite_server_list();
@@ -347,7 +346,6 @@ void Lobby::set_loading_value(int p_value)
 void Lobby::load_settings()
 {
   QSettings l_ini(FS::Paths::FindFile(BASE_SERVER_BROWSER_INI, false), QSettings::IniFormat);
-  l_ini.setIniCodec("UTF-8");
 
   l_ini.beginGroup("filters");
   m_server_filter = ServerFilter(l_ini.value("server_filter", NoFilter).toInt());
@@ -357,7 +355,6 @@ void Lobby::load_settings()
 void Lobby::save_settings()
 {
   QSettings l_ini(FS::Paths::FindFile(BASE_SERVER_BROWSER_INI, false), QSettings::IniFormat);
-  l_ini.setIniCodec("UTF-8");
 
   l_ini.beginGroup("filters");
   l_ini.setValue("server_filter", int(m_server_filter));
@@ -376,7 +373,6 @@ void Lobby::load_favorite_server_list()
 
   DRServerInfoList l_server_list;
   QSettings l_ini(l_file_path, QSettings::IniFormat);
-  l_ini.setIniCodec("UTF-8");
   l_server_list.clear();
   QStringList l_group_list = l_ini.childGroups();
 
@@ -386,7 +382,7 @@ void Lobby::load_favorite_server_list()
     std::sort(l_group_list.begin(), l_group_list.end(), l_sorter);
   }
 
-  for (const QString &i_group : qAsConst(l_group_list))
+  for (const QString &i_group : std::as_const(l_group_list))
   {
     l_ini.beginGroup(i_group);
     DRServerInfo l_server;
@@ -428,7 +424,6 @@ void Lobby::load_legacy_favorite_server_list()
 void Lobby::save_favorite_server_list()
 {
   QSettings l_ini(FS::Paths::FindFile(BASE_FAVORITE_SERVERS_INI, false), QSettings::IniFormat);
-  l_ini.setIniCodec("UTF-8");
 
   l_ini.clear();
   for (int i = 0; i < m_favorite_server_list.length(); ++i)
@@ -811,7 +806,7 @@ void Lobby::_p_update_description()
   if (!m_current_server.description.isEmpty())
   {
     QString l_description = m_current_server.description.toHtmlEscaped();
-    const QRegExp l_regex("(https?://[^\\s/$.?#].[^\\s]*)");
+    const QRegularExpression l_regex("(https?://[^\\s/$.?#].[^\\s]*)");
     if (l_description.contains(l_regex))
     {
       l_description.replace(l_regex, "<a href=\"\\1\">\\1</a>");

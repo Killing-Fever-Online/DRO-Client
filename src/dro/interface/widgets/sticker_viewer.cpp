@@ -10,8 +10,8 @@ DRStickerViewer::DRStickerViewer(AOApplication *ao_app, QWidget *parent)
     , ao_app(ao_app)
     , m_hide_when_done(false)
 {
-  connect(this, SIGNAL(started()), this, SLOT(show()));
-  connect(this, SIGNAL(finished()), this, SLOT(maybe_hide()));
+  connect(this, &DRStickerViewer::started, this, &DRStickerViewer::show);
+  connect(this, &DRStickerViewer::finished, this, &DRStickerViewer::maybe_hide);
 }
 
 DRStickerViewer::~DRStickerViewer()

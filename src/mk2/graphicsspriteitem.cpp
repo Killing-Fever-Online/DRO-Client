@@ -43,12 +43,12 @@ GraphicsSpriteItem::GraphicsSpriteItem(QGraphicsItem *parent)
     : QGraphicsObject(parent)
     , m_player(new SpritePlayer)
 {
-  connect(m_player.get(), SIGNAL(size_changed(QSize)), this, SLOT(notify_size()));
-  connect(m_player.get(), SIGNAL(current_frame_changed()), this, SLOT(notify_update()));
-  connect(m_player.get(), SIGNAL(file_name_changed(QString)), this, SIGNAL(file_name_changed(QString)));
-  connect(m_player.get(), SIGNAL(reader_changed()), this, SIGNAL(reader_changed()));
-  connect(m_player.get(), SIGNAL(started()), this, SIGNAL(started()));
-  connect(m_player.get(), SIGNAL(finished()), this, SIGNAL(finished()));
+  connect(m_player.get(), &SpritePlayer::size_changed, this, &GraphicsSpriteItem::notify_size);
+  connect(m_player.get(), &SpritePlayer::current_frame_changed, this, &GraphicsSpriteItem::notify_update);
+  connect(m_player.get(), &SpritePlayer::file_name_changed, this, &GraphicsSpriteItem::file_name_changed);
+  connect(m_player.get(), &SpritePlayer::reader_changed, this, &GraphicsSpriteItem::reader_changed);
+  connect(m_player.get(), &SpritePlayer::started, this, &GraphicsSpriteItem::started);
+  connect(m_player.get(), &SpritePlayer::finished, this, &GraphicsSpriteItem::finished);
 }
 
 GraphicsSpriteItem::~GraphicsSpriteItem()

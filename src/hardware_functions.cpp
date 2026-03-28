@@ -34,7 +34,7 @@ QString get_hdid()
   while (!in.atEnd())
   {
     QString line = in.readLine();
-    int i = line.indexOf(QRegExp("UUID|uuid"), 0);
+    int i = line.indexOf(QRegularExpression("UUID|uuid"), 0);
     if (i >= 0)
     {
       line = line.chopped(i);

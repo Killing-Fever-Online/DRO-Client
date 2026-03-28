@@ -33,15 +33,15 @@ DRDiscord::DRDiscord(QObject *f_parent)
   m_waiter = new QTimer(this);
   m_waiter->setInterval(std::chrono::seconds(1));
   m_waiter->setSingleShot(true);
-  connect(m_waiter, SIGNAL(timeout()), this, SLOT(on_update_queued()));
-  connect(this, SIGNAL(options_changed(DRDiscord::Options)), m_waiter, SLOT(start()));
-  connect(this, SIGNAL(state_changed(DRDiscord::State)), m_waiter, SLOT(start()));
-  connect(this, SIGNAL(server_name_changed(QString)), m_waiter, SLOT(start()));
-  connect(this, SIGNAL(server_name_cleared()), m_waiter, SLOT(start()));
-  connect(this, SIGNAL(character_name_changed(QString)), m_waiter, SLOT(start()));
-  connect(this, SIGNAL(character_name_cleared()), m_waiter, SLOT(start()));
-  connect(this, SIGNAL(started()), m_waiter, SLOT(start()));
-  connect(this, SIGNAL(stopped()), m_waiter, SLOT(start()));
+  connect(m_waiter, &QTimer::timeout, this, &DRDiscord::on_update_queued);
+  connect(this, &DRDiscord::options_changed, m_waiter, qOverload<>(&QTimer::start));
+  connect(this, &DRDiscord::state_changed, m_waiter, qOverload<>(&QTimer::start));
+  connect(this, &DRDiscord::server_name_changed, m_waiter, qOverload<>(&QTimer::start));
+  connect(this, &DRDiscord::server_name_cleared, m_waiter, qOverload<>(&QTimer::start));
+  connect(this, &DRDiscord::character_name_changed, m_waiter, qOverload<>(&QTimer::start));
+  connect(this, &DRDiscord::character_name_cleared, m_waiter, qOverload<>(&QTimer::start));
+  connect(this, &DRDiscord::started, m_waiter, qOverload<>(&QTimer::start));
+  connect(this, &DRDiscord::stopped, m_waiter, qOverload<>(&QTimer::start));
 
   start();
 }

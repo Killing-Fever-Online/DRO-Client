@@ -5,9 +5,9 @@ DRMovie::DRMovie(QGraphicsItem *parent)
     , m_hide_when_done{false}
     , m_mirrored{false}
 {
-  connect(this, SIGNAL(started()), this, SLOT(update_visibility()));
-  connect(this, SIGNAL(finished()), this, SIGNAL(done()));
-  connect(this, SIGNAL(finished()), this, SLOT(update_visibility()));
+  connect(this, &DRMovie::started, this, &DRMovie::update_visibility);
+  connect(this, &DRMovie::finished, this, &DRMovie::done);
+  connect(this, &DRMovie::finished, this, &DRMovie::update_visibility);
 }
 
 DRMovie::~DRMovie()

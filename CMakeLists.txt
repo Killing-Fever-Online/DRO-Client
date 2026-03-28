@@ -6,11 +6,11 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt5 REQUIRED COMPONENTS core gui widgets uitools network websockets multimedia multimediawidgets)
-find_package(Qt5 REQUIRED COMPONENTS core gui widgets uitools network websockets multimedia multimediawidgets)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS core gui widgets uitools network websockets multimedia multimediawidgets)
+find_package(Qt6 REQUIRED COMPONENTS core gui widgets uitools network websockets multimedia multimediawidgets)
 
 set(HEADERS
   src/dro/animation/keyframe_channel.h
@@ -302,6 +302,10 @@ add_executable(dro-client
   src/dro/param/actor_repository.h src/dro/param/actor_repository.cpp
 )
 
+target_compile_definitions(dro-client PRIVATE
+    QT_WARN_DEPRECATED_UP_TO=0x060500
+)
+
 target_include_directories(dro-client PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -321,14 +325,14 @@ target_link_directories(dro-client PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/3rd/lua
 )
 target_link_libraries(dro-client
-  Qt5::Core
-  Qt5::Gui
-  Qt5::Widgets
-  Qt5::UiTools
-  Qt5::Network
-  Qt5::WebSockets
-  Qt5::Multimedia
-  Qt5::MultimediaWidgets
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::UiTools
+  Qt6::Network
+  Qt6::WebSockets
+  Qt6::Multimedia
+  Qt6::MultimediaWidgets
   bass
   bassopus
   bass_fx

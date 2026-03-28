@@ -48,18 +48,18 @@ void Courtroom::construct_char_select()
   pCharaSelectSearch = new RPLineEdit("character_search", dro::system::localization::getText("CSS_SEARCH"), "[CHARA SEARCH]", ui_char_select_background);
   pCharaSelectSeries = setupComboBoxWidget(CharacterManager::get().GetCharacterPackages() , "character_packages", "[PACKAGE FILTER]");
 
-  connect(char_button_mapper, SIGNAL(mapped(int)), this, SLOT(char_clicked(int)));
-  connect(ui_back_to_lobby, SIGNAL(clicked()), this, SLOT(on_back_to_lobby_clicked()));
+  connect(char_button_mapper, &QSignalMapper::mappedInt, this, &Courtroom::char_clicked);
+  connect(ui_back_to_lobby, &RPButton::clicked, this, &Courtroom::on_back_to_lobby_clicked);
 
-  connect(ui_chr_select_left, SIGNAL(clicked()), this, SLOT(on_char_select_left_clicked()));
-  connect(ui_chr_select_right, SIGNAL(clicked()), this, SLOT(on_char_select_right_clicked()));
+  connect(ui_chr_select_left, &RPButton::clicked, this, &Courtroom::on_char_select_left_clicked);
+  connect(ui_chr_select_right, &RPButton::clicked, this, &Courtroom::on_char_select_right_clicked);
 
-  connect(ao_config, SIGNAL(character_ini_changed(QString)), this, SLOT(update_character_icon(QString)));
+  connect(ao_config, &AOConfig::character_ini_changed, this, &Courtroom::update_character_icon);
 
-  connect(ui_spectator, SIGNAL(clicked()), this, SLOT(on_spectator_clicked()));
+  connect(ui_spectator, &RPButton::clicked, this, &Courtroom::on_spectator_clicked);
 
-  connect(pBtnCharSelectRefresh, SIGNAL(clicked()), this, SLOT(OnCharRefreshClicked()));
-  connect(pBtnCharSelectRandom, SIGNAL(clicked()), this, SLOT(OnCharRandomClicked()));
+  connect(pBtnCharSelectRefresh, &RPButton::clicked, this, &Courtroom::OnCharRefreshClicked);
+  connect(pBtnCharSelectRandom, &RPButton::clicked, this, &Courtroom::OnCharRandomClicked);
 
   reconstruct_char_select();
 }
@@ -102,12 +102,12 @@ void Courtroom::reconstruct_char_select()
     AOCharButton *l_button = new AOCharButton(ui_char_buttons, ao_app, x_pos, y_pos);
     ui_char_button_list.append(l_button);
 
-    connect(l_button, SIGNAL(clicked()), char_button_mapper, SLOT(map()));
+    connect(l_button, &AOCharButton::clicked, char_button_mapper, qOverload<>(&QSignalMapper::map));
     char_button_mapper->setMapping(l_button, n);
 
     // mouse events
-    connect(l_button, SIGNAL(mouse_entered(AOCharButton *)), this, SLOT(char_mouse_entered(AOCharButton *)));
-    connect(l_button, SIGNAL(mouse_left()), this, SLOT(char_mouse_left()));
+    connect(l_button, &AOCharButton::mouse_entered, this, &Courtroom::char_mouse_entered);
+    connect(l_button, &AOCharButton::mouse_left, this, &Courtroom::char_mouse_left);
 
     ++x_mod_count;
 
@@ -151,7 +151,7 @@ void Courtroom::set_char_select_page()
   CharacterManager::get().mFilteredChrList = {};
 
 
-  for (AOCharButton *button : qAsConst(ui_char_button_list))
+  for (AOCharButton *button : std::as_const(ui_char_button_list))
     button->hide();
 
 
@@ -163,7 +163,7 @@ void Courtroom::set_char_select_page()
 
   const int l_item_count = CharacterManager::get().mFilteredChrList.length();
   const int l_page_count = qFloor(l_item_count / m_page_max_chr_count) + bool(l_item_count % m_page_max_chr_count);
-  m_current_chr_page = qBound(0, m_current_chr_page, l_page_count - 1);
+  m_current_chr_page = qBound(0, m_current_chr_page, qMax(0, l_page_count - 1));
   const int l_current_page_emote_count =
       qBound(0, l_item_count - m_current_chr_page * m_page_max_chr_count, m_page_max_chr_count);
 
@@ -215,7 +215,7 @@ void Courtroom::on_char_select_right_clicked()
 
 void Courtroom::update_character_icon(QString p_character)
 {
-  for (AOCharButton *i_button : qAsConst(ui_char_button_list))
+  for (AOCharButton *i_button : std::as_const(ui_char_button_list))
   {
     if (i_button->character() != p_character)
       continue;

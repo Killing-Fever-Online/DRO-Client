@@ -284,7 +284,6 @@ QVector<DREmote> LegacyActorReader::GetEmotes()
 #endif
 
     QSettings l_chrini(AOApplication::getInstance()->get_character_path(i_chr, CHARACTER_CHAR_INI), QSettings::IniFormat);
-    l_chrini.setIniCodec("UTF-8");
     utils::QSettingsKeyFetcher l_fetcher(l_chrini);
 
     QStringList l_keys;
@@ -316,7 +315,7 @@ QVector<DREmote> LegacyActorReader::GetEmotes()
                        });
     }
 
-    for (const QString &i_key : qAsConst(l_keys))
+    for (const QString &i_key : std::as_const(l_keys))
     {
       l_chrini.beginGroup(l_fetcher.lookup_group("emotions"));
       const QStringList l_emotions = l_chrini.value(i_key).toString().split("#", DR::SplitBehavior::KeepEmptyParts);

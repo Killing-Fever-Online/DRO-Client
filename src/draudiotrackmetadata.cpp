@@ -46,7 +46,6 @@ void DRAudiotrackMetadata::update_cache()
   {
     const QString l_ini_path = i_ini_file.absoluteFilePath();
     QSettings l_settings(l_ini_path, QSettings::IniFormat);
-    l_settings.setIniCodec("UTF-8");
     if (l_settings.status() != QSettings::NoError)
     {
       qWarning() << "error: failed to read audiotrack metadata" << l_settings.status() << "file:" << l_ini_path;

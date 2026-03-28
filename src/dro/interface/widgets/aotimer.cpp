@@ -18,7 +18,7 @@ AOTimer::AOTimer(QString name, QWidget *p_parent)
   firing_timer = new QTimer(this);
   firing_timer->setTimerType(Qt::PreciseTimer);
   firing_timer->setInterval(firing_timer_length);
-  connect(firing_timer, SIGNAL(timeout()), this, SLOT(update_time()));
+  connect(firing_timer, &QTimer::timeout, this, &AOTimer::update_time);
 
   set_time(start_time);
   old_manual_timer.set_time(start_time);
@@ -38,7 +38,7 @@ void AOTimer::update_time()
   // old_manual_timer)
   if (manual_timer.get_timestep_length() > 0)
   {
-    if (manual_timer.get_time().operator<(old_manual_timer.get_time()))
+    if (manual_timer.get_time() < old_manual_timer.get_time())
     {
       set_time(QTime(0, 0));
       firing_timer->stop();
@@ -51,7 +51,7 @@ void AOTimer::update_time()
   // old_manual_timer)
   else if (manual_timer.get_timestep_length() < 0)
   {
-    if (manual_timer.get_time().operator>(old_manual_timer.get_time()))
+    if (manual_timer.get_time() > old_manual_timer.get_time())
     {
       set_time(QTime(0, 0));
       firing_timer->stop();

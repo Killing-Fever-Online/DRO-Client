@@ -1,8 +1,8 @@
 #ifndef SERVER_METADATA_H
 #define SERVER_METADATA_H
 
-class QStringList;
 class QString;
+#include <QtCore/qcontainerfwd.h>
 
 namespace ServerMetadata
 {

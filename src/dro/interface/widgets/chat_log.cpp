@@ -12,7 +12,7 @@ DRChatLog::DRChatLog(QWidget *parent)
     : QTextBrowser(parent)
     , dr_config(new AOConfig(this))
 {
-  connect(this, SIGNAL(message_queued()), this, SLOT(_p_write_message_queue()));
+  connect(this, &DRChatLog::message_queued, this, &DRChatLog::_p_write_message_queue);
 }
 
 void DRChatLog::append_chatmessage(QString p_name, QString p_text)
@@ -123,7 +123,7 @@ void DRChatLog::_p_write_message_queue()
         l_piece_list.append(l_text.mid(l_index));
       }
 
-      for (const TextPiece &i_piece : qAsConst(l_piece_list))
+      for (const TextPiece &i_piece : std::as_const(l_piece_list))
       {
         if (i_piece.text.isEmpty())
           continue;

@@ -2,7 +2,7 @@
 #define LOCALIZATION_H
 
 class QString;
-class QStringList;
+#include <QtCore/qcontainerfwd.h>
 namespace dro::system::localization
 {
   void initialize();

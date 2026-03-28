@@ -27,16 +27,18 @@ void RPTypewriter::setInput(QString inputText)
   if(inputText.trimmed().isEmpty()) return;
   bool ignoreNextCharacter = false;
 
-  for(const QChar& letter : inputText)
+  for (const QChar &letter : inputText)
   {
-    if (!ignoreNextCharacter && letter == Qt::Key_Backslash)
+    char l_letter = letter.toLatin1();
+    if (!ignoreNextCharacter && l_letter == Qt::Key_Backslash)
     {
       ignoreNextCharacter = true;
       continue;
     }
-    else if(!ignoreNextCharacter && (letter == Qt::Key_BraceLeft || letter == Qt::Key_BraceRight))
+    else if (!ignoreNextCharacter && (l_letter == Qt::Key_BraceLeft || l_letter == Qt::Key_BraceRight))
     {
-      m_QueuedActions[m_inputText.count()] = (letter == Qt::Key_BraceRight) ? TypeWriterAction_SpeedUp : TypeWriterAction_SpeedDown;
+      m_QueuedActions[m_inputText.count()] =
+          (l_letter == Qt::Key_BraceRight) ? TypeWriterAction_SpeedUp : TypeWriterAction_SpeedDown;
       continue;
     }
     else if(ignoreNextCharacter && letter == 's')

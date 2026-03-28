@@ -34,7 +34,15 @@ public:
   DRAudioEnginePrivate();
   ~DRAudioEnginePrivate();
 
-  void invoke_signal(QString p_method_name, QGenericArgument p_arg1 = QGenericArgument(nullptr));
+  template <typename... Args>
+  void invoke_signal(const QString &p_method_name, Args &&...args)
+  {
+    const auto method_name = p_method_name.toUtf8();
+    for (QObject *i_child : std::as_const(children))
+    {
+      QMetaObject::invokeMethod(i_child, method_name.constData(), std::forward<Args>(args)...);
+    }
+  }
 
 public slots:
   void update_device_list();
