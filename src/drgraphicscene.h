@@ -32,6 +32,7 @@ public:
 
 protected:
   void resizeEvent(QResizeEvent *event) final;
+  void closeEvent(QCloseEvent *event) override;
 
 private:
   QGraphicsScene *m_scene;
