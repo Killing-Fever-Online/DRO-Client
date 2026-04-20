@@ -16,6 +16,7 @@ namespace FS::Paths
 {
   QString ApplicationPath();
   QString BasePath();
+  QString PackagesPath();
   QString Package(const QString& packageName);
 
   QString FindFile(const QString& filePath, bool allowPackages = true, const QStringList &extensions = {});
