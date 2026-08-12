@@ -1,6 +1,6 @@
 #include "viewport_overlay.h"
-#include "drtheme.h"
-#include <AOApplication.h>
+#include "courtroom.h"
+#include <aoapplication.h>
 #include <QMenu>
 #include <dro/interface/widgets/image_display.h>
 #include <modules/theme/thememanager.h>
@@ -65,34 +65,31 @@ void ViewportOverlay::resizeWidgetAndChildren(QString t_widget, int t_width, int
 
 void ViewportOverlay::displayContextMenu(QPoint t_position)
 {
-  //if(AOApplication::getInstance()->current_theme->read_config_bool("detatchable_viewport"))
-  //{
-  //  QMenu *l_menu = new QMenu(this);
+  QMenu *l_menu = new QMenu(this);
 
-  //  //Create the detachWindowAction
-  //  QAction *l_detachWindowAction = new QAction("Detach from Window");
-  //  QObject::connect(l_detachWindowAction, &QAction::triggered, [this](){detatchViewport();});
-  //  l_menu->addAction(l_detachWindowAction);
+  //Create the detachWindowAction
+  QAction *l_detachWindowAction = new QAction("Detach from Window");
+  QObject::connect(l_detachWindowAction, &QAction::triggered, [this](){detatchViewport();});
+  l_menu->addAction(l_detachWindowAction);
 
 
-  //  //Create the resize Actions
-  //  QMenu *l_scaleMenu = l_menu->addMenu("Scale (1.76:1)");
+  //Create the resize Actions
+  QMenu *l_scaleMenu = l_menu->addMenu("Scale (1.76:1)");
 
-  //  l_scaleMenu->addAction(createResizeAction(480, 272));
-  //  l_scaleMenu->addAction(createResizeAction(960, 544));
-  //  l_scaleMenu->addAction(createResizeAction(1280, 725));
-  //  l_scaleMenu->addAction(createResizeAction(1440, 816));
-  //  l_scaleMenu->addAction(createResizeAction(1920, 1088));
+  l_scaleMenu->addAction(createResizeAction(480, 272));
+  l_scaleMenu->addAction(createResizeAction(960, 544));
+  l_scaleMenu->addAction(createResizeAction(1280, 725));
+  l_scaleMenu->addAction(createResizeAction(1440, 816));
+  l_scaleMenu->addAction(createResizeAction(1920, 1088));
 
-  //  l_menu->popup(this->mapToGlobal(t_position));
-  //}
+  l_menu->popup(this->mapToGlobal(t_position));
 }
 
 void ViewportOverlay::detatchViewport()
 {
   QWidget* l_viewport = ThemeManager::get().getWidget("viewport");
 
-  l_viewport->setParent(nullptr);
+  l_viewport->setWindowFlag(Qt::Tool);
   l_viewport->show();
   l_viewport->move(20, 20);
 }
