@@ -95,7 +95,7 @@ private:
 
   //tabs
   QListView *pTabFilters = nullptr;
-  QTabWidget *tab_widget;
+  QTabWidget *tab_widget = nullptr;
 
   // behaviour
   QPushButton *ui_save = nullptr;
@@ -165,22 +165,22 @@ private:
   QCheckBox *ui_log_is_recording = nullptr;
 
   // performance
-  QCheckBox *ui_enable_opengl;
-  QCheckBox *ui_focus_performance_mode;
-  QCheckBox *ui_cache_backgrounds;
-  QCheckBox *ui_cache_characters;
-  QCheckBox *ui_cache_effects;
-  QCheckBox *ui_cache_shouts;
-  QCheckBox *ui_cache_gui;
-  QCheckBox *ui_cache_stickers;
+  QCheckBox *ui_enable_opengl = nullptr;
+  QCheckBox *ui_focus_performance_mode = nullptr;
+  QCheckBox *ui_cache_backgrounds = nullptr;
+  QCheckBox *ui_cache_characters = nullptr;
+  QCheckBox *ui_cache_effects = nullptr;
+  QCheckBox *ui_cache_shouts = nullptr;
+  QCheckBox *ui_cache_gui = nullptr;
+  QCheckBox *ui_cache_stickers = nullptr;
   QMap<int, QCheckBox *> m_cache_checkbox_map;
 
-  QSlider *ui_system_memory_threshold;
-  QLabel *ui_system_memory_threshold_label;
-  QSlider *ui_loading_bar_delay;
-  QLabel *ui_loading_bar_delay_label;
-  QSlider *ui_caching_threshold;
-  QLabel *ui_caching_threshold_label;
+  QSlider *ui_system_memory_threshold = nullptr;
+  QLabel *ui_system_memory_threshold_label = nullptr;
+  QSlider *ui_loading_bar_delay = nullptr;
+  QLabel *ui_loading_bar_delay_label = nullptr;
+  QSlider *ui_caching_threshold = nullptr;
+  QLabel *ui_caching_threshold_label = nullptr;
 
   // audio
   QComboBox *ui_device = nullptr;

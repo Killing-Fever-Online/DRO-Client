@@ -84,7 +84,7 @@ struct EmoteLayer
   QString spriteOrder;
   QRect layerOffset;
 
-  bool detachLayer;
+  bool detachLayer = false;
 
   QString blendMode;
   QString toggleName;
@@ -200,7 +200,7 @@ public:
 
   QString name;
   QString file;
-  bool is_found;
+  bool is_found = false;
 };
 
 enum class DRServerProtocolType
@@ -458,9 +458,9 @@ public:
       : type(p_type)
         , chara(p_chara)
   {}
-  MidLineCommand type;
+  MidLineCommand type = MidLineCommand::Chara;
   QColor color;
-  int interval;
+  int interval = 0;
   QChar chara;
 };
 

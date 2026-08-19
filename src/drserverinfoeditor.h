@@ -23,10 +23,10 @@ public slots:
   void clear_server_info();
 
 private:
-  QLineEdit *ui_name;
-  QPlainTextEdit *ui_description;
-  QLineEdit *ui_address;
-  QSpinBox *ui_port;
-  QSpinBox *ui_ws_port;
-  QDialogButtonBox *ui_button_box;
+  QLineEdit *ui_name = nullptr;
+  QPlainTextEdit *ui_description = nullptr;
+  QLineEdit *ui_address = nullptr;
+  QSpinBox *ui_port = nullptr;
+  QSpinBox *ui_ws_port = nullptr;
+  QDialogButtonBox *ui_button_box = nullptr;
 };
