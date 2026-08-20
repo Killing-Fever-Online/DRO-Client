@@ -12,7 +12,7 @@ AOSfxPlayer::AOSfxPlayer(QObject *p_parent)
     , m_player(DRAudioEngine::get_family(DRAudio::Family::FEffect))
 {}
 
-void AOSfxPlayer::play(QString p_filename)
+void AOSfxPlayer::play(const QString &p_filename)
 {
   auto l_stream = m_player->play_stream(p_filename);
   if (l_stream)
@@ -22,12 +22,12 @@ void AOSfxPlayer::play(QString p_filename)
   }
 }
 
-void AOSfxPlayer::play_effect(QString p_effect)
+void AOSfxPlayer::play_effect(const QString &p_effect)
 {
   play(ao_app->find_asset_path({ao_app->get_sfx_noext_path(p_effect)}, FS::Formats::SupportedAudio()));
 }
 
-void AOSfxPlayer::play_character_effect(QString p_chr, QString p_effect)
+void AOSfxPlayer::play_character_effect(const QString &p_chr, const QString &p_effect)
 {
   QStringList l_file_list;
   for (const QString &i_chr : ao_app->get_char_include_tree(p_chr))
@@ -52,7 +52,7 @@ void AOSfxPlayer::stop_all()
   m_stream_list.clear();
 }
 
-void AOSfxPlayer::play_ambient(QString p_filename)
+void AOSfxPlayer::play_ambient(const QString &p_filename)
 {
   if (m_current_ambient)
   {
@@ -103,7 +103,7 @@ void AOSfxPlayer::play_ambient(QString p_filename)
   }
 }
 
-DRAudioStream::ptr AOSfxPlayer::get_stream_by_qobject(QObject *p_object)
+DRAudioStream::ptr AOSfxPlayer::get_stream_by_qobject(QObject *p_object) const
 {
   auto *l_stream_ptr = dynamic_cast<DRAudioStream *>(p_object);
   if (!l_stream_ptr)

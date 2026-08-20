@@ -12,7 +12,7 @@ public:
   RPAmbiencePlayer(QObject *p_parent = nullptr);
 
 public slots:
-  void play(QString p_song);
+  void play(const QString &p_song);
   void toggleReverb(bool reverb);
   void stop();
 

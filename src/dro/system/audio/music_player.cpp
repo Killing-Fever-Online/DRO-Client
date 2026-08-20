@@ -14,7 +14,7 @@ AOMusicPlayer::AOMusicPlayer(QObject *p_parent)
   m_family->set_capacity(1); // a single song is needed
 }
 
-void AOMusicPlayer::play(QString p_song, BGMPlayback playbackType, float pitch, float speed)
+void AOMusicPlayer::play(const QString &p_song, BGMPlayback playbackType, float pitch, float speed)
 {
   m_filename = p_song;
 

@@ -164,7 +164,7 @@ int32_t DRAudioStreamFamily::get_volume() const
   return m_volume;
 }
 
-float DRAudioStreamFamily::calculate_volume()
+float DRAudioStreamFamily::calculate_volume() const
 {
   float volume = float(m_volume) * 0.01f;
 

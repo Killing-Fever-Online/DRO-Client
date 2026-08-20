@@ -266,7 +266,7 @@ ma_result NetworkStream::on_seek(ma_decoder *pDecoder, ma_int64 byteOffset, ma_s
   return l_self->seek(byteOffset, origin);
 }
 
-ma_result NetworkStream::tell(ma_int64 *r_cursor)
+ma_result NetworkStream::tell(ma_int64 *r_cursor) const
 {
   QMutexLocker l_locker(&m_mutex);
   if (r_cursor != nullptr)

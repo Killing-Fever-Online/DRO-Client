@@ -64,7 +64,7 @@ private:
 
   DRAudioStreamFamily(DRAudio::Family p_family);
 
-  float calculate_volume();
+  float calculate_volume() const;
 
   void update_capacity();
   void update_options();

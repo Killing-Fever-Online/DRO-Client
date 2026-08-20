@@ -33,7 +33,7 @@ private:
   bool wait_for_buffered(qint64 p_needed, int p_timeout_ms);
   ma_result read(void *p_buffer, size_t p_bytes, size_t *r_read);
   ma_result seek(ma_int64 p_offset, ma_seek_origin p_origin);
-  ma_result tell(ma_int64 *r_cursor);
+  ma_result tell(ma_int64 *r_cursor) const;
 
   QNetworkAccessManager *m_manager = nullptr;
   QNetworkReply *m_reply = nullptr;
@@ -42,6 +42,8 @@ private:
   qint64 m_total = -1;
   bool m_finished = false;
   bool m_failed = false;
-  QMutex m_mutex;
+  mutable QMutex m_mutex;
   QWaitCondition m_wait;
+
+  Q_DISABLE_COPY(NetworkStream)
 };

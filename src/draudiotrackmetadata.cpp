@@ -117,27 +117,27 @@ DRAudiotrackMetadata::DRAudiotrackMetadata(QString p_file_name)
 DRAudiotrackMetadata::~DRAudiotrackMetadata()
 {}
 
-QString DRAudiotrackMetadata::filename()
+QString DRAudiotrackMetadata::filename() const
 {
   return m_filename;
 }
 
-QString DRAudiotrackMetadata::title()
+QString DRAudiotrackMetadata::title() const
 {
   return m_title.isEmpty() ? m_filename : m_title;
 }
 
-bool DRAudiotrackMetadata::play_once()
+bool DRAudiotrackMetadata::play_once() const
 {
   return m_play_once;
 }
 
-quint64 DRAudiotrackMetadata::loop_start()
+quint64 DRAudiotrackMetadata::loop_start() const
 {
   return m_loop_start;
 }
 
-quint64 DRAudiotrackMetadata::loop_end()
+quint64 DRAudiotrackMetadata::loop_end() const
 {
   return m_loop_end;
 }
