@@ -11,38 +11,38 @@ EvidenceData::EvidenceData(QString p_name, QString p_desc, QString p_image_path)
   m_image_path = p_image_path;
 }
 
-QString EvidenceData::getName()
+QString EvidenceData::getName() const
 {
   return m_name;
 }
 
-QString EvidenceData::getDesc()
+QString EvidenceData::getDesc() const
 {
   return m_desc;
 }
 
-QString EvidenceData::getImagePath()
+QString EvidenceData::getImagePath() const
 {
   return m_image_path;
 }
 
-QStringList EvidenceData::getData()
+QStringList EvidenceData::getData() const
 {
   return {m_name, m_desc, m_image_path};
 }
 
 
-void EvidenceData::setName(QString p_name)
+void EvidenceData::setName(const QString &p_name)
 {
   m_name = p_name;
 }
 
-void EvidenceData::setDesc(QString p_desc)
+void EvidenceData::setDesc(const QString &p_desc)
 {
   m_desc = p_desc;
 }
 
-void EvidenceData::setImagePath(QString p_image_path)
+void EvidenceData::setImagePath(const QString &p_image_path)
 {
   m_image_path = p_image_path;
 }
