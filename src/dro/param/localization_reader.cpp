@@ -25,32 +25,32 @@ LocalizationReader::LocalizationReader(QString t_languageCode)
   }
 }
 
-bool LocalizationReader::getIsLoaded()
+bool LocalizationReader::getIsLoaded() const
 {
   return mIsLoaded;
 }
 
-QString LocalizationReader::getLanguageName()
+QString LocalizationReader::getLanguageName() const
 {
   return mName;
 }
 
-bool LocalizationReader::containsLocalizationValue(QString t_value)
+bool LocalizationReader::containsLocalizationValue(const QString &t_value) const
 {
   return mValues.contains(t_value);
 }
 
-QString LocalizationReader::getLocalizationValue(QString t_value)
+QString LocalizationReader::getLocalizationValue(const QString &t_value) const
 {
-  return mValues[t_value];
+  return mValues.value(t_value);
 }
 
-QString LocalizationReader::getCode()
+QString LocalizationReader::getCode() const
 {
   return mLangCode;
 }
 
-QString LocalizationReader::getCredit()
+QString LocalizationReader::getCredit() const
 {
   return mCredit;
 }

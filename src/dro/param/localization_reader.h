@@ -9,12 +9,12 @@ class LocalizationReader : public JSONReader
 {
 public:
   LocalizationReader(QString t_languageCode);
-  bool getIsLoaded();
-  QString getLanguageName();
-  bool containsLocalizationValue(QString t_value);
-  QString getLocalizationValue(QString t_value);
-  QString getCode();
-  QString getCredit();
+  bool getIsLoaded() const;
+  QString getLanguageName() const;
+  bool containsLocalizationValue(const QString &t_value) const;
+  QString getLocalizationValue(const QString &t_value) const;
+  QString getCode() const;
+  QString getCredit() const;
 
 private:
   QMap<QString, QString> mValues = { };
