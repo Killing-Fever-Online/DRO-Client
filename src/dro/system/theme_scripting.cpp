@@ -137,7 +137,7 @@ namespace ThemeScripting
       systemTable.set_function("Alert", &LuaFunctions::AlertUser);
 
       sol::table areaTable = s_themeScript.create_named_table("Area");
-      areaTable.set_function("SetDescription", &AreaMetadata::SetDescription);
+      areaTable.set_function("SetDescription", [](const char* description) { AreaMetadata::SetDescription(description); });
 
       s_themeScript.safe_script_file(filePath.toUtf8().constData());
     }

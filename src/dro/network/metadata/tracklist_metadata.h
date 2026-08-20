@@ -7,12 +7,12 @@
 class TracklistMetadata
 {
 public:
-  static QStringList Parse(QStringList musicList);
+  static QStringList Parse(const QStringList &musicList);
   static QStringList GetEverything();
-  static QStringList GetCategory(QString categoryName);
+  static QStringList GetCategory(const QString &categoryName);
   static QStringList GetCategories();
 
-  static void PinTrack(QString musicPath);
+  static void PinTrack(const QString &musicPath);
 };
 
 #endif // TRACKLIST_METADATA_H

@@ -6,8 +6,8 @@ class QString;
 
 namespace ServerMetadata
 {
-  void SetFeatureList(QStringList features);
-  bool FeatureSupported(QString featureName);
+  void SetFeatureList(const QStringList &features);
+  bool FeatureSupported(const QString &featureName);
 }
 
 #endif // SERVER_METADATA_H

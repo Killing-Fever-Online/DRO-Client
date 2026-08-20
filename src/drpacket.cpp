@@ -2,16 +2,17 @@
 
 #include <QDebug>
 
-QString DRPacket::encode(QString p_data)
+QString DRPacket::encode(const QString &p_data)
 {
-  return p_data.replace("#", "<num>").replace("%", "<percent>").replace("$", "<dollar>").replace("&", "<and>");
+  QString l_data = p_data;
+  return l_data.replace("#", "<num>").replace("%", "<percent>").replace("$", "<dollar>").replace("&", "<and>");
 }
 
-DRPacket::DRPacket(QString p_header)
+DRPacket::DRPacket(const QString &p_header)
     : DRPacket(p_header, {})
 {}
 
-DRPacket::DRPacket(QString p_header, QStringList p_content)
+DRPacket::DRPacket(const QString &p_header, const QStringList &p_content)
 {
   m_header = p_header;
   m_content = p_content;

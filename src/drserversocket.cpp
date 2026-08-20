@@ -3,8 +3,6 @@
 #include <QTcpSocket>
 #include <QTimer>
 
-const int DRServerSocket::CONNECTING_DELAY = 5000;
-
 namespace
 {
 QString drFormatServerInfo(const DRServerInfo &server)
@@ -19,7 +17,7 @@ DRServerSocket::DRServerSocket(QObject *p_parent)
 {
   m_connecting_timeout = new QTimer(this);
   m_connecting_timeout->setSingleShot(true);
-  m_connecting_timeout->setInterval(CONNECTING_DELAY);
+  m_connecting_timeout->setInterval(CONNECTING_DELAY_MS);
 
   connect(m_connecting_timeout, &QTimer::timeout, this, &DRServerSocket::disconnect_from_server);
 }

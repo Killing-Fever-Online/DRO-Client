@@ -6,10 +6,10 @@
 class DRPacket
 {
 public:
-  static QString encode(QString data);
+  static QString encode(const QString &data);
 
-  DRPacket(QString header);
-  DRPacket(QString header, QStringList content);
+  DRPacket(const QString &header);
+  DRPacket(const QString &header, const QStringList &content);
 
   const QString &get_header() const;
   const QStringList &get_content() const;
