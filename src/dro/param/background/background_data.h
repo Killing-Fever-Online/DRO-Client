@@ -9,13 +9,13 @@ public:
   BackgroundData();
   virtual ~BackgroundData() = default;
 
-  void setPosition(QString t_position, DRBackgroundPosition t_data);
-  QString getBackgroundFilename(QString t_position);
-  QString getForegroundFilename(QString t_position);
-  void setSettings(DRBackgroundSettings t_settings);
-  DRBackgroundSettings getSettings();
+  void setPosition(const QString &t_position, const DRBackgroundPosition &t_data);
+  QString getBackgroundFilename(const QString &t_position) const;
+  QString getForegroundFilename(const QString &t_position) const;
+  void setSettings(const DRBackgroundSettings &t_settings);
+  DRBackgroundSettings getSettings() const;
 
-  QMap<QString, DRBackgroundPosition> getPositions();
+  const QMap<QString, DRBackgroundPosition> &getPositions() const;
 
   virtual void execLoadBackground(QString t_backgroundName) = 0;
 

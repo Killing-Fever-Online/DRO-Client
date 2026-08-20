@@ -5,17 +5,17 @@ BackgroundData::BackgroundData()
 
 }
 
-void BackgroundData::setPosition(QString t_position, DRBackgroundPosition t_data)
+void BackgroundData::setPosition(const QString &t_position, const DRBackgroundPosition &t_data)
 {
   mPositions[t_position] = t_data;
 }
 
-QMap<QString, DRBackgroundPosition> BackgroundData::getPositions()
+const QMap<QString, DRBackgroundPosition> &BackgroundData::getPositions() const
 {
   return mPositions;
 }
 
-QString BackgroundData::getBackgroundFilename(QString t_position)
+QString BackgroundData::getBackgroundFilename(const QString &t_position) const
 {
   if(mPositions.contains(t_position))
   {
@@ -28,7 +28,7 @@ QString BackgroundData::getBackgroundFilename(QString t_position)
   return "";
 }
 
-QString BackgroundData::getForegroundFilename(QString t_position)
+QString BackgroundData::getForegroundFilename(const QString &t_position) const
 {
   if(mPositions.contains(t_position))
   {
@@ -41,12 +41,12 @@ QString BackgroundData::getForegroundFilename(QString t_position)
   return "";
 }
 
-void BackgroundData::setSettings(DRBackgroundSettings t_settings)
+void BackgroundData::setSettings(const DRBackgroundSettings &t_settings)
 {
   mSettings = t_settings;
 }
 
-DRBackgroundSettings BackgroundData::getSettings()
+DRBackgroundSettings BackgroundData::getSettings() const
 {
   return mSettings;
 }
