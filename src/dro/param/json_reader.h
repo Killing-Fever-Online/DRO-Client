@@ -16,25 +16,25 @@ class JSONReader
 {
 public:
   JSONReader();
-  void  ReadFromFile(QString path);
-  void  ReadFromString(QString data);
+  void  ReadFromFile(const QString &path);
+  void  ReadFromString(const QString &data);
 
   void  ResetTargetObject();
-  void  SetTargetObject(QJsonObject target);
-  void  SetTargetObject(QString string);
+  void  SetTargetObject(const QJsonObject &target);
+  void  SetTargetObject(const QString &string);
 
-  bool        isValueExists(QString value);
-  QVector3D   getVector3DValue(QString string);
-  QJsonArray  getArrayValue(QString string);
-  QRect  getRectangleValue(QString string);
+  bool        isValueExists(const QString &value) const;
+  QVector3D   getVector3DValue(const QString &string) const;
+  QJsonArray  getArrayValue(const QString &string) const;
+  QRect  getRectangleValue(const QString &string) const;
 
-  bool        getBoolValue(QString string);
-  int         getIntValue(QString string);
-  double      getDoubleValue(QString string);
+  bool        getBoolValue(const QString &string) const;
+  int         getIntValue(const QString &string) const;
+  double      getDoubleValue(const QString &string) const;
 
   //Strings
-  QString     getStringValue(QString string);
-  QStringList getStringArrayValue(QString string);
+  QString     getStringValue(const QString &string) const;
+  QStringList getStringArrayValue(const QString &string) const;
 
   QJsonDocument mDocument;
   QJsonObject   mMainObject;

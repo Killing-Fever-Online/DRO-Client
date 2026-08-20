@@ -5,7 +5,7 @@ JSONReader::JSONReader()
 
 }
 
-void JSONReader::ReadFromFile(QString path)
+void JSONReader::ReadFromFile(const QString &path)
 {
   QFile json_file(path); json_file.open(QIODevice::ReadOnly | QIODevice::Text);
   QString fileContents = json_file.readAll(); json_file.close();
@@ -16,7 +16,7 @@ void JSONReader::ReadFromFile(QString path)
   ReadFromString(fileContents);
 }
 
-void JSONReader::ReadFromString(QString data)
+void JSONReader::ReadFromString(const QString &data)
 {
   mDocument = QJsonDocument::fromJson(data.toUtf8());
   mMainObject = mDocument.object();
@@ -28,42 +28,42 @@ void JSONReader::ResetTargetObject()
   mTargetObject = mMainObject;
 }
 
-void JSONReader::SetTargetObject(QJsonObject target)
+void JSONReader::SetTargetObject(const QJsonObject &target)
 {
   mTargetObject = target;
 }
 
-void JSONReader::SetTargetObject(QString string)
+void JSONReader::SetTargetObject(const QString &string)
 {
   SetTargetObject(mTargetObject.value(string).toObject());
 }
 
-bool JSONReader::isValueExists(QString value)
+bool JSONReader::isValueExists(const QString &value) const
 {
   return mTargetObject.contains(value);
 }
 
-QString JSONReader::getStringValue(QString string)
+QString JSONReader::getStringValue(const QString &string) const
 {
   return mTargetObject.value(string).toString();
 }
 
-bool JSONReader::getBoolValue(QString string)
+bool JSONReader::getBoolValue(const QString &string) const
 {
   return mTargetObject.value(string).toBool();
 }
 
-int JSONReader::getIntValue(QString string)
+int JSONReader::getIntValue(const QString &string) const
 {
   return mTargetObject.value(string).toInt();
 }
 
-double JSONReader::getDoubleValue(QString string)
+double JSONReader::getDoubleValue(const QString &string) const
 {
   return mTargetObject.value(string).toDouble();
 }
 
-QVector3D JSONReader::getVector3DValue(QString string)
+QVector3D JSONReader::getVector3DValue(const QString &string) const
 {
   if(!mTargetObject.contains(string)) return QVector3D(1, 1, 1);
   QVector3D return_data = {};
@@ -73,12 +73,12 @@ QVector3D JSONReader::getVector3DValue(QString string)
   return return_data;
 }
 
-QJsonArray JSONReader::getArrayValue(QString string)
+QJsonArray JSONReader::getArrayValue(const QString &string) const
 {
   return mTargetObject.value(string).toArray();
 }
 
-QRect JSONReader::getRectangleValue(QString string)
+QRect JSONReader::getRectangleValue(const QString &string) const
 {
   QRect l_ReturnValue;
   if(mTargetObject.contains(string))
@@ -91,7 +91,7 @@ QRect JSONReader::getRectangleValue(QString string)
   return l_ReturnValue;
 }
 
-QStringList JSONReader::getStringArrayValue(QString string)
+QStringList JSONReader::getStringArrayValue(const QString &string) const
 {
   QStringList return_data = {};
   QJsonArray data = mTargetObject.value(string).toArray();
