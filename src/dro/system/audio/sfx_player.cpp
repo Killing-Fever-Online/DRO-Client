@@ -105,7 +105,7 @@ void AOSfxPlayer::play_ambient(const QString &p_filename)
 
 DRAudioStream::ptr AOSfxPlayer::get_stream_by_qobject(QObject *p_object) const
 {
-  auto *l_stream_ptr = dynamic_cast<DRAudioStream *>(p_object);
+  auto *l_stream_ptr = qobject_cast<DRAudioStream *>(p_object);
   if (!l_stream_ptr)
   {
     qCritical() << "error: object was not an audio stream" << p_object;

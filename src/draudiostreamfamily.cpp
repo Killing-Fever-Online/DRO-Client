@@ -222,7 +222,7 @@ void DRAudioStreamFamily::update_rate_mode()
 
 void DRAudioStreamFamily::on_stream_finished()
 {
-  DRAudioStream *invoker = dynamic_cast<DRAudioStream *>(sender());
+  DRAudioStream *invoker = qobject_cast<DRAudioStream *>(sender());
   if (invoker == nullptr)
     return;
 
