@@ -76,10 +76,10 @@ namespace courtroom
     auto it = s_CourtroomWidgets.begin();
     while (it != s_CourtroomWidgets.end())
     {
-      RPWidget *widget = dynamic_cast<RPWidget*>(it.value());
-      RPLineEdit *lineEdit = dynamic_cast<RPLineEdit*>(it.value());
-      RPButton* rpButton = dynamic_cast<RPButton*>(it.value());
-      RPComboBox* comboBox = dynamic_cast<RPComboBox*>(it.value());
+      RPWidget *widget = qobject_cast<RPWidget*>(it.value());
+      RPLineEdit *lineEdit = qobject_cast<RPLineEdit*>(it.value());
+      RPButton* rpButton = qobject_cast<RPButton*>(it.value());
+      RPComboBox* comboBox = qobject_cast<RPComboBox*>(it.value());
 
       if(widget != nullptr)
       {
@@ -266,7 +266,7 @@ namespace courtroom
       else
       {
         QWidget *buttonWidget = s_CourtroomWidgets[widgetName];
-        targetButton = dynamic_cast<RPButton*>(buttonWidget);
+        targetButton = qobject_cast<RPButton*>(buttonWidget);
         if(targetButton == nullptr) return;
       }
       float resizeFactor = ThemeManager::get().getResize();
@@ -447,7 +447,7 @@ namespace courtroom
       else
       {
         QWidget *sticketWidget = s_CourtroomWidgets[qName];
-        targetSticker = dynamic_cast<DRStickerViewer*>(sticketWidget);
+        targetSticker = qobject_cast<DRStickerViewer*>(sticketWidget);
         if(targetSticker == nullptr) return;
 
       }
@@ -495,21 +495,21 @@ namespace courtroom
     void focusMessageBox()
     {
       if(!s_CourtroomWidgets.contains("ao2_ic_chat_message_field")) return;
-      QLineEdit* lineEditField = dynamic_cast<QLineEdit*>(s_CourtroomWidgets["ao2_ic_chat_message_field"]);
+      QLineEdit* lineEditField = qobject_cast<QLineEdit*>(s_CourtroomWidgets["ao2_ic_chat_message_field"]);
       if(lineEditField != nullptr) lineEditField->setFocus();
     }
 
     void setMessageBox(const std::string& text)
     {
       if(!s_CourtroomWidgets.contains("ao2_ic_chat_message_field")) return;
-      QLineEdit* lineEditField = dynamic_cast<QLineEdit*>(s_CourtroomWidgets["ao2_ic_chat_message_field"]);
+      QLineEdit* lineEditField = qobject_cast<QLineEdit*>(s_CourtroomWidgets["ao2_ic_chat_message_field"]);
       if(lineEditField != nullptr) lineEditField->setText(QString::fromStdString(text));
     }
 
     std::string getMessageBoxContents()
     {
       if(!s_CourtroomWidgets.contains("ao2_ic_chat_message_field")) return "";
-      QLineEdit* lineEditField = dynamic_cast<QLineEdit*>(s_CourtroomWidgets["ao2_ic_chat_message_field"]);
+      QLineEdit* lineEditField = qobject_cast<QLineEdit*>(s_CourtroomWidgets["ao2_ic_chat_message_field"]);
       if(lineEditField == nullptr) return "";
       return lineEditField->text().toStdString();
     }
@@ -517,7 +517,7 @@ namespace courtroom
     void appendMessageBox(const std::string &text)
     {
       if(!s_CourtroomWidgets.contains("ao2_ic_chat_message_field")) return;
-      QLineEdit* lineEditField = dynamic_cast<QLineEdit*>(s_CourtroomWidgets["ao2_ic_chat_message_field"]);
+      QLineEdit* lineEditField = qobject_cast<QLineEdit*>(s_CourtroomWidgets["ao2_ic_chat_message_field"]);
       if(lineEditField != nullptr) lineEditField->setText(lineEditField->text() + QString::fromStdString(text));
     }
 
@@ -529,7 +529,7 @@ namespace courtroom
     {
       DRChatLog *oocChatlog = nullptr;
       QWidget *chatlogWidget = s_CourtroomWidgets["server_chatlog"];
-      oocChatlog = dynamic_cast<DRChatLog*>(chatlogWidget);
+      oocChatlog = qobject_cast<DRChatLog*>(chatlogWidget);
       if(oocChatlog == nullptr) return;
       oocChatlog->append_chatmessage(name, message);
     }
@@ -624,8 +624,8 @@ namespace courtroom
   {
     void screenshot(const QString& outputPath)
     {
-      Courtroom *courtroom = dynamic_cast<Courtroom*>(s_CourtroomWidgets["courtroom"]);
-      DRGraphicsView *viewport = dynamic_cast<DRGraphicsView*>(s_CourtroomWidgets["viewport"]);
+      Courtroom *courtroom = qobject_cast<Courtroom*>(s_CourtroomWidgets["courtroom"]);
+      DRGraphicsView *viewport = qobject_cast<DRGraphicsView*>(s_CourtroomWidgets["viewport"]);
 
       if(courtroom != nullptr && viewport != nullptr)
       {
@@ -637,7 +637,7 @@ namespace courtroom
 
     void update()
     {
-      DRGraphicsView *viewport = dynamic_cast<DRGraphicsView*>(s_CourtroomWidgets["viewport"]);
+      DRGraphicsView *viewport = qobject_cast<DRGraphicsView*>(s_CourtroomWidgets["viewport"]);
       if(viewport != nullptr)
       {
         viewport->scene()->update();
@@ -646,8 +646,8 @@ namespace courtroom
 
     QPixmap getScreenshot()
     {
-      Courtroom *courtroom = dynamic_cast<Courtroom*>(s_CourtroomWidgets["courtroom"]);
-      DRGraphicsView *viewport = dynamic_cast<DRGraphicsView*>(s_CourtroomWidgets["viewport"]);
+      Courtroom *courtroom = qobject_cast<Courtroom*>(s_CourtroomWidgets["courtroom"]);
+      DRGraphicsView *viewport = qobject_cast<DRGraphicsView*>(s_CourtroomWidgets["viewport"]);
 
       if(courtroom != nullptr && viewport != nullptr)
       {
