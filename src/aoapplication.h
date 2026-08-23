@@ -45,8 +45,8 @@ public:
   void leave_server();
   void connect_to_server(DRServerInfo server);
   void send_server_packet(DRPacket packet);
-  ServerStatus last_server_status();
-  bool joined_server();
+  ServerStatus last_server_status() const;
+  bool joined_server() const;
 
   Lobby *get_lobby() const;
   void construct_lobby();
