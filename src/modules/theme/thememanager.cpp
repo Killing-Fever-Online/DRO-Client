@@ -247,12 +247,12 @@ void ThemeManager::AssignDimensions(QWidget *t_widget, QString t_name, RPSceneTy
   t_widget->resize(lPositionData.width, lPositionData.height);
 }
 
-void ThemeManager::SetWidgetNames(QHash<QString, QWidget *> t_WidgetNames)
+void ThemeManager::SetWidgetNames(const QHash<QString, QWidget *> &t_WidgetNames)
 {
   m_WidgetNames = t_WidgetNames;
 }
 
-void ThemeManager::addWidgetName(QString t_widgetName, QWidget *t_widget)
+void ThemeManager::addWidgetName(const QString &t_widgetName, QWidget *t_widget)
 {
   courtroom::layout::addWidget(t_widgetName, t_widget);
   m_WidgetNames[t_widgetName] = t_widget;
@@ -263,12 +263,12 @@ QVector<ThemeTabInfo> ThemeManager::getTabsInfo()
   return ThemeManager::get().mCurrentThemeReader.getTabs();
 }
 
-bool ThemeManager::getConfigBool(QString value)
+bool ThemeManager::getConfigBool(const QString &value)
 {
   return mCurrentThemeReader.GetConfigBool(value);
 }
 
-bool ThemeManager::getReloadPending()
+bool ThemeManager::getReloadPending() const
 {
   return mRequiresReload;
 }
@@ -293,12 +293,12 @@ void ThemeManager::setResize(double size)
   mClientResize = size;
 }
 
-double ThemeManager::getResize()
+double ThemeManager::getResize() const
 {
   return mClientResize;
 }
 
-double ThemeManager::getViewporResize()
+double ThemeManager::getViewporResize() const
 {
   return mViewportResize;
 }
@@ -308,7 +308,7 @@ void ThemeManager::setFontResize(double size)
   mFontResize = size;
 }
 
-double ThemeManager::getFontResize()
+double ThemeManager::getFontResize() const
 {
   return mFontResize;
 }
