@@ -137,13 +137,13 @@ Courtroom::~Courtroom()
   audio::StopAll();
 }
 
-void Courtroom::set_area_list(QStringList p_area_list)
+void Courtroom::set_area_list(const QStringList &p_area_list)
 {
   m_area_list = p_area_list;
   list_areas();
 }
 
-void Courtroom::set_music_list(QStringList p_music_list)
+void Courtroom::set_music_list(const QStringList &p_music_list)
 {
   m_music_list = p_music_list;
   ui_bgm_filter->ReloadCategories();
@@ -435,12 +435,12 @@ void Courtroom::done_received()
   ui_spectator->show();
 }
 
-void Courtroom::set_window_title(QString p_title)
+void Courtroom::set_window_title(const QString &p_title)
 {
   this->setWindowTitle(p_title);
 }
 
-void Courtroom::set_ambient(QString p_ambient_sfx)
+void Courtroom::set_ambient(const QString &p_ambient_sfx)
 {
   m_ambient_sfx = p_ambient_sfx.trimmed();
   play_ambient();
@@ -588,13 +588,13 @@ void Courtroom::update_background_scene()
   display_background_scene();
 }
 
-void Courtroom::set_pos_dropdown(QStringList pos_list)
+void Courtroom::set_pos_dropdown(const QStringList &pos_list)
 {
   QString prev_pos = ui_pos_dropdown->currentData().toString();
 
   ui_pos_dropdown->clear();
   ui_pos_dropdown->addItem(localization::getText("DEFAULT"));
-  for (QString key : pos_list)
+  for (const QString &key : pos_list)
   {
     ui_pos_dropdown->addItem(key, key);
   }
@@ -624,7 +624,7 @@ void Courtroom::display_background_scene()
   play_ambient();
 }
 
-DRPositionMap Courtroom::get_legacy_background(QString p_background)
+DRPositionMap Courtroom::get_legacy_background(const QString &p_background)
 {
   DRPositionMap l_position_map;
 
@@ -647,12 +647,12 @@ DRPositionMap Courtroom::get_legacy_background(QString p_background)
   return l_position_map;
 }
 
-DRAreaBackground Courtroom::get_background()
+DRAreaBackground Courtroom::get_background() const
 {
   return m_background;
 }
 
-void Courtroom::set_background(DRAreaBackground p_background, QString pos)
+void Courtroom::set_background(const DRAreaBackground &p_background, const QString &pos)
 {
   replays::recording::backgroundChange(p_background.background);
   m_background = p_background;
@@ -722,7 +722,7 @@ void Courtroom::update_music_text_anim()
   music_anim->start();
 }
 
-void Courtroom::handle_clock(QString time)
+void Courtroom::handle_clock(const QString &time)
 {
   m_current_clock = time.toInt();
   if (m_current_clock < 0)
@@ -752,7 +752,7 @@ void Courtroom::handle_clock(QString time)
   ui_vp_clock->show();
 }
 
-void Courtroom::filter_list_widget(QListWidget *p_list_widget, QString p_filter)
+void Courtroom::filter_list_widget(QListWidget *p_list_widget, const QString &p_filter)
 {
   const QString l_final_filter = p_filter.simplified();
   for (int i = 0; i < p_list_widget->count(); i++)
@@ -764,7 +764,7 @@ void Courtroom::filter_list_widget(QListWidget *p_list_widget, QString p_filter)
   }
 }
 
-void Courtroom::filter_tree_widget(QTreeWidget *p_tree_widget, QString p_filter)
+void Courtroom::filter_tree_widget(QTreeWidget *p_tree_widget, const QString &p_filter)
 {
   const QString l_final_filter = p_filter.simplified();
   // Search through each top level tree item
@@ -792,7 +792,7 @@ void Courtroom::filter_tree_widget(QTreeWidget *p_tree_widget, QString p_filter)
   }
 }
 
-bool Courtroom::is_area_music_list_separated()
+bool Courtroom::is_area_music_list_separated() const
 {
   return ao_app->current_theme->read_config_bool("enable_music_and_area_list_separation");
 }
@@ -911,7 +911,7 @@ void Courtroom::list_note_files()
     set_note_files();
 }
 
-QString Courtroom::get_current_position()
+QString Courtroom::get_current_position() const
 {
   if (ui_pos_dropdown->currentIndex() == DefaultPositionIndex)
   {
@@ -954,13 +954,13 @@ void Courtroom::save_note()
   ao_app->write_note(f_text, current_file);
 }
 
-void Courtroom::save_textlog(QString p_text)
+void Courtroom::save_textlog(const QString &p_text)
 {
   QString log_file = "logs/" + ao_app->icchatlogsfilename + "_LOG.txt";
   ao_app->append_note("[" + QDateTime::currentDateTimeUtc().toString("hh:mm:ss") + "] " + p_text, log_file);
 }
 
-void Courtroom::append_server_chatmessage(QString p_name, QString p_message)
+void Courtroom::append_server_chatmessage(const QString &p_name, const QString &p_message)
 {
   if(!LuaBridge::LuaEventCall("OOCMessageEvent", p_name.toStdString(), p_message.toStdString()))
   {
@@ -983,7 +983,7 @@ void Courtroom::ignore_next_showname()
  * the server.
  * @param p_showname The showname.
  */
-void Courtroom::send_showname_packet(QString p_showname)
+void Courtroom::send_showname_packet(const QString &p_showname)
 {
   if (is_next_showname_ignored)
   {
@@ -1752,7 +1752,7 @@ void Courtroom::handle_chatmessage()
   attempt_shout();
 }
 
-QString Courtroom::get_shout_name(int p_shout_index)
+QString Courtroom::get_shout_name(int p_shout_index) const
 {
   if (p_shout_index < 1 || p_shout_index > ui_shouts.length())
   {
@@ -1762,7 +1762,7 @@ QString Courtroom::get_shout_name(int p_shout_index)
   return shout_names.at(p_shout_index - 1);
 }
 
-QString Courtroom::get_effect_name(int effect_index)
+QString Courtroom::get_effect_name(int effect_index) const
 {
   if (effect_index < 1 || effect_index > ui_effects.length())
   {
@@ -1810,7 +1810,7 @@ void Courtroom::attempt_shout()
   character_shout(l_shout_name);
 }
 
-void Courtroom::character_shout(QString l_shout_name)
+void Courtroom::character_shout(const QString &l_shout_name)
 {
   qDebug() << "[viewport] Starting shout..." << l_shout_name;
   // m_play_pre = true;
@@ -2513,7 +2513,7 @@ void Courtroom::stop_chat_timer()
   m_tick_timer->stop();
 }
 
-int Courtroom::calculate_chat_tick_interval(int p_tick_speed)
+int Courtroom::calculate_chat_tick_interval(int p_tick_speed) const
 {
   double l_tick_rate = ao_config->chat_tick_interval();
   if (m_server_tick_rate.has_value())
@@ -2825,7 +2825,7 @@ void Courtroom::set_ban(int p_cid)
   ao_app->destruct_courtroom();
 }
 
-void Courtroom::handle_song(QStringList p_contents)
+void Courtroom::handle_song(const QStringList &p_contents)
 {
   if (p_contents.size() < 4)
     return;
@@ -2950,7 +2950,7 @@ void Courtroom::set_hp_bar(int p_bar, int p_state)
   else if (p_bar == 2) ui_prosecution_bar->SetValue(p_state);
 }
 
-void Courtroom::set_character_position(QString p_pos)
+void Courtroom::set_character_position(const QString &p_pos)
 {
   int l_pos_index = -1;
 
@@ -2978,7 +2978,7 @@ void Courtroom::set_character_position(QString p_pos)
  * @param ooc_name The username.
  * @param ooc_message The message.
  */
-void Courtroom::send_ooc_packet(QString ooc_message)
+void Courtroom::send_ooc_packet(const QString &ooc_message)
 {
   while (ao_config->username().isEmpty())
   {
@@ -3023,7 +3023,7 @@ void Courtroom::on_ic_showname_editing_finished()
   set_showname(l_text);
 }
 
-void Courtroom::set_showname(QString p_showname)
+void Courtroom::set_showname(const QString &p_showname)
 {
   ao_config->set_showname(p_showname);
 }
@@ -3192,7 +3192,7 @@ void Courtroom::on_music_search_edited()
   on_music_search_edited(ui_music_search->text());
 }
 
-void Courtroom::send_mc_packet(QString p_song, BGMPlayback playbackType)
+void Courtroom::send_mc_packet(const QString &p_song, BGMPlayback playbackType)
 {
   if (is_client_muted)
     return;
@@ -3206,7 +3206,7 @@ void Courtroom::send_mc_packet(QString p_song, BGMPlayback playbackType)
   ao_app->send_server_packet(DRPacket("MC", contents));
 }
 
-void Courtroom::send_play_music(QString p_song, BGMPlayback playbackType)
+void Courtroom::send_play_music(const QString &p_song, BGMPlayback playbackType)
 {
   send_mc_packet(p_song, playbackType);
   ui_ic_chat_message_field->setFocus();
