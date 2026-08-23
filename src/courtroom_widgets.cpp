@@ -426,7 +426,7 @@ void Courtroom::create_widgets()
   TimeDebugger::get().EndTimer("Theme Widgets");
 }
 
-QComboBox *Courtroom::setupComboBoxWidget(const QStringList& items, QString name, QString cssHeader)
+QComboBox *Courtroom::setupComboBoxWidget(const QStringList& items, const QString &name, const QString &cssHeader)
 {
   RPComboBox *comboBox = new RPComboBox(this, ao_app);
   comboBox->addItems(items);
@@ -765,7 +765,7 @@ void Courtroom::reset_widget_names()
     ThemeManager::get().SetWidgetNames(widget_names);
 }
 
-void Courtroom::insert_widget_name(QString p_widget_name, QWidget *p_widget)
+void Courtroom::insert_widget_name(const QString &p_widget_name, QWidget *p_widget)
 {
   if (widget_names.contains(p_widget_name))
     qWarning() << QString("[WARNING] Widget <%1> is already defined").arg(p_widget_name);
@@ -773,7 +773,7 @@ void Courtroom::insert_widget_name(QString p_widget_name, QWidget *p_widget)
   p_widget->setObjectName(p_widget_name);
 }
 
-void Courtroom::insert_widget_names(QVector<QString> &p_name_list, QVector<QWidget *> &p_widget_list)
+void Courtroom::insert_widget_names(const QVector<QString> &p_name_list, const QVector<QWidget *> &p_widget_list)
 {
   if (p_name_list.length() != p_widget_list.length())
     qFatal("[WARNING] Length of names and widgets differs!");
@@ -1347,14 +1347,14 @@ void Courtroom::set_widgets()
 
 }
 
-void Courtroom::setupWidgetElement(QWidget *widget, QString name, bool visible)
+void Courtroom::setupWidgetElement(QWidget *widget, const QString &name, bool visible)
 {
   set_size_and_pos(widget, name, COURTROOM_DESIGN_INI, ao_app);
   if(!visible) widget->hide();
 }
 
 
-void Courtroom::setupWidgetElement(AOImageDisplay *widget, QString name, QString image, bool visible)
+void Courtroom::setupWidgetElement(AOImageDisplay *widget, const QString &name, const QString &image, bool visible)
 {
   set_size_and_pos(widget, name, COURTROOM_DESIGN_INI, ao_app);
 
@@ -1363,7 +1363,7 @@ void Courtroom::setupWidgetElement(AOImageDisplay *widget, QString name, QString
   if(!visible) widget->hide();
 }
 
-void Courtroom::setupWidgetElement(RPTextEdit *widget, QString name, QString defaultText, Qt::TextInteractionFlag flag, bool visible)
+void Courtroom::setupWidgetElement(RPTextEdit *widget, const QString &name, const QString &defaultText, Qt::TextInteractionFlag flag, bool visible)
 {
   set_size_and_pos(widget, name, COURTROOM_DESIGN_INI, ao_app);
 
@@ -1373,7 +1373,7 @@ void Courtroom::setupWidgetElement(RPTextEdit *widget, QString name, QString def
   if(!visible) widget->hide();
 }
 
-void Courtroom::move_widget(QWidget *p_widget, QString p_identifier)
+void Courtroom::move_widget(QWidget *p_widget, const QString &p_identifier)
 {
   QString filename = COURTROOM_DESIGN_INI;
 
@@ -1393,7 +1393,7 @@ void Courtroom::move_widget(QWidget *p_widget, QString p_identifier)
 }
 
 template <typename T>
-int Courtroom::adapt_numbered_items(QVector<T *> &item_vector, QString config_item_number, QString item_name)
+int Courtroom::adapt_numbered_items(QVector<T *> &item_vector, const QString &config_item_number, const QString &item_name)
 {
   // &item_vector must be a vector of size at least 1!
 

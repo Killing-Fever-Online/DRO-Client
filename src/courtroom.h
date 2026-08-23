@@ -131,9 +131,9 @@ public:
 
   // sets position of widgets based on theme ini files
   void set_widgets();
-  void setupWidgetElement(QWidget *widget, QString name, bool visible = true);
-  void setupWidgetElement(AOImageDisplay *widget, QString name, QString image, bool visible = true);
-  void setupWidgetElement(RPTextEdit *widget, QString name, QString defaultText, Qt::TextInteractionFlag flag = Qt::TextEditable, bool visible = true);
+  void setupWidgetElement(QWidget *widget, const QString &name, bool visible = true);
+  void setupWidgetElement(AOImageDisplay *widget, const QString &name, const QString &image, bool visible = true);
+  void setupWidgetElement(RPTextEdit *widget, const QString &name, const QString &defaultText, Qt::TextInteractionFlag flag = Qt::TextEditable, bool visible = true);
 
   // helper function that calls above function on the relevant widgets
   void set_fonts();
@@ -226,7 +226,7 @@ public:
   void list_note_files();
   void set_note_files();
 
-  void move_widget(QWidget *p_widget, QString p_identifier);
+  void move_widget(QWidget *p_widget, const QString &p_identifier);
 
   void set_shouts();
 
@@ -318,7 +318,7 @@ public:
   void pause_timer(int timer_id);
 
   template <typename T>
-  int adapt_numbered_items(QVector<T *> &item_vector, QString config_item_number, QString item_name);
+  int adapt_numbered_items(QVector<T *> &item_vector, const QString &config_item_number, const QString &item_name);
   ReportCardReason m_current_reportcard_reason = ReportCardReason::None;
   QString m_area_description = "";
 
@@ -742,15 +742,15 @@ private:
 
   void create_widgets();
 
-  QComboBox* setupComboBoxWidget(const QStringList& items, QString name, QString cssHeader);
+  QComboBox* setupComboBoxWidget(const QStringList& items, const QString &name, const QString &cssHeader);
 
   void connect_widgets();
   void set_widget_names();
   void reset_widget_names();
-  void insert_widget_name(QString p_widget_name, QWidget *p_widget);
-  void insert_widget_names(QVector<QString> &p_widget_names, QVector<QWidget *> &p_widgets);
+  void insert_widget_name(const QString &p_widget_name, QWidget *p_widget);
+  void insert_widget_names(const QVector<QString> &p_widget_names, const QVector<QWidget *> &p_widgets);
   template <typename T>
-  void insert_widget_names(QVector<QString> &p_widget_names, QVector<T *> &p_widgets);
+  void insert_widget_names(const QVector<QString> &p_widget_names, const QVector<T *> &p_widgets);
   void setupWidgetTabs();
   void set_widget_layers();
   void set_widget_layers_legacy();
@@ -1028,7 +1028,7 @@ private slots:
 };
 
 template <typename T>
-void Courtroom::insert_widget_names(QVector<QString> &p_widget_names, QVector<T *> &p_widgets)
+void Courtroom::insert_widget_names(const QVector<QString> &p_widget_names, const QVector<T *> &p_widgets)
 {
   QVector<QWidget *> widgets;
 
