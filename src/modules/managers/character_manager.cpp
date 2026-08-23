@@ -16,7 +16,7 @@
 CharacterManager CharacterManager::s_Instance;
 
 
-ActorData *CharacterManager::ReadCharacter(QString t_folder)
+ActorData *CharacterManager::ReadCharacter(const QString &t_folder)
 {
   static QMap<QString, QPair<QDateTime, ActorData*>> s_cache;
 
@@ -66,7 +66,7 @@ ActorData *CharacterManager::ReadCharacter(QString t_folder)
   return l_returnData;
 }
 
-ActorData *CharacterManager::SwitchCharacter(QString t_folder)
+ActorData *CharacterManager::SwitchCharacter(const QString &t_folder)
 {
   QStringList animations = {"None"};
 
@@ -115,7 +115,7 @@ ActorData *CharacterManager::SwitchCharacter(QString t_folder)
   return dro::actor::user::retrieve();
 }
 
-void CharacterManager::setOutfitList(QStringList t_outfits)
+void CharacterManager::setOutfitList(const QStringList &t_outfits)
 {
   QWidget *l_outfitSelectorWidget = ThemeManager::get().getWidget("outfit_selector");
 
@@ -128,12 +128,12 @@ void CharacterManager::setOutfitList(QStringList t_outfits)
   }
 }
 
-QVector<char_type> CharacterManager::GetCharList()
+QVector<char_type> CharacterManager::GetCharList() const
 {
   return mServerCharacters;
 }
 
-QVector<char_type> CharacterManager::GetCharList(QString package)
+QVector<char_type> CharacterManager::GetCharList(const QString &package)
 {
   lastCharList = package;
   if(package == "Server Characters") return mServerCharacters;
@@ -157,7 +157,7 @@ QVector<char_type> CharacterManager::GetCharList(QString package)
   return QVector<char_type>();
 }
 
-QVector<char_type> CharacterManager::GetLastCharList()
+QVector<char_type> CharacterManager::GetLastCharList() const
 {
   if(lastCharList == "Server Characters") return mServerCharacters;
   if(lastCharList == "Favorites") return mFavoriteCharacters;
@@ -187,12 +187,12 @@ QVector<char_type> CharacterManager::GetServerCharList()
   CharacterTaken = {};
 }
 
-QString CharacterManager::GetFilteredCharaName(int id)
+QString CharacterManager::GetFilteredCharaName(int id) const
 {
   return mFilteredChrList.at(id).name;
 }
 
-QString CharacterManager::GetServerCharaName(int id)
+QString CharacterManager::GetServerCharaName(int id) const
 {
   return mServerCharacters.at(id).name;
 }
@@ -205,18 +205,18 @@ void CharacterManager::ResetPackages()
   mCharacterPackages.append({"Server Characters", "Favorites", "All"});
 }
 
-void CharacterManager::SetCharList(QVector<char_type> charList)
+void CharacterManager::SetCharList(const QVector<char_type> &charList)
 {
   mServerCharacters = charList;
 }
 
-void CharacterManager::SetCharList(QString package, QVector<char_type> charList)
+void CharacterManager::SetCharList(const QString &package, const QVector<char_type> &charList)
 {
   if(!mCharacterPackages.contains(package)) mCharacterPackages.append(package);
   mPackageCharacters[package] = charList;
 }
 
-bool CharacterManager::GetCharacterInServer(QString name)
+bool CharacterManager::GetCharacterInServer(const QString &name) const
 {
   for (int j = 0; j < mServerCharacters.size(); j++)
   {
@@ -229,7 +229,7 @@ bool CharacterManager::GetCharacterInServer(QString name)
   return false;
 }
 
-bool CharacterManager::GetCharacterInServer(int filterID)
+bool CharacterManager::GetCharacterInServer(int filterID) const
 {
   for (int j = 0; j < mServerCharacters.size(); j++)
   {
@@ -247,7 +247,7 @@ void CharacterManager::SetCharaTaken(int id, bool status)
   CharacterTaken[mServerCharacters.at(id).name] = status;
 }
 
-void CharacterManager::AddToFavorites(QString chara)
+void CharacterManager::AddToFavorites(const QString &chara)
 {
   for (int j = 0; j < mFavoriteCharacters.size(); j++)
   {
@@ -262,7 +262,7 @@ void CharacterManager::AddToFavorites(QString chara)
   SaveFavoritesList();
 }
 
-void CharacterManager::RemoveFromFavorites(QString chara)
+void CharacterManager::RemoveFromFavorites(const QString &chara)
 {
   for (int j = 0; j < mFavoriteCharacters.size(); j++)
   {
@@ -326,7 +326,7 @@ void CharacterManager::SaveFavoritesList()
   }
 }
 
-int CharacterManager::GetFilteredId(int Id)
+int CharacterManager::GetFilteredId(int Id) const
 {
   for (int j = 0; j < mServerCharacters.size(); j++)
   {
@@ -339,7 +339,7 @@ int CharacterManager::GetFilteredId(int Id)
   return -1;
 }
 
-int CharacterManager::GetFilteredId(QString name)
+int CharacterManager::GetFilteredId(const QString &name) const
 {
   for (int j = 0; j < mServerCharacters.size(); j++)
   {
@@ -352,7 +352,7 @@ int CharacterManager::GetFilteredId(QString name)
   return -1;
 }
 
-int CharacterManager::GetAvaliablePersona()
+int CharacterManager::GetAvaliablePersona() const
 {
   for(int i = 0; i <= 25; i++)
   {
@@ -376,7 +376,7 @@ int CharacterManager::GetAvaliablePersona()
   return -1;
 }
 
-QStringList CharacterManager::GetCharacterPackages()
+QStringList CharacterManager::GetCharacterPackages() const
 {
   return mCharacterPackages;
 }
