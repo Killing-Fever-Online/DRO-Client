@@ -16,19 +16,19 @@ public:
   ~AOConfig();
 
   // generic getters
-  QString get_string(QString p_name, QString p_default = nullptr) const;
-  bool get_bool(QString p_name, bool p_default = false) const;
-  int get_number(QString p_name, int p_default = 0) const;
+  QString get_string(const QString &p_name, const QString &p_default = nullptr) const;
+  bool get_bool(const QString &p_name, bool p_default = false) const;
+  int get_number(const QString &p_name, int p_default = 0) const;
 
   bool first_launch() const;
 
   // getters
   bool autosave() const;
-  bool display_notification(QString message) const;
+  bool display_notification(const QString &message) const;
   QString username() const;
   QString showname() const;
   QString showname_placeholder() const;
-  QString character_ini(QString base_character) const;
+  QString character_ini(const QString &base_character) const;
   QString callwords() const;
   QString server_advertiser() const;
   bool opengl_enabled() const;
@@ -113,28 +113,28 @@ public slots:
 public slots:
   void set_autosave(bool p_enabled);
   void clear_notification_filter();
-  void filter_notification(QString message);
-  void set_username(QString p_string);
-  void set_showname(QString p_string);
-  void set_showname_placeholder(QString p_string);
+  void filter_notification(const QString &message);
+  void set_username(const QString &p_string);
+  void set_showname(const QString &p_string);
+  void set_showname_placeholder(const QString &p_string);
   void clear_showname_placeholder();
-  void set_character_ini(QString base_character, QString target_character);
-  void set_character_ini_remote(QString base_character, QString target_character);
-  void set_callwords(QString p_string);
-  void set_server_advertiser(QString address);
+  void set_character_ini(const QString &base_character, const QString &target_character);
+  void set_character_ini_remote(const QString &base_character, const QString &target_character);
+  void set_callwords(const QString &p_string);
+  void set_server_advertiser(const QString &address);
   void set_server_alerts(bool p_enabled);
   void set_opengl_enabled(bool p_enabled);
   void set_focus_performance_mode(bool p_enabled);
   void set_discord_presence(const bool p_enabled);
   void set_discord_hide_server(const bool p_enabled);
   void set_discord_hide_character(const bool p_enabled);
-  void setLanguage(QString t_language);
-  void set_theme(QString p_string);
-  void set_gamemode(QString p_string);
-  void set_manual_gamemode(QString p_string);
+  void setLanguage(const QString &t_language);
+  void set_theme(const QString &p_string);
+  void set_gamemode(const QString &p_string);
+  void set_manual_gamemode(const QString &p_string);
   void set_manual_gamemode_selection_enabled(bool p_enabled);
-  void set_timeofday(QString p_string);
-  void set_manual_timeofday(QString p_string);
+  void set_timeofday(const QString &p_string);
+  void set_manual_timeofday(const QString &p_string);
   void set_manual_timeofday_selection_enabled(bool p_enabled);
   void set_searchable_iniswap(bool);
   void set_always_pre(bool p_enabled);
@@ -165,7 +165,7 @@ public slots:
   void set_caching_threshold(int percent);
 
   // audio
-  void set_favorite_device_driver(QString p_device_driver);
+  void set_favorite_device_driver(const QString &p_device_driver);
   void set_master_volume(int p_number);
   void set_system_volume(int p_number);
   void set_effect_volume(int p_number);

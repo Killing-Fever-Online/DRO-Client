@@ -477,17 +477,17 @@ AOConfig::~AOConfig()
   d->children.removeAll(this);
 }
 
-QString AOConfig::get_string(QString p_name, QString p_default) const
+QString AOConfig::get_string(const QString &p_name, const QString &p_default) const
 {
   return d->cfg.value(p_name, p_default).toString();
 }
 
-bool AOConfig::get_bool(QString p_name, bool p_default) const
+bool AOConfig::get_bool(const QString &p_name, bool p_default) const
 {
   return d->cfg.value(p_name, p_default).toBool();
 }
 
-int AOConfig::get_number(QString p_name, int p_default) const
+int AOConfig::get_number(const QString &p_name, int p_default) const
 {
   return d->cfg.value(p_name, p_default).toInt();
 }
@@ -502,7 +502,7 @@ bool AOConfig::autosave() const
   return d->autosave;
 }
 
-bool AOConfig::display_notification(QString p_message) const
+bool AOConfig::display_notification(const QString &p_message) const
 {
   return !d->notification_filter.contains(p_message, Qt::CaseInsensitive);
 }
@@ -522,7 +522,7 @@ QString AOConfig::showname_placeholder() const
   return d->showname_placeholder;
 }
 
-QString AOConfig::character_ini(QString p_base_chr) const
+QString AOConfig::character_ini(const QString &p_base_chr) const
 {
   if (d->ini_map.contains(p_base_chr))
     return d->ini_map[p_base_chr];
@@ -926,12 +926,12 @@ void AOConfig::clear_notification_filter()
   d->notification_filter.clear();
 }
 
-void AOConfig::filter_notification(QString p_message)
+void AOConfig::filter_notification(const QString &p_message)
 {
   d->notification_filter.append(p_message);
 }
 
-void AOConfig::set_username(QString p_value)
+void AOConfig::set_username(const QString &p_value)
 {
   const QString l_simplified_value = p_value.simplified();
   if (d->username == l_simplified_value)
@@ -940,7 +940,7 @@ void AOConfig::set_username(QString p_value)
   d->invoke_signal("username_changed", Q_ARG(QString, d->username));
 }
 
-void AOConfig::set_showname(QString p_value)
+void AOConfig::set_showname(const QString &p_value)
 {
   const QString l_simplified_value = p_value.simplified();
   if (d->showname == l_simplified_value && !l_simplified_value.isEmpty())
@@ -950,7 +950,7 @@ void AOConfig::set_showname(QString p_value)
   d->invoke_signal("showname_changed", Q_ARG(QString, d->showname));
 }
 
-void AOConfig::set_showname_placeholder(QString p_string)
+void AOConfig::set_showname_placeholder(const QString &p_string)
 {
   if (d->showname_placeholder == p_string)
     return;
@@ -963,7 +963,7 @@ void AOConfig::clear_showname_placeholder()
   set_showname_placeholder(nullptr);
 }
 
-void AOConfig::set_character_ini(QString p_base_chr, QString p_target_chr)
+void AOConfig::set_character_ini(const QString &p_base_chr, const QString &p_target_chr)
 {
   if (d->ini_map.contains(p_base_chr))
   {
@@ -979,7 +979,7 @@ void AOConfig::set_character_ini(QString p_base_chr, QString p_target_chr)
   d->invoke_signal("character_ini_changed", Q_ARG(QString, p_base_chr));
 }
 
-void AOConfig::set_character_ini_remote(QString p_base_chr, QString p_target_chr)
+void AOConfig::set_character_ini_remote(const QString &p_base_chr, const QString &p_target_chr)
 {
   if (d->ini_map.contains(p_base_chr))
   {
@@ -994,7 +994,7 @@ void AOConfig::set_character_ini_remote(QString p_base_chr, QString p_target_chr
     d->ini_map.insert(p_base_chr, p_target_chr);
 }
 
-void AOConfig::set_callwords(QString p_string)
+void AOConfig::set_callwords(const QString &p_string)
 {
   if (d->callwords == p_string)
     return;
@@ -1002,7 +1002,7 @@ void AOConfig::set_callwords(QString p_string)
   d->invoke_signal("callwords_changed", Q_ARG(QString, p_string));
 }
 
-void AOConfig::set_server_advertiser(QString p_address)
+void AOConfig::set_server_advertiser(const QString &p_address)
 {
   if (d->server_advertiser == p_address)
     return;
@@ -1058,13 +1058,13 @@ void AOConfig::set_discord_hide_character(const bool p_enabled)
   d->invoke_signal("discord_hide_character_changed", Q_ARG(bool, d->discord_hide_character));
 }
 
-void AOConfig::setLanguage(QString t_language)
+void AOConfig::setLanguage(const QString &t_language)
 {
   if(d->language == t_language) return;
   d->language = t_language;
 }
 
-void AOConfig::set_theme(QString p_string)
+void AOConfig::set_theme(const QString &p_string)
 {
   if (d->theme == p_string)
     return;
@@ -1074,7 +1074,7 @@ void AOConfig::set_theme(QString p_string)
   d->invoke_signal("theme_changed", Q_ARG(QString, p_string));
 }
 
-void AOConfig::set_gamemode(QString p_string)
+void AOConfig::set_gamemode(const QString &p_string)
 {
   if (d->gamemode == p_string)
     return;
@@ -1083,7 +1083,7 @@ void AOConfig::set_gamemode(QString p_string)
   d->invoke_signal("gamemode_changed", Q_ARG(QString, p_string));
 }
 
-void AOConfig::set_manual_gamemode(QString p_string)
+void AOConfig::set_manual_gamemode(const QString &p_string)
 {
   if (d->manual_gamemode == p_string)
     return;
@@ -1101,7 +1101,7 @@ void AOConfig::set_manual_gamemode_selection_enabled(bool p_enabled)
   d->invoke_signal("manual_gamemode_selection_changed", Q_ARG(bool, p_enabled));
 }
 
-void AOConfig::set_timeofday(QString p_string)
+void AOConfig::set_timeofday(const QString &p_string)
 {
   if (d->timeofday == p_string)
     return;
@@ -1110,7 +1110,7 @@ void AOConfig::set_timeofday(QString p_string)
   dro::system::replays::recording::todChange(p_string);
 }
 
-void AOConfig::set_manual_timeofday(QString p_string)
+void AOConfig::set_manual_timeofday(const QString &p_string)
 {
   if (d->manual_timeofday == p_string)
     return;
@@ -1340,7 +1340,7 @@ void AOConfig::set_caching_threshold(int p_percent)
   d->invoke_signal("caching_threshold_changed", Q_ARG(int, p_percent));
 }
 
-void AOConfig::set_favorite_device_driver(QString p_device_driver)
+void AOConfig::set_favorite_device_driver(const QString &p_device_driver)
 {
   if (d->favorite_device_driver.has_value() && d->favorite_device_driver.value() == p_device_driver)
     return;
