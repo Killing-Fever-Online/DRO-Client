@@ -751,7 +751,7 @@ int AOConfig::system_memory_threshold() const
 
 bool AOConfig::sprite_caching_enabled(int type) const
 {
-  return d->sprite_caching[type];
+  return d->sprite_caching.value(type, true);
 }
 
 int AOConfig::loading_bar_delay() const
@@ -1316,7 +1316,7 @@ void AOConfig::set_system_memory_threshold(int p_percent)
 
 void AOConfig::set_sprite_caching(int p_type, bool p_enabled)
 {
-  if (d->sprite_caching[p_type] == p_enabled)
+  if (d->sprite_caching.value(p_type, true) == p_enabled)
     return;
   d->sprite_caching[p_type] = p_enabled;
   d->invoke_signal("sprite_caching_toggled", Q_ARG(int, p_type), Q_ARG(bool, p_enabled));
