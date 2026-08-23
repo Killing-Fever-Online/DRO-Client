@@ -195,8 +195,8 @@ public:
   QStringList SearchForCharacterListAsync();
   void UpdateIniswapList();
 
-  QString get_character_ini();
-  QString get_character_content_url();
+  QString get_character_ini() const;
+  QString get_character_content_url() const;
   void update_iniswap_list();
   void update_default_iniswap_item();
   void select_base_character_iniswap();
@@ -967,8 +967,8 @@ private:
   // sfx
 
 public:
-  std::optional<DRSfx> current_sfx();
-  QString current_sfx_file();
+  std::optional<DRSfx> current_sfx() const;
+  QString current_sfx_file() const;
   void load_current_character_sfx_list();
   void load_sfx_list_theme();
   void select_default_sfx();

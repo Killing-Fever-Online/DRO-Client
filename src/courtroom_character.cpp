@@ -27,12 +27,12 @@ void Courtroom::set_character_id(const int p_chr_id)
   Q_EMIT character_id_changed(p_chr_id);
 }
 
-QString Courtroom::get_character_ini()
+QString Courtroom::get_character_ini() const
 {
   return ao_config->character_ini(metadata::user::GetCharacterName());
 }
 
-QString Courtroom::get_character_content_url()
+QString Courtroom::get_character_content_url() const
 {
   QFile l_contentFile(ao_app->get_character_path(get_character_ini(), "CONTENT.txt"));
   if (!l_contentFile.open(QIODevice::ReadOnly))

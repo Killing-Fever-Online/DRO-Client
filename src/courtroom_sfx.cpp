@@ -17,7 +17,7 @@
 
 #include <optional>
 
-std::optional<DRSfx> Courtroom::current_sfx()
+std::optional<DRSfx> Courtroom::current_sfx() const
 {
   QListWidgetItem *l_item = ui_sfx_list->currentItem();
   if (l_item == nullptr)
@@ -25,7 +25,7 @@ std::optional<DRSfx> Courtroom::current_sfx()
   return m_sfx_list.at(l_item->data(Qt::UserRole).toInt());
 }
 
-QString Courtroom::current_sfx_file()
+QString Courtroom::current_sfx_file() const
 {
   const QString l_current_emote_file = ui_emotes->getSelectedEmote().sound_file;
   const std::optional<DRSfx> l_optional_sfx = current_sfx();
