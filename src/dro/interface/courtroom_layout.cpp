@@ -564,7 +564,7 @@ namespace courtroom
 
   namespace layout
   {
-    void setWidgetList(QHash<QString, QWidget *> widgetList)
+    void setWidgetList(const QHash<QString, QWidget *>& widgetList)
     {
       s_CourtroomWidgets = widgetList;
     }
@@ -586,7 +586,7 @@ namespace courtroom
       widgetTarget->setVisible(visibleState);
     }
 
-    void addWidget(QString& name, QWidget *widget)
+    void addWidget(const QString& name, QWidget *widget)
     {
       if(name.endsWith("_toggle")) s_TabWidgets[name] = widget;
       s_CourtroomWidgets[name] = widget;

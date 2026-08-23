@@ -10,8 +10,8 @@ namespace courtroom
 
   namespace layout
   {
-    void setWidgetList(QHash<QString, QWidget *> widgetList);
-    void addWidget(QString& name, QWidget* widget);
+    void setWidgetList(const QHash<QString, QWidget *>& widgetList);
+    void addWidget(const QString& name, QWidget* widget);
     void moveWidget(const char* name, int x, int y);
     void resizeWidget(const char* name, int width, int height);
     void raiseWidget(const char* name);
