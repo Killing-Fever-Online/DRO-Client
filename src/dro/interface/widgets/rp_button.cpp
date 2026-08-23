@@ -26,17 +26,17 @@ RPButton::RPButton(const QString &name, const QString &image, const QString &fal
   set_theme_image(name, image, "courtroom", fallback);
 }
 
-QString RPButton::get_image()
+QString RPButton::get_image() const
 {
   return m_image;
 }
 
-bool RPButton::has_image()
+bool RPButton::has_image() const
 {
   return (!m_image.isEmpty());
 }
 
-void RPButton::set_image(QString p_image)
+void RPButton::set_image(const QString &p_image)
 {
   QString path = m_app->find_theme_asset_path(p_image);
   if(m_image == path) return;

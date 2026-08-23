@@ -20,7 +20,7 @@ class AOEmoteButton : public QPushButton
 public:
   AOEmoteButton(QWidget *p_parent, AOApplication *p_ao_app, int p_x, int p_y);
 
-  int get_emote_number();
+  int get_emote_number() const;
   void set_emote_number(int emote_number);
   void set_image(DREmote emote, bool enabled);
   int findHighestPixel();

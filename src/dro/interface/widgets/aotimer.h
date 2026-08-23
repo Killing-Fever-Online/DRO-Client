@@ -10,11 +10,11 @@ class QTimer;
 class ManualTimer
 {
 public:
-  QTime get_time()
+  QTime get_time() const
   {
     return current_time;
   }
-  int get_timestep_length()
+  int get_timestep_length() const
   {
     return timestep_length;
   }

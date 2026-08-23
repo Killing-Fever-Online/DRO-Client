@@ -22,7 +22,7 @@ public:
   void setInfoWindowData(EvidenceData f_evidence);
   void setEvidenceList(QVector<EvidenceData> *evi_list);
   void setPresenting(bool toggle);
-  int getCurrentSelection();
+  int getCurrentSelection() const;
 
   QString getIconPath(QString f_path);
 

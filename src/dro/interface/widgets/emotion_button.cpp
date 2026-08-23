@@ -40,7 +40,7 @@ void AOEmoteButton::set_emote_number(int p_emote_number)
   m_index = p_emote_number;
 }
 
-int AOEmoteButton::get_emote_number()
+int AOEmoteButton::get_emote_number() const
 {
   return m_index;
 }

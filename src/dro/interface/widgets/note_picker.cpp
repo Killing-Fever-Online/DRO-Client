@@ -92,7 +92,7 @@ void AONotePicker::set_active(bool p_active)
   m_active = p_active;
 }
 
-bool AONotePicker::is_active()
+bool AONotePicker::is_active() const
 {
   return m_active;
 }
