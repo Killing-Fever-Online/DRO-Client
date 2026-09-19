@@ -66,8 +66,6 @@ public:
 
   QString get_file_name() const;
 
-  QIODevice *get_device() const;
-
   SpriteReader::ptr get_reader() const;
 
   bool is_valid() const;
@@ -95,11 +93,9 @@ public slots:
   void set_reader(SpriteReader::ptr reader);
 
   void start(ScalingMode scaling = ScalingMode::AutomaticScaling, double scale = 1.0f);
-  void restart();
   void stop();
 
   void start(int p_start_frame, ScalingMode scaling = ScalingMode::AutomaticScaling, double scale = 1.0f);
-  void restart(int p_start_frame);
 signals:
   void current_frame_changed();
 
@@ -129,7 +125,6 @@ private:
   bool m_play_once;
   int m_frame_count;
   int m_frame_number;
-  QElapsedTimer m_elapsed_timer;
   QTimer m_frame_timer;
   QTimer m_repaint_timer;
   QVector<SpriteLayer*> m_layerPlayers;

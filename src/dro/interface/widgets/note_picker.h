@@ -25,7 +25,7 @@ public:
   QHBoxLayout *ui_layout = nullptr;
 
   void set_active(bool p_active);
-  bool is_active();
+  bool is_active() const;
 
 private:
   AOApplication *ao_app = nullptr;

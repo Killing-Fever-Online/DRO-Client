@@ -4,6 +4,8 @@
 
 #include <QTimer>
 
+#include <algorithm>
+
 static const int UPDATE_TIMER_INTERVAL = 100;
 
 static class DRAudioEngineData
@@ -16,9 +18,6 @@ public:
     if (d == nullptr)
     {
       d = ptr(new DRAudioEnginePrivate);
-
-      // create engine shortcut
-      d->engine = new DRAudioEngine;
 
       // create families
       d->family_map.insert(DRAudio::Family::FSystem,
@@ -97,6 +96,16 @@ int32_t DRAudioEngine::get_volume()
   return d->volume;
 }
 
+float DRAudioEngine::get_pitch()
+{
+  return d->pitch;
+}
+
+float DRAudioEngine::get_speed()
+{
+  return d->speed;
+}
+
 DRAudio::Options DRAudioEngine::get_options()
 {
   return d->options;
@@ -130,7 +139,25 @@ void DRAudioEngine::set_volume(int32_t p_volume)
     return;
   d->volume = p_volume;
   d->update_volume();
-  Q_EMIT d->invoke_signal("volume_changed", Q_ARG(int32_t, d->volume));
+  d->invoke_signal("volume_changed", Q_ARG(int32_t, d->volume));
+}
+
+void DRAudioEngine::set_pitch(float p_pitch)
+{
+  if (d->pitch == p_pitch)
+    return;
+  d->pitch = p_pitch;
+  d->update_pitch();
+  d->invoke_signal("pitch_changed", Q_ARG(float, d->pitch));
+}
+
+void DRAudioEngine::set_speed(float p_speed)
+{
+  if (d->speed == p_speed)
+    return;
+  d->speed = p_speed;
+  d->update_speed();
+  d->invoke_signal("speed_changed", Q_ARG(float, d->speed));
 }
 
 void DRAudioEngine::set_options(DRAudio::Options p_options)
@@ -139,7 +166,7 @@ void DRAudioEngine::set_options(DRAudio::Options p_options)
     return;
   d->options = p_options;
   d->update_options();
-  Q_EMIT d->invoke_signal("options_changed", Q_ARG(DRAudio::Options, d->options));
+  d->invoke_signal("options_changed", Q_ARG(DRAudio::Options, d->options));
 }
 
 void DRAudioEngine::set_option(DRAudio::Option p_option, bool p_enabled)

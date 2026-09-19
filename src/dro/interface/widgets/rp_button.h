@@ -15,9 +15,9 @@ public:
   RPButton(const QString& name, const QString& image, QWidget *parent = nullptr);
   RPButton(const QString& name, const QString& image, const QString& fallback, QWidget *parent = nullptr);
 
-  QString get_image();
-  bool has_image();
-  void set_image(QString p_image);
+  QString get_image() const;
+  bool has_image() const;
+  void set_image(const QString &p_image);
   void set_theme_image(QString widgetName, QString p_image, QString scene, QString fallbackText);
   void set_theme_image();
   void set_image_and_text(QString p_image, QString p_text);

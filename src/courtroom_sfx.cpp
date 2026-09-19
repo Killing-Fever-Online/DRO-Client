@@ -5,22 +5,19 @@
 #include "dro/fs/fs_reading.h"
 #include "drtheme.h"
 
-#include <QCheckBox>
 #include <QColor>
 #include "dro/system/localization.h"
-#include "modules/managers/character_manager.h"
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 
-#include "dro/fs/fs_reading.h"
 #include "dro/system/audio.h"
 
 #include <optional>
 
-std::optional<DRSfx> Courtroom::current_sfx()
+std::optional<DRSfx> Courtroom::current_sfx() const
 {
   QListWidgetItem *l_item = ui_sfx_list->currentItem();
   if (l_item == nullptr)
@@ -28,7 +25,7 @@ std::optional<DRSfx> Courtroom::current_sfx()
   return m_sfx_list.at(l_item->data(Qt::UserRole).toInt());
 }
 
-QString Courtroom::current_sfx_file()
+QString Courtroom::current_sfx_file() const
 {
   const QString l_current_emote_file = ui_emotes->getSelectedEmote().sound_file;
   const std::optional<DRSfx> l_optional_sfx = current_sfx();
@@ -75,12 +72,10 @@ void Courtroom::load_current_character_sfx_list()
   }
 
   // create items
-  QList<QListWidgetItem *> l_item_list;
   for (int i = 0; i < m_sfx_list.length(); ++i)
   {
     const DRSfx &i_sfx = m_sfx_list.at(i);
     QListWidgetItem *l_item = new QListWidgetItem(ui_sfx_list);
-    l_item_list.append(l_item);
     l_item->setText(i_sfx.name);
     l_item->setData(Qt::UserRole, i);
     set_sfx_item_color(l_item);

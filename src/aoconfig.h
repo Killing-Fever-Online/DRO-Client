@@ -16,19 +16,19 @@ public:
   ~AOConfig();
 
   // generic getters
-  QString get_string(QString p_name, QString p_default = nullptr) const;
-  bool get_bool(QString p_name, bool p_default = false) const;
-  int get_number(QString p_name, int p_default = 0) const;
+  QString get_string(const QString &p_name, const QString &p_default = nullptr) const;
+  bool get_bool(const QString &p_name, bool p_default = false) const;
+  int get_number(const QString &p_name, int p_default = 0) const;
 
   bool first_launch() const;
 
   // getters
   bool autosave() const;
-  bool display_notification(QString message) const;
+  bool display_notification(const QString &message) const;
   QString username() const;
   QString showname() const;
   QString showname_placeholder() const;
-  QString character_ini(QString base_character) const;
+  QString character_ini(const QString &base_character) const;
   QString callwords() const;
   QString server_advertiser() const;
   bool opengl_enabled() const;
@@ -52,6 +52,9 @@ public:
   int message_queue_delay() const;
   bool emote_preview_enabled() const;
   bool sticky_sfx_enabled() const;
+  bool disable_blankpost_enabled() const;
+  bool soft_blankpost_enabled() const;
+  bool additive_enabled() const;
   int message_length_threshold() const;
   int log_max_lines() const;
   bool log_display_timestamp_enabled() const;
@@ -85,6 +88,15 @@ public:
   int blip_rate() const;
   int punctuation_delay() const;
   bool blank_blips_enabled() const;
+  int master_pitch() const;
+  int master_speed() const;
+  int effect_pitch() const;
+  int effect_speed() const;
+  int music_pitch() const;
+  int music_speed() const;
+  int blip_pitch() const;
+  int blip_speed() const;
+  bool independent_pitch_tempo() const;
 
   double theme_resize() const;
   double font_resize() const;
@@ -101,28 +113,28 @@ public slots:
 public slots:
   void set_autosave(bool p_enabled);
   void clear_notification_filter();
-  void filter_notification(QString message);
-  void set_username(QString p_string);
-  void set_showname(QString p_string);
-  void set_showname_placeholder(QString p_string);
+  void filter_notification(const QString &message);
+  void set_username(const QString &p_string);
+  void set_showname(const QString &p_string);
+  void set_showname_placeholder(const QString &p_string);
   void clear_showname_placeholder();
-  void set_character_ini(QString base_character, QString target_character);
-  void set_character_ini_remote(QString base_character, QString target_character);
-  void set_callwords(QString p_string);
-  void set_server_advertiser(QString address);
+  void set_character_ini(const QString &base_character, const QString &target_character);
+  void set_character_ini_remote(const QString &base_character, const QString &target_character);
+  void set_callwords(const QString &p_string);
+  void set_server_advertiser(const QString &address);
   void set_server_alerts(bool p_enabled);
   void set_opengl_enabled(bool p_enabled);
   void set_focus_performance_mode(bool p_enabled);
   void set_discord_presence(const bool p_enabled);
   void set_discord_hide_server(const bool p_enabled);
   void set_discord_hide_character(const bool p_enabled);
-  void setLanguage(QString t_language);
-  void set_theme(QString p_string);
-  void set_gamemode(QString p_string);
-  void set_manual_gamemode(QString p_string);
+  void setLanguage(const QString &t_language);
+  void set_theme(const QString &p_string);
+  void set_gamemode(const QString &p_string);
+  void set_manual_gamemode(const QString &p_string);
   void set_manual_gamemode_selection_enabled(bool p_enabled);
-  void set_timeofday(QString p_string);
-  void set_manual_timeofday(QString p_string);
+  void set_timeofday(const QString &p_string);
+  void set_manual_timeofday(const QString &p_string);
   void set_manual_timeofday_selection_enabled(bool p_enabled);
   void set_searchable_iniswap(bool);
   void set_always_pre(bool p_enabled);
@@ -131,6 +143,9 @@ public slots:
   void set_message_queue_delay(int p_number);
   void set_emote_preview(bool p_enabled);
   void set_sticky_sfx(bool p_enabled);
+  void set_disable_blankpost(bool p_enabled);
+  void set_soft_blankpost(bool p_enabled);
+  void set_additive(bool p_enabled);
   void set_message_length_threshold(int percent);
   void set_log_max_lines(int p_number);
   void set_log_display_timestamp(bool p_enabled);
@@ -150,7 +165,7 @@ public slots:
   void set_caching_threshold(int percent);
 
   // audio
-  void set_favorite_device_driver(QString p_device_driver);
+  void set_favorite_device_driver(const QString &p_device_driver);
   void set_master_volume(int p_number);
   void set_system_volume(int p_number);
   void set_effect_volume(int p_number);
@@ -164,6 +179,15 @@ public slots:
   void set_blip_rate(int p_number);
   void set_punctuation_delay(int p_number);
   void set_blank_blips(bool p_enabled);
+  void set_master_pitch(int p_number);
+  void set_master_speed(int p_number);
+  void set_effect_pitch(int p_number);
+  void set_effect_speed(int p_number);
+  void set_music_pitch(int p_number);
+  void set_music_speed(int p_number);
+  void set_blip_pitch(int p_number);
+  void set_blip_speed(int p_number);
+  void set_independent_pitch_tempo(bool p_enabled);
   void setThemeResize(double resize);
   void setFontResize(double resize);
   void setFadeDuration(int duration);
@@ -194,9 +218,11 @@ signals:
   void message_queue_delay_changed(int);
   void emote_preview_changed(bool);
   void sticky_sfx_changed(bool);
+  void disable_blankpost_changed(bool);
+  void soft_blankpost_changed(bool);
+  void additive_changed(bool);
 
   // theme
-  void language_changed(QString);
   void theme_changed(QString);
   void gamemode_changed(QString);
   void manual_gamemode_changed(QString);
@@ -228,7 +254,6 @@ signals:
   void caching_threshold_changed(int);
 
   // audio
-  void favorite_device_changed(QString);
   void master_volume_changed(int);
   void suppress_background_audio_changed(bool);
   void system_volume_changed(int);
@@ -243,6 +268,15 @@ signals:
   void blip_rate_changed(int);
   void punctuation_delay_changed(int);
   void blank_blips_changed(bool);
+  void master_pitch_changed(int);
+  void master_speed_changed(int);
+  void effect_pitch_changed(int);
+  void effect_speed_changed(int);
+  void music_pitch_changed(int);
+  void music_speed_changed(int);
+  void blip_pitch_changed(int);
+  void blip_speed_changed(int);
+  void independent_pitch_tempo_changed(bool);
 
   //Theme
   void theme_resize_changed(double);

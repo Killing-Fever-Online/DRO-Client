@@ -10,14 +10,13 @@ namespace courtroom
 
   namespace layout
   {
-    void setWidgetList(QHash<QString, QWidget *> widgetList);
-    void addWidget(QString& name, QWidget* widget);
+    void setWidgetList(const QHash<QString, QWidget *>& widgetList);
+    void addWidget(const QString& name, QWidget* widget);
     void moveWidget(const char* name, int x, int y);
     void resizeWidget(const char* name, int width, int height);
     void raiseWidget(const char* name);
     void setVisibility(const char* name, bool visible);
     void setParent(const std::string& parent, const std::string& child);
-    void deleteTab();
   }
 
   namespace ic
@@ -41,11 +40,6 @@ namespace courtroom
     std::string getDisplayName();
     void setDisplayName(const std::string& text);
     void appendMessage(const char* sender, const char* message);
-  }
-
-  namespace choice
-  {
-    //void notifyPair(const char* sender, const char* message);
   }
 
   namespace stickers
@@ -82,7 +76,6 @@ namespace courtroom
   {
     void create(const std::string& name, const std::string& css, int x, int y, int width, int height);
     void addItem(const std::string& name, const std::string& value);
-    void removeItem(const std::string& name, const std::string& value);
     void clearItems(const std::string& name);
   }
 

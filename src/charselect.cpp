@@ -10,10 +10,8 @@
 #include "dro/system/localization.h"
 #include "drpacket.h"
 #include "dro/fs/fs_reading.h"
-#include "hardware_functions.h"
 #include "modules/managers/character_manager.h"
 #include "qcombobox.h"
-#include "theme.h"
 #include "drtheme.h"
 
 #include <QDebug>
@@ -23,7 +21,6 @@
 
 #include "dro/interface/widgets/character_select.h"
 #include <dro/interface/widgets/rp_line_edit.h>
-#include "dro/interface/widgets/rp_widget.h"
 
 void Courtroom::construct_char_select()
 {

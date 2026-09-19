@@ -19,6 +19,7 @@ class ReplayWindow : public QWidget
   Q_OBJECT
 public:
   ReplayWindow();
+  ~ReplayWindow();
   void setScrubberData(int length);
   void setScrubberPosition(int position);
   void setState(ReplayState state);

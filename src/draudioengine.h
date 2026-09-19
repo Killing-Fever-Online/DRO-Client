@@ -14,6 +14,8 @@ public:
   static DRAudioStreamFamily::ptr get_family(DRAudio::Family p_family);
   static QList<DRAudioStreamFamily::ptr> get_family_list();
   static int32_t get_volume();
+  static float get_pitch();
+  static float get_speed();
   static DRAudio::Options get_options();
   // option get
   static bool is_option(DRAudio::Option p_option);
@@ -26,6 +28,8 @@ public:
 public slots:
   void set_favorite_device_driver(QString driver);
   void set_volume(int32_t p_volume);
+  void set_pitch(float p_pitch);
+  void set_speed(float p_speed);
   void set_options(DRAudio::Options p_options);
   // option set
   void set_option(DRAudio::Option p_option, bool p_enabled);
@@ -37,5 +41,7 @@ signals:
   void current_device_changed(DRAudioDevice);
   void favorite_device_changed(DRAudioDevice);
   void volume_changed(int32_t);
+  void pitch_changed(float);
+  void speed_changed(float);
   void options_changed(DRAudio::Options);
 };

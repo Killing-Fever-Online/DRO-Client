@@ -10,11 +10,11 @@ class QTimer;
 class ManualTimer
 {
 public:
-  QTime get_time()
+  QTime get_time() const
   {
     return current_time;
   }
-  int get_timestep_length()
+  int get_timestep_length() const
   {
     return timestep_length;
   }
@@ -54,9 +54,6 @@ public slots:
   void set_timer_format(QString new_timer_format = default_format);
   void set_timestep_length(int new_timestep_length);
   void set_firing_interval(int new_firing_interval);
-  void set_concentrate_mode();
-  void set_normal_mode();
-  void set_fast_forward_mode();
 
 private:
   ManualTimer old_manual_timer; // Pre-update manual timer

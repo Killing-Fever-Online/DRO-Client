@@ -2,7 +2,7 @@
 #define DRTHEME_H
 
 #include "qjsonobject.h"
-#include <AOApplication.h>
+#include <aoapplication.h>
 #include <qjsondocument.h>
 #include <qstring.h>
 
@@ -30,19 +30,12 @@ public:
   bool read_config_bool(QString p_setting_name);
   int read_config_int(QString p_setting_name);
   QVector<QStringList> get_highlight_characters();
-  pos_size_type get_element_dimensions(QString p_identifier, QString p_scene);
-
 
   QString get_widget_image(QString p_identifier, QString p_fallback, QString p_scene);
   QColor get_widget_settings_color(QString p_identifier, QString p_scene, QString p_type, QString ini_fallback);
   QPoint get_widget_settings_spacing(QString p_identifier, QString p_scene, QString ini_fallback);
   int get_widget_settings_int(QString p_identifier, QString p_scene, QString p_setting);
   bool get_widget_settings_bool(QString p_identifier, QString p_scene, QString p_setting);
-
-
-  //Font Functions
-  bool get_widget_font_bool(QString p_identifier, QString p_scene, QString p_param, QString p_type);
-  QColor get_widget_font_color(QString p_identifier, QString p_scene, QString p_type);
 
   int get_music_name_speed();
 
@@ -81,7 +74,6 @@ public:
   QString get_widget_font_string_setting(QString p_identifier, QString p_param, QString p_scene, QString fallback);
 private:
   AOApplication *ao_app = nullptr;
-  QJsonObject *get_font_json_object(QString p_identifier, QString p_scene);
   QVector<QStringList> effects = {};
   QVector<QStringList> shouts = {};
   QVector<QStringList> wtce = {};

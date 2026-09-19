@@ -72,11 +72,6 @@ void SpriteViewer::set_file_name(QString p_file_name)
   m_player->set_file_name(p_file_name);
 }
 
-QIODevice *SpriteViewer::get_device() const
-{
-  return m_player->get_device();
-}
-
 void SpriteViewer::set_device(QIODevice *p_device)
 {
   m_player->set_device(p_device);

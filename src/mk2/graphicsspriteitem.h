@@ -89,8 +89,6 @@ public:
 
   QString get_file_name() const;
 
-  QIODevice *get_device() const;
-
   SpriteReader::ptr get_reader() const;
 
   SpritePlayer *get_player() const;
@@ -103,9 +101,7 @@ public:
   void setLayerState(ViewportSprite viewportState);
 
   void processOverlays(const QString &overlayString, const QString& character, const QString& emotePath, const QString& outfitName);
-  void processOverlays(const QVector<EmoteLayer>& emoteLayers, const QString& character, const QString& emotePath, const QString& outfitName);
   void createOverlay(const QString &characterName, const QString &emoteName, const QString &outfitName, const QStringList &layerStrings);
-  void createOverlay(const QString &imageName, const QString &imageOrder, QRectF rect, const QString &layerName, bool detatched = false);
   void createOverlay(const EmoteLayer& layer, const QString &imagePath);
   void clearImageLayers();
 
@@ -113,7 +109,6 @@ public:
   QPointF computeDrawPosition(const QVector3D &animationOffset) const;
   void drawSpriteLayers(QPainter *painter, QVector<SpriteLayer*> &layers, const QPointF &basePos, double scale, const std::unordered_map<std::string, QVariant>& evaluatedFrames, double alpha);
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) final;
-  void paintGL();
 
 public slots:
   void set_scaling_mode(SpritePlayer::ScalingMode scaling_mode);
@@ -131,14 +126,12 @@ public slots:
   void set_reader(SpriteReader::ptr reader);
 
   void start(ScalingMode scaling = ScalingMode::AutomaticScaling, double scale = 1.0f);
-  void restart();
   void setVerticalOffset(int t_offset);
   void setHorizontalOffset(int t_offset);
   bool setKeyframeAnimation(const QString &directory, const QString &animation);
   bool setCharacterAnimation(QString name, QString character, bool startFromEnd = false);
   void stop();
 
-  void setFlipped(bool state);
   void setMirrored(bool state);
 
 signals:
@@ -163,7 +156,6 @@ private:
   bool m_LayersExist = false;
 
   bool m_isMirrored = false;
-  bool m_isFlipped = false;
 
 private slots:
   void notify_size();

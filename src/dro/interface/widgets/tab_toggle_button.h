@@ -19,7 +19,6 @@ signals:
 
 private slots:
   void on_clicked();
-  void detatchTab();
 
 private:
   QString mTabName = "";

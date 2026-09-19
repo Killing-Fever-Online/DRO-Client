@@ -23,7 +23,7 @@ AONoteArea::AONoteArea(QWidget *p_parent, AOApplication *p_ao_app)
 
 void Courtroom::on_add_button_clicked()
 {
-  if (ui_note_area->m_layout->count() > 6)
+  if (ui_note_area->m_layout->count() - (contains_add_button ? 1 : 0) >= AONoteArea::MAX_NOTE_SLOTS)
     return;
 
   AONotePicker *f_notepicker = new AONotePicker(ui_note_area, ao_app);
@@ -38,7 +38,6 @@ void Courtroom::on_add_button_clicked()
   f_notepicker->ui_layout = f_layout;
   f_notepicker->ui_delete_button = f_delete;
   f_notepicker->ui_hover = f_hover;
-  f_notepicker->setProperty("index", ui_note_area->m_layout->count() - 1);
 
   f_button->set_image("note_edit.png");
   f_delete->set_image("note_delete.png");
@@ -79,8 +78,6 @@ void Courtroom::set_note_files()
     qDebug() << "Couldn't open" << filename;
     return;
   }
-
-  QTextStream in(&config_file);
 
   QByteArray t;
 

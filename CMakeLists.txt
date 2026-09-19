@@ -1,16 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(dro-client VERSION 1.8.2 LANGUAGES CXX)
+project(dro-client VERSION 1.8.3 LANGUAGES C CXX)
 
-set(CMAKE_AUTOUIC ON)
+# forms load at runtime via QUiLoader, no AUTOUIC needed
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS core gui widgets uitools network websockets multimedia multimediawidgets)
-find_package(Qt6 REQUIRED COMPONENTS core gui widgets uitools network websockets multimedia multimediawidgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets UiTools Network WebSockets Multimedia MultimediaWidgets)
 
 set(HEADERS
   src/dro/animation/keyframe_channel.h
@@ -48,7 +47,6 @@ set(HEADERS
   src/dro/interface/widgets/emotion_selector.h
   src/dro/interface/widgets/choice_dialog.h
   src/dro/interface/widgets/sticker_viewer.h
-  src/dro/interface/widgets/viewport_overlay.h
   src/dro/interface/widgets/tab_toggle_button.h
   src/dro/interface/widgets/aotimer.h
   src/dro/interface/widgets/viewports/legacy_viewport.h
@@ -65,6 +63,9 @@ set(HEADERS
   src/dro/system/animation.h
   src/dro/system/audio.h
   src/dro/system/audio/ambience_player.h
+  src/dro/system/audio/audio_backend.h
+  src/dro/system/audio/miniaudio_config.h
+  src/dro/system/audio/network_stream.h
   src/dro/system/audio/blip_player.h
   src/dro/system/audio/music_player.h
   src/dro/system/audio/sfx_player.h
@@ -125,7 +126,6 @@ set(HEADERS
   src/drthememovie.h
   src/hardware_functions.h
   src/lobby.h
-  src/logger.h
   src/mk2/drplayer.h
   src/mk2/graphicsspriteitem.h
   src/mk2/graphicsvideoscreen.h
@@ -183,7 +183,6 @@ set(SOURCES
   src/dro/interface/widgets/emotion_selector.cpp
   src/dro/interface/widgets/choice_dialog.cpp
   src/dro/interface/widgets/sticker_viewer.cpp
-  src/dro/interface/widgets/viewport_overlay.cpp
   src/dro/interface/widgets/tab_toggle_button.cpp
   src/dro/interface/widgets/aotimer.cpp
   src/dro/interface/widgets/viewports/legacy_viewport.cpp
@@ -200,6 +199,23 @@ set(SOURCES
   src/dro/system/animation.cpp
   src/dro/system/audio.cpp
   src/dro/system/audio/ambience_player.cpp
+  src/dro/system/audio/audio_backend.cpp
+  src/dro/system/audio/miniaudio_impl.cpp
+  3rd/miniaudio/extras/decoders/libvorbis/miniaudio_libvorbis.c
+  3rd/miniaudio/extras/decoders/libopus/miniaudio_libopus.c
+  3rd/soundtouch/source/SoundTouch/AAFilter.cpp
+  3rd/soundtouch/source/SoundTouch/cpu_detect_x86.cpp
+  3rd/soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp
+  3rd/soundtouch/source/SoundTouch/FIRFilter.cpp
+  3rd/soundtouch/source/SoundTouch/InterpolateCubic.cpp
+  3rd/soundtouch/source/SoundTouch/InterpolateLinear.cpp
+  3rd/soundtouch/source/SoundTouch/InterpolateShannon.cpp
+  3rd/soundtouch/source/SoundTouch/mmx_optimized.cpp
+  3rd/soundtouch/source/SoundTouch/RateTransposer.cpp
+  3rd/soundtouch/source/SoundTouch/SoundTouch.cpp
+  3rd/soundtouch/source/SoundTouch/sse_optimized.cpp
+  3rd/soundtouch/source/SoundTouch/TDStretch.cpp
+  src/dro/system/audio/network_stream.cpp
   src/dro/system/audio/blip_player.cpp
   src/dro/system/audio/music_player.cpp
   src/dro/system/audio/sfx_player.cpp
@@ -265,7 +281,6 @@ set(SOURCES
   src/emotes.cpp
   src/hardware_functions.cpp
   src/lobby.cpp
-  src/logger.cpp
   src/main.cpp
   src/mk2/drplayer.cpp
   src/mk2/graphicsspriteitem.cpp
@@ -295,6 +310,24 @@ set(RESOURCES
   res.qrc
 )
 
+if(NOT DRO_VCPKG_DIR AND DEFINED ENV{VCPKG_INSTALLATION_ROOT})
+  set(DRO_VCPKG_DIR "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows")
+endif()
+
+find_path(OPUSFILE_INCLUDE_DIR opus/opusfile.h HINTS "${DRO_VCPKG_DIR}/include")
+find_path(VORBIS_INCLUDE_DIR vorbis/vorbisfile.h HINTS "${DRO_VCPKG_DIR}/include")
+find_library(OGG_LIBRARY NAMES ogg libogg HINTS "${DRO_VCPKG_DIR}/lib")
+find_library(VORBIS_LIBRARY NAMES vorbis libvorbis HINTS "${DRO_VCPKG_DIR}/lib")
+find_library(VORBISFILE_LIBRARY NAMES vorbisfile libvorbisfile HINTS "${DRO_VCPKG_DIR}/lib")
+find_library(OPUS_LIBRARY NAMES opus libopus HINTS "${DRO_VCPKG_DIR}/lib")
+find_library(OPUSFILE_LIBRARY NAMES opusfile libopusfile HINTS "${DRO_VCPKG_DIR}/lib")
+
+foreach(dep OPUSFILE_INCLUDE_DIR VORBIS_INCLUDE_DIR OGG_LIBRARY VORBIS_LIBRARY VORBISFILE_LIBRARY OPUS_LIBRARY OPUSFILE_LIBRARY)
+  if(NOT ${dep})
+    message(FATAL_ERROR "Audio codec dependency not found: ${dep}. Set DRO_VCPKG_DIR to your vcpkg installed triplet directory.")
+  endif()
+endforeach()
+
 add_executable(dro-client
   ${HEADERS}
   ${SOURCES}
@@ -308,12 +341,15 @@ target_compile_definitions(dro-client PRIVATE
     QT_WARN_DEPRECATED_UP_TO=0x060500
 )
 
-target_include_directories(dro-client PUBLIC
+target_include_directories(dro-client PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/3rd
   ${CMAKE_CURRENT_SOURCE_DIR}/3rd/lua
+  ${CMAKE_CURRENT_SOURCE_DIR}/3rd/soundtouch/include
+  ${OPUSFILE_INCLUDE_DIR}
+  ${OPUSFILE_INCLUDE_DIR}/opus
+  ${VORBIS_INCLUDE_DIR}
 )
 
 set_target_properties(dro-client PROPERTIES
@@ -322,11 +358,11 @@ set_target_properties(dro-client PROPERTIES
 )
 
 target_link_directories(dro-client PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/3rd/bass
   ${CMAKE_CURRENT_SOURCE_DIR}/3rd/discord-rpc
   ${CMAKE_CURRENT_SOURCE_DIR}/3rd/lua
 )
-target_link_libraries(dro-client
+
+target_link_libraries(dro-client PRIVATE
   Qt6::Core
   Qt6::Gui
   Qt6::Widgets
@@ -335,9 +371,11 @@ target_link_libraries(dro-client
   Qt6::WebSockets
   Qt6::Multimedia
   Qt6::MultimediaWidgets
-  bass
-  bassopus
-  bass_fx
+  ${OGG_LIBRARY}
+  ${VORBIS_LIBRARY}
+  ${VORBISFILE_LIBRARY}
+  ${OPUS_LIBRARY}
+  ${OPUSFILE_LIBRARY}
   discord-rpc
   lua54
 )

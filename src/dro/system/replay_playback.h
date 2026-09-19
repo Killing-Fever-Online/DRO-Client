@@ -37,7 +37,6 @@ namespace dro::system::replays
     void progress();
     void progressSingle();
     void setTimestamp(int index);
-    void stop();
   }
 
   namespace io

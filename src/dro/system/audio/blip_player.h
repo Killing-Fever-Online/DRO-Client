@@ -3,9 +3,6 @@
 #include "aoobject.h"
 #include "draudioengine.h"
 
-// 3rd
-#include <bass/bass.h>
-
 // std
 #include <optional>
 

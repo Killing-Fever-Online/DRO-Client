@@ -11,16 +11,16 @@ public:
   EvidenceData(QString p_name, QString p_desc, QString p_image_path);
 
   // Getters
-  QString getName();
-  QString getDesc();
-  QString getImagePath();
+  QString getName() const;
+  QString getDesc() const;
+  QString getImagePath() const;
 
-  QStringList getData();
+  QStringList getData() const;
 
   // Setters
-  void setName(QString p_name);
-  void setDesc(QString p_desc);
-  void setImagePath(QString p_image_path);
+  void setName(const QString &p_name);
+  void setDesc(const QString &p_desc);
+  void setImagePath(const QString &p_image_path);
 
 private:
   QString m_name = "";

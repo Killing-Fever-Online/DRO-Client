@@ -319,16 +319,6 @@ void EmotionSelector::emoteClicked(int id)
   courtroom::ic::focusMessageBox();
 }
 
-void EmotionSelector::showEmoteTooltip(int id, QPoint pos)
-{
-
-}
-
-void EmotionSelector::hideEmoteTooltip(int id)
-{
-
-}
-
 void EmotionSelector::wheelEvent(QWheelEvent *event)
 {
   int delta = event->angleDelta().y();

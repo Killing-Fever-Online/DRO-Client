@@ -36,32 +36,13 @@ void ThemeModuleReader::ParseModuleConfig()
   for (const QString& optionName : configOptionNames) {
     if (isValueExists(optionName)) m_configBooleans[optionName] = getBoolValue(optionName);
   }
-  
-  if(isValueExists("music_scroll_speed")) m_configMusicSpeed = getIntValue("music_scroll_speed");
-  if(isValueExists("timer_number")) m_configTimer = getIntValue("timer_number");
 
-  QJsonArray configColorsArray = getArrayValue("colors");
-  QJsonArray configHighlightsArray = getArrayValue("highlights");
   QJsonArray configSoundsArray = getArrayValue("sounds");
-
-  for(QJsonValueRef colorValue : configColorsArray)
-  {
-    SetTargetObject(colorValue.toObject());
-    m_configColors[getStringValue("color")].code = getStringValue("code");
-  }
 
   for(QJsonValueRef soundValue : configSoundsArray)
   {
     SetTargetObject(soundValue.toObject());
     m_configSounds[getStringValue("sound")] = getStringValue("file");
-  }
-
-  for(QJsonValueRef highlighValue : configHighlightsArray)
-  {
-    SetTargetObject(highlighValue.toObject());
-    m_configHighlights[getStringValue("chars")].chars = getStringValue("chars");
-    m_configHighlights[getStringValue("chars")].color = getStringValue("color");
-    m_configHighlights[getStringValue("chars")].keepCharacters = getBoolValue("keep_characters");
   }
 }
 
@@ -94,10 +75,6 @@ void ThemeModuleReader::ParseLayers()
         if(!layerChild.isEmpty()) layerInfo.append(layerChild);
       }
 
-      if(widget_name == "viewport")
-      {
-        layerInfo.append("viewport_overlay");
-      }
       m_WidgetLayers.append(layerInfo);
     }
   }
@@ -133,7 +110,7 @@ void ThemeModuleReader::ParseTabs()
 
 }
 
-ThemeScene *ThemeModuleReader::ParseScene(QString t_scene)
+ThemeScene *ThemeModuleReader::ParseScene(const QString &t_scene)
 {
   if(!mMainObject.contains(t_scene)) return nullptr;
 
@@ -224,7 +201,7 @@ ThemeScene *ThemeModuleReader::ParseScene(QString t_scene)
   return newScene;
 }
 
-void ThemeModuleReader::ParseSubFont(QJsonObject t_fontObject, QString t_fontType, ThemeScene *t_scene)
+void ThemeModuleReader::ParseSubFont(const QJsonObject &t_fontObject, const QString &t_fontType, ThemeScene *t_scene)
 {
   if(t_fontObject.contains(t_fontType + "_color"))
   {
@@ -237,13 +214,13 @@ void ThemeModuleReader::ParseSubFont(QJsonObject t_fontObject, QString t_fontTyp
   }
 }
 
-void ThemeModuleReader::SwitchModuleTarget(QString t_target)
+void ThemeModuleReader::SwitchModuleTarget(const QString &t_target)
 {
   SetTargetObject(mMainObject);
   SetTargetObject(t_target);
 }
 
-ThemeScene *ThemeModuleReader::getThemeScene(RPSceneType t_scene)
+ThemeScene *ThemeModuleReader::getThemeScene(RPSceneType t_scene) const
 {
   switch (t_scene)
   {
@@ -264,7 +241,7 @@ ThemeScene *ThemeModuleReader::getThemeScene(RPSceneType t_scene)
     }
 }
 
-bool ThemeModuleReader::getContainsSceneWidget(RPSceneType t_scene, QString t_name)
+bool ThemeModuleReader::getContainsSceneWidget(RPSceneType t_scene, const QString &t_name) const
 {
     ThemeScene *l_scene = getThemeScene(t_scene);
 
@@ -282,42 +259,42 @@ bool ThemeModuleReader::getContainsSceneWidget(RPSceneType t_scene, QString t_na
     return false;
 }
 
-bool ThemeModuleReader::getContainsLayers()
+bool ThemeModuleReader::getContainsLayers() const
 {
   return m_WidgetLayers.count() != 0;
 }
 
-QVector<QStringList> ThemeModuleReader::getWidgetLayers()
+QVector<QStringList> ThemeModuleReader::getWidgetLayers() const
 {
   return m_WidgetLayers;
 }
 
-QVector<ThemeTabInfo> ThemeModuleReader::getTabs()
+QVector<ThemeTabInfo> ThemeModuleReader::getTabs() const
 {
   return m_themeTabs;
 }
 
-bool ThemeModuleReader::getContainsBool(QString t_setting)
+bool ThemeModuleReader::getContainsBool(const QString &t_setting) const
 {
   return m_configBooleans.contains(t_setting);
 }
 
-bool ThemeModuleReader::getSettingBool(QString t_setting)
+bool ThemeModuleReader::getSettingBool(const QString &t_setting) const
 {
-  return m_configBooleans[t_setting];
+  return m_configBooleans.value(t_setting);
 }
 
-bool ThemeModuleReader::getContainsSound(QString t_sfxName)
+bool ThemeModuleReader::getContainsSound(const QString &t_sfxName) const
 {
   return m_configSounds.contains(t_sfxName);
 }
 
-QString ThemeModuleReader::getSoundFile(QString t_sfxName)
+QString ThemeModuleReader::getSoundFile(const QString &t_sfxName) const
 {
-  return m_configSounds[t_sfxName];
+  return m_configSounds.value(t_sfxName);
 }
 
-QString ThemeModuleReader::getDirectoryPath()
+QString ThemeModuleReader::getDirectoryPath() const
 {
   return m_moduleDirectory;
 }

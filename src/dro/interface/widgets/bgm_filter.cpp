@@ -18,5 +18,4 @@ QStringList BGMFilter::GetMusicList()
   QString category = currentText();
   if(category == "All") return TracklistMetadata::GetEverything();
   else return TracklistMetadata::GetCategory(category);
-  return {};
 }

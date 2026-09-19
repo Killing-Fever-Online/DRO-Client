@@ -14,7 +14,6 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFutureWatcher>
-#include <QListView>
 #include <QPixmap>
 #include <QUrl>
 #include <QtConcurrent/QtConcurrent>
@@ -28,12 +27,12 @@ void Courtroom::set_character_id(const int p_chr_id)
   Q_EMIT character_id_changed(p_chr_id);
 }
 
-QString Courtroom::get_character_ini()
+QString Courtroom::get_character_ini() const
 {
   return ao_config->character_ini(metadata::user::GetCharacterName());
 }
 
-QString Courtroom::get_character_content_url()
+QString Courtroom::get_character_content_url() const
 {
   QFile l_contentFile(ao_app->get_character_path(get_character_ini(), "CONTENT.txt"));
   if (!l_contentFile.open(QIODevice::ReadOnly))
@@ -69,19 +68,25 @@ void Courtroom::update_iniswap_list()
     QSignalBlocker b_ini_list(ui_iniswap_dropdown);
     ui_iniswap_dropdown->clear();
 
-    QFutureWatcher<void> *watcher = new QFutureWatcher<void>(this);
-    connect(watcher, &QFutureWatcher<void>::finished, this, &Courtroom::UpdateIniswapList);
+    QFutureWatcher<QStringList> *watcher = new QFutureWatcher<QStringList>(this);
+    connect(watcher, &QFutureWatcher<QStringList>::finished, this, [this, watcher] {
+      if (watcher->future().resultCount() == 0)
+        return;
+      currentIniswapList = watcher->result();
+      UpdateIniswapList();
+    });
+    connect(watcher, &QFutureWatcher<QStringList>::finished, watcher, &QObject::deleteLater);
 
-    QFuture<void> future = QtConcurrent::run(&Courtroom::SearchForCharacterListAsync, this);
+    QFuture<QStringList> future = QtConcurrent::run(&Courtroom::SearchForCharacterListAsync, this);
     watcher->setFuture(future);
   }
 
 }
 
 
-void Courtroom::SearchForCharacterListAsync()
+QStringList Courtroom::SearchForCharacterListAsync()
 {
-  currentIniswapList = QStringList{"Default"};
+  QStringList l_iniswap_list{"Default"};
 
   QStringList l_package_folders{};
   QVector<QString> packageNames = FS::Packages::CachedNames();
@@ -106,13 +111,14 @@ void Courtroom::SearchForCharacterListAsync()
       const QString l_name = i_info.fileName();
       if (!FS::Checks::FileExists(ao_app->get_character_path(l_name, CHARACTER_CHAR_INI)) && !FS::Checks::FileExists(ao_app->get_character_path(l_name, CHARACTER_CHAR_JSON)))
         continue;
-      if(!currentIniswapList.contains(l_name))
+      if(!l_iniswap_list.contains(l_name))
       {
-        currentIniswapList.append(l_name);
+        l_iniswap_list.append(l_name);
       }
     }
   }
 
+  return l_iniswap_list;
 }
 
 void Courtroom::UpdateIniswapList()
@@ -121,61 +127,9 @@ void Courtroom::UpdateIniswapList()
 
   update_default_iniswap_item();
   select_base_character_iniswap();
-  iniswapTimer = new QTimer(this);
-  //UpdateIniswapIcons(true, 2);
   update_iniswap_dropdown_searchable();
 
 
-}
-
-void Courtroom::UpdateIniswapIcons(bool reset, int batch_count, int starting_index)
-{
-
-  if(reset)
-  {
-    if (iniswapTimer && iniswapTimer->isActive())
-    {
-      iniswapTimer->stop();
-    }
-
-    iniswapTimer = new QTimer(this);
-
-    currentIniswapIconIndex = starting_index;
-  }
-
-
-  for (int i = 0; i < batch_count && currentIniswapIconIndex < currentIniswapList.length(); ++i, ++currentIniswapIconIndex)
-  {
-    const QString &i_name = currentIniswapList.at(currentIniswapIconIndex);
-    drSetItemIcon(ui_iniswap_dropdown, currentIniswapIconIndex, i_name, ao_app);
-  }
-
-  if (currentIniswapIconIndex < currentIniswapList.length())
-  {
-    if (iniswapTimer && iniswapTimer->isActive())
-    {
-      iniswapTimer->stop();
-    }
-
-    iniswapTimer = new QTimer(this);
-    connect(iniswapTimer, &QTimer::timeout, this, &Courtroom::OnIniswapTimerTimeout);
-    iniswapTimer->start(100);
-  }
-  else
-  {
-    if (iniswapTimer && iniswapTimer->isActive())
-    {
-      iniswapTimer->stop();
-    }
-  }
-
-
-}
-
-
-void Courtroom::OnIniswapTimerTimeout()
-{
-  UpdateIniswapIcons(false, 2);
 }
 
 void Courtroom::SetChatboxFocus()

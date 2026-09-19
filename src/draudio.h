@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMetaType>
+#include <QString>
 
 namespace DRAudio
 {
@@ -24,10 +25,10 @@ enum Option
    * If enabled, the engine will suppress all audio when the application is inactive.
    */
   OEngineSuppressBackgroundAudio = 0x4,
+
+  // independent SoundTouch pitch/tempo instead of linked resampling
+  OEngineIndependentPitchTempo = 0x8,
 };
 Q_DECLARE_FLAGS(Options, Option)
-
-QString get_bass_error(const int32_t p_error_code);
-QString get_last_bass_error();
 } // namespace DRAudio
 Q_DECLARE_METATYPE(DRAudio::Options)

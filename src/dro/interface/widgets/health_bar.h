@@ -12,7 +12,7 @@ public:
   explicit HealthBar(QString name, AOApplication *app, QWidget *parent = nullptr);
 
   void SetValue(int value);
-  int GetValue() { return m_Value; }
+  int GetValue() const { return m_Value; }
 
 private:
   AOApplication *m_App = nullptr;

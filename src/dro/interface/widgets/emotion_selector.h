@@ -1,7 +1,7 @@
 #ifndef EMOTION_SELECTOR_H
 #define EMOTION_SELECTOR_H
 
-#include <AOApplication.h>
+#include <aoapplication.h>
 #include <QObject>
 #include <QWidget>
 #include "dro/interface/widgets/rp_widget.h"
@@ -49,12 +49,6 @@ private:
 public slots:
   void dropdownChanged(int id);
   void emoteClicked(int id);
-
-private slots:
-  void showEmoteTooltip(int id, QPoint pos);
-  void hideEmoteTooltip(int id);
-
-signals:
 
 protected:
   void wheelEvent(QWheelEvent *event) override;

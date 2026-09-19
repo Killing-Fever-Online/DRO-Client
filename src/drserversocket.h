@@ -7,7 +7,6 @@
 #include <QTcpSocket>
 #include <QtWebSockets/QWebSocket>
 
-class QTcpSocket;
 class QTimer;
 
 class DRServerSocket : public QObject
@@ -39,7 +38,7 @@ signals:
   void socket_error(QString);
 
 private:
-  static const int CONNECTING_DELAY;
+  static constexpr int CONNECTING_DELAY_MS = 5000;
 
   struct DRSocket
   {

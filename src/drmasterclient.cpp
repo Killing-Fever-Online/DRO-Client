@@ -66,7 +66,7 @@ void DRMasterClient::send_get_request(QString request, Delegate delegate)
 
 void DRMasterClient::process_request()
 {
-  QNetworkReply *l_reply = dynamic_cast<QNetworkReply *>(sender());
+  QNetworkReply *l_reply = qobject_cast<QNetworkReply *>(sender());
   if (!l_reply)
   {
     qCritical() << "error: sender is not expected object" << sender();

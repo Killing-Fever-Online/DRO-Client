@@ -1,21 +1,32 @@
-# Installation instructions
-1. Open your terminal and run the following commands in order.
+# How to run
 
-For Ubuntu 20.04 and lower:
+1. Install Qt6 and the media libraries.
+
+Ubuntu / Debian:
 ```
-sudo apt-get install qt5-default libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediawidgets5 gstreamer1.0-libav
-```
-For Ubuntu 21.10 and higher:
-```
-sudo apt-get install libqt5core5a libqt5concurrent5 libqt5multimedia5 libqt5multimedia5-plugins libqt5widgets5 libqt5x11extras5 gstreamer1.0-libav
+sudo apt install libqt6core6 libqt6gui6 libqt6widgets6 libqt6network6 libqt6websockets6 libqt6multimedia6 gstreamer1.0-libav
 ```
 
-2. Update dro-client and dro-client.sh permissions
+Fedora:
 ```
-chmod +x dro-client.sh
-chmod +x dro-client
+sudo dnf install qt6-qtbase qt6-qtwebsockets qt6-qtmultimedia gstreamer1-libav
 ```
-3. Launch
+
+Arch:
+```
+sudo pacman -S qt6-base qt6-websockets qt6-multimedia gst-libav
+```
+
+2. Make the files runnable.
+```
+chmod +x dro-client.sh dro-client
+```
+
+3. Start it.
 ```
 ./dro-client.sh
 ```
+
+## If it does not start
+
+Run `./dro-client` in a terminal and read the error. If it mentions a missing `libQt6` file, step 1 did not finish. Run it again.

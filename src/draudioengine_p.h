@@ -19,7 +19,6 @@ public:
   using ptr = QPointer<DRAudioEnginePrivate>;
 
   QObjectList children;
-  QPointer<DRAudioEngine> engine;
 
   QPointer<QTimer> update_timer;
   QVector<DRAudioDevice> device_list;
@@ -28,6 +27,8 @@ public:
   std::optional<DRAudioDevice> favorite_device;
 
   int32_t volume = 0;
+  float pitch = 0.0f;
+  float speed = 0.0f;
   DRAudio::Options options;
   QMap<DRAudio::Family, DRAudioStreamFamily::ptr> family_map;
 
@@ -48,5 +49,7 @@ public slots:
   void update_device_list();
   void update_current_device();
   void update_volume();
+  void update_pitch();
+  void update_speed();
   void update_options();
 };

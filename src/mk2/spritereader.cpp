@@ -93,11 +93,6 @@ SpriteFrame SpriteReader::get_frame(int p_number)
   return SpriteFrame{};
 }
 
-QVector<SpriteFrame> SpriteReader::get_frame_list()
-{
-  return QVector<SpriteFrame>{};
-}
-
 SpriteReader::State SpriteReader::get_state() const
 {
   return m_state;

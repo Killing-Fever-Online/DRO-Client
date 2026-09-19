@@ -10,7 +10,6 @@
 
 DRChatLog::DRChatLog(QWidget *parent)
     : QTextBrowser(parent)
-    , dr_config(new AOConfig(this))
 {
   connect(this, &DRChatLog::message_queued, this, &DRChatLog::_p_write_message_queue);
 }

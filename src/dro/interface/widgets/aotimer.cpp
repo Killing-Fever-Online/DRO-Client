@@ -8,7 +8,6 @@ AOTimer::AOTimer(QString name, QWidget *p_parent)
 {
   // Adapted from:
   // https://stackoverflow.com/questions/36679708/how-to-make-a-chronometer-in-qt-c
-  setStyleSheet("QLabel { color : white; }");
   setFrameStyle(QFrame::NoFrame);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -148,22 +147,4 @@ void AOTimer::set_firing_interval(int new_firing_interval)
 
   if (!paused)
     firing_timer->start();
-}
-
-void AOTimer::set_concentrate_mode()
-{
-  set_timestep_length(-12);
-  set_firing_interval(120);
-}
-
-void AOTimer::set_normal_mode()
-{
-  set_timestep_length(-12);
-  set_firing_interval(12);
-}
-
-void AOTimer::set_fast_forward_mode()
-{
-  set_timestep_length(-24);
-  set_firing_interval(12);
 }

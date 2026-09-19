@@ -74,27 +74,6 @@ mk2::SpriteFrame SpriteSeekingReader::get_frame(int p_number)
   return m_current_frame;
 }
 
-QVector<mk2::SpriteFrame> SpriteSeekingReader::get_frame_list()
-{
-  QVector<SpriteFrame> l_frame_list;
-
-  if (is_valid())
-  {
-    l_frame_list.resize(m_reader.imageCount());
-
-    // always seek the frame after the current one
-    int l_next_frame_number = m_frame_number + 1;
-    for (int i = 0; i < m_frame_count; ++i)
-    {
-      l_next_frame_number %= m_frame_count;
-      l_frame_list.replace(l_next_frame_number, get_frame(l_next_frame_number));
-      ++l_next_frame_number;
-    }
-  }
-
-  return l_frame_list;
-}
-
 void SpriteSeekingReader::load()
 {
   m_raw_data.clear();

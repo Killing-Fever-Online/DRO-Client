@@ -4,13 +4,12 @@
 
 QStringList s_featureList = {};
 
-void ServerMetadata::SetFeatureList(QStringList features)
+void ServerMetadata::SetFeatureList(const QStringList &features)
 {
-  s_featureList.clear();
   s_featureList = features;
 }
 
-bool ServerMetadata::FeatureSupported(QString featureName)
+bool ServerMetadata::FeatureSupported(const QString &featureName)
 {
   return s_featureList.contains(featureName);
 }

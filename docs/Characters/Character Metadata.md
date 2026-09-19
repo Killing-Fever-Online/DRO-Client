@@ -61,6 +61,7 @@ Character parameter files are used to define the various variables used across a
 - **Description:** Determines how the character is scaled in the view.
     - `"width_smooth"` - Scales the character so that it fits the width of the viewport. 
     - `"width_pixels"` - Designed for pixel art to make sure the sprite is only scaled perfectly. 
+    - `"pixels"` - Scales the character to the height of the viewport without smoothing. Not integer scaling.
 
 ---
 

@@ -29,6 +29,12 @@ LegacyViewport::LegacyViewport(QWidget *parent) : RPViewport(parent)
   RuntimeLoop::assignViewport(this);
 }
 
+LegacyViewport::~LegacyViewport()
+{
+  RuntimeLoop::assignViewport(nullptr);
+  delete m_backgroundData;
+}
+
 void LegacyViewport::update()
 {
   m_graphicsView->scene()->update();
@@ -139,6 +145,8 @@ void LegacyViewport::loadBackground(QString background)
   AOApplication *aoApp = AOApplication::getInstance();
   const QString jsonPath = aoApp->find_asset_path(aoApp->get_background_path(m_backgroundName) + "/" + "background.json");
 
+  delete m_backgroundData;
+  m_backgroundData = nullptr;
   if(FS::Checks::FileExists(jsonPath))
     m_backgroundData = new BackgroundReader();
   else

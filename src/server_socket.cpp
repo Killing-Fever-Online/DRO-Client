@@ -1,6 +1,9 @@
 #include "aoapplication.h"
 
 #include <QDebug>
+#include <QScopedValueRollback>
+#include <QThread>
+#include <QTimer>
 
 #include "aoconfig.h"
 #include "courtroom.h"
@@ -16,7 +19,6 @@
 #include "hardware_functions.h"
 #include "lobby.h"
 #include "version.h"
-#include "dro/fs/fs_reading.h"
 #include "dro/network/metadata/server_metadata.h"
 #include "dro/network/metadata/area_metadata.h"
 #include "dro/network/json_packet.h"
@@ -29,6 +31,7 @@ static int s_lastMessageId = -1;
 
 void AOApplication::connect_to_server(DRServerInfo p_server)
 {
+  m_packet_backlog.clear();
   m_server_socket->connect_to_server(p_server);
 }
 
@@ -43,12 +46,12 @@ void AOApplication::send_server_packet(DRPacket p_packet)
   m_server_socket->send_packet(p_packet);
 }
 
-AOApplication::ServerStatus AOApplication::last_server_status()
+AOApplication::ServerStatus AOApplication::last_server_status() const
 {
   return m_server_status;
 }
 
-bool AOApplication::joined_server()
+bool AOApplication::joined_server() const
 {
   return m_server_status == Joined;
 }
@@ -59,6 +62,7 @@ void AOApplication::_p_handle_server_state_update(DRServerSocket::ConnectionStat
   switch (p_state)
   {
   case DRServerSocket::NotConnected:
+    m_packet_backlog.clear();
     switch (l_previous_status)
     {
     case Connecting:
@@ -99,6 +103,28 @@ void AOApplication::_p_handle_server_state_update(DRServerSocket::ConnectionStat
 
 void AOApplication::_p_handle_server_packet(DRPacket p_packet)
 {
+  m_packet_backlog.enqueue(p_packet);
+  _p_drain_packet_backlog();
+}
+
+void AOApplication::_p_drain_packet_backlog()
+{
+  // mid-drain or a modal is up; retry once back in the base loop
+  if (m_processing_packets || thread()->loopLevel() > 1)
+  {
+    if (!m_packet_drain_timer->isActive())
+      m_packet_drain_timer->start();
+    return;
+  }
+
+  QScopedValueRollback<bool> l_processing(m_processing_packets, true);
+  while (!m_packet_backlog.isEmpty())
+    _p_process_server_packet(m_packet_backlog.dequeue());
+  m_packet_drain_timer->stop();
+}
+
+void AOApplication::_p_process_server_packet(DRPacket p_packet)
+{
   const QString l_header = p_packet.get_header();
   // Encoded packet data is useful for LoadEvidence packet "LE"
   const QStringList l_content_encoded = p_packet.get_content();
@@ -127,8 +153,6 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       return;
 
     s_lastMessageId = l_content.at(1).toInt();
-
-
   }
   else if (l_header == "ID")
   {
@@ -138,10 +162,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     metadata::user::setClientId(l_content.at(0).toInt());
     m_server_software = l_content.at(1);
 
-
-    int versionBase = s_lastMessageId == -1 ? 0 : s_lastMessageId;
+    const int versionBase = s_lastMessageId == -1 ? 0 : s_lastMessageId;
     send_server_packet(DRPacket("ID", {"DRO", get_version_string(versionBase)}));
-
   }
   else if (l_header == "FL")
   {
@@ -179,6 +201,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
   }
   else if (l_header == "PN")
   {
+    if (!is_lobby_constructed)
+      return;
     if (l_content.size() < 2)
       return;
 
@@ -186,6 +210,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
   }
   else if (l_header == "SI")
   {
+    if (!is_lobby_constructed)
+      return;
     if (l_content.size() != 3)
       return;
 
@@ -203,10 +229,10 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     m_loaded_area_list = false;
 
     // Obtain current server info
-    DRServerInfo l_current_server = m_lobby->get_selected_server();
+    const DRServerInfo l_current_server = m_lobby->get_selected_server();
     // Set up the logging information before courtroom is constructed
-    static QRegularExpression validateFilename(R"([\\/:*?\"<>|\']")");
-    QString log_folder = l_current_server.to_info().remove(validateFilename) + "/";
+    static const QRegularExpression validateFilename(R"([\\/:*?"<>|'])");
+    const QString log_folder = l_current_server.to_info().remove(validateFilename) + "/";
 
     this->icchatlogsfilename = log_folder + QDateTime::currentDateTimeUtc().toString(this->log_timestamp);
     qInfo() << "setting log/replay name to " << this->icchatlogsfilename;
@@ -253,7 +279,6 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       CharacterManager::get().SetCharaTaken(i, l_content.at(i) == "-1");
     }
 
-
     CharacterManager::get().SetCharList(l_chr_list);
   }
   else if (l_header == "SC")
@@ -274,12 +299,14 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     if (is_lobby_constructed)
     {
       m_lobby->set_loading_text("Loading chars:\n" + QString::number(m_loaded_characters) + "/" + QString::number(m_character_count));
-      int total_loading_size = m_character_count + m_evidence_count + m_music_count;
-      int loading_value = (m_loaded_characters / static_cast<double>(total_loading_size)) * 100;
+      const int total_loading_size = m_character_count + m_evidence_count + m_music_count;
+      const int loading_value = (m_loaded_characters / static_cast<double>(total_loading_size)) * 100;
       m_lobby->set_loading_value(loading_value);
-
-      send_server_packet(DRPacket("RM"));
     }
+
+    // the handshake must continue even with the lobby gone
+    if (!joined_server())
+      send_server_packet(DRPacket("RM"));
   }
   else if (l_header == "SM") // TODO remove block for 1.2.0+
   {
@@ -314,27 +341,35 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     m_courtroom->set_music_list(l_music_list);
 
     m_loaded_music = m_music_count;
-    m_lobby->set_loading_text("Loading music:\n" + QString::number(m_loaded_music) + "/" + QString::number(m_music_count));
-    int total_loading_size = m_character_count + m_evidence_count + m_music_count;
-    int loading_value = ((m_loaded_characters + m_loaded_evidence + m_loaded_music) / static_cast<double>(total_loading_size)) * 100;
-    m_lobby->set_loading_value(loading_value);
+    if (is_lobby_constructed)
+    {
+      m_lobby->set_loading_text("Loading music:\n" + QString::number(m_loaded_music) + "/" + QString::number(m_music_count));
+      const int total_loading_size = m_character_count + m_evidence_count + m_music_count;
+      const int loading_value = ((m_loaded_characters + m_loaded_evidence + m_loaded_music) / static_cast<double>(total_loading_size)) * 100;
+      m_lobby->set_loading_value(loading_value);
+    }
     send_server_packet(DRPacket("RD"));
   }
   else if (l_header == "JSN")
   {
+    if (l_content.size() < 1)
+      return;
+
     JsonPacket::ProcessJson(l_content.at(0));
   }
   else if (l_header == "LIST_REASON")
   {
     if (!is_courtroom_constructed)
       return;
-    int prompt = l_content.at(0).toInt();
+    if (l_content.size() < 2)
+      return;
+    const int prompt = l_content.at(0).toInt();
 
     if(!LuaBridge::LuaEventCall("AreaDescriptionEvent", l_content.at(1).toStdString()))
     {
       LuaBridge::LuaEventCall("OnAreaDescriptionRecieved", l_content.at(1).toStdString());
-      AreaMetadata::SetDescription(l_content.at(1).toUtf8());
-    };
+      AreaMetadata::SetDescription(l_content.at(1));
+    }
 
     m_courtroom->m_current_reportcard_reason = Courtroom::ReportCardReason(prompt);
     m_courtroom->construct_playerlist_layout();
@@ -357,10 +392,9 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       return;
     m_courtroom->set_music_list(TracklistMetadata::Parse(l_content));
 
-    if (!m_loaded_area_list && is_lobby_constructed)
+    if (!m_loaded_music_list && is_lobby_constructed)
     {
       m_lobby->set_loading_text("Loading music...");
-      send_server_packet(DRPacket("RD"));
     }
     m_loaded_music_list = true;
   }
@@ -404,11 +438,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
     l_area_bg.background = l_content.at(0);
     // position argument
     QString pos = "";
-    if (l_area_bg.background_tod_map.isEmpty())
-    {
-      if (l_content.size() >= 2)
-        pos = l_content.at(1);
-    }
+    if (l_content.size() >= 2)
+      pos = l_content.at(1);
     // Test for Time of Day data
     for (int i = 2; i < l_content.size(); ++i)
     {
@@ -488,8 +519,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
   {
     if (is_courtroom_constructed && l_content.size() > 0)
     {
-      int f_cid = metadata::user::GetCharacterId();
-      int remote_cid = l_content.at(0).toInt();
+      const int f_cid = metadata::user::GetCharacterId();
+      const int remote_cid = l_content.at(0).toInt();
 
       if (f_cid != remote_cid && remote_cid != -1)
         return;
@@ -516,7 +547,7 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
   }
   else if (l_header == "CL")
   {
-    if (is_courtroom_constructed && l_content.size() > 0)
+    if (is_courtroom_constructed && l_content.size() > 1)
       m_courtroom->handle_clock(l_content.at(1));
   }
   else if (l_header == "GM")
@@ -540,7 +571,7 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       return;
     if (!is_courtroom_constructed)
       return;
-    int timer_id = l_content.at(0).toInt();
+    const int timer_id = l_content.at(0).toInt();
     m_courtroom->resume_timer(timer_id);
   }
   else if (l_header == "TST")
@@ -550,8 +581,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       return;
     if (!is_courtroom_constructed)
       return;
-    int timer_id = l_content.at(0).toInt();
-    int new_time = l_content.at(1).toInt();
+    const int timer_id = l_content.at(0).toInt();
+    const int new_time = l_content.at(1).toInt();
     m_courtroom->set_timer_time(timer_id, new_time);
   }
   else if (l_header == "TSS")
@@ -561,8 +592,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       return;
     if (!is_courtroom_constructed)
       return;
-    int timer_id = l_content.at(0).toInt();
-    int timestep_length = l_content.at(1).toInt();
+    const int timer_id = l_content.at(0).toInt();
+    const int timestep_length = l_content.at(1).toInt();
     m_courtroom->set_timer_timestep(timer_id, timestep_length);
   }
   else if (l_header == "TSF")
@@ -572,8 +603,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       return;
     if (!is_courtroom_constructed)
       return;
-    int timer_id = l_content.at(0).toInt();
-    int firing_interval = l_content.at(1).toInt();
+    const int timer_id = l_content.at(0).toInt();
+    const int firing_interval = l_content.at(1).toInt();
     m_courtroom->set_timer_firing(timer_id, firing_interval);
   }
   else if (l_header == "TSR")
@@ -583,8 +614,8 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       return;
     if (!is_courtroom_constructed)
       return;
-    int timer_id = l_content.at(0).toInt();
-    QString timer_format = l_content.at(1);
+    const int timer_id = l_content.at(0).toInt();
+    const QString timer_format = l_content.at(1);
     m_courtroom->set_timer_format(timer_id, timer_format);
   }
   else if (l_header == "TP")
@@ -594,7 +625,7 @@ void AOApplication::_p_handle_server_packet(DRPacket p_packet)
       return;
     if (!is_courtroom_constructed)
       return;
-    int timer_id = l_content.at(0).toInt();
+    const int timer_id = l_content.at(0).toInt();
     m_courtroom->pause_timer(timer_id);
   }
   else if (l_header == "SP")

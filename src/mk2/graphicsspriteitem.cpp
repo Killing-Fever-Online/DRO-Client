@@ -21,16 +21,12 @@
 
 #include <QFileInfo>
 #include <QGraphicsScene>
-#include <QOpenGLContext>
 #include <QPainter>
 #include <QVector3D>
-
-#include <functional>
 
 #include <modules/managers/scene_manager.h>
 #include "dro/param/animation_reader.h"
 #include "dro/interface/courtroom_layout.h"
-#include "spritedynamicreader.h"
 #include "spriteseekingreader.h"
 #include "aoapplication.h"
 #include "dro/system/text_encoding.h"
@@ -94,11 +90,6 @@ void GraphicsSpriteItem::set_file_name(QString p_file_name)
   m_player->set_file_name(p_file_name);
 }
 
-QIODevice *GraphicsSpriteItem::get_device() const
-{
-  return m_player->get_device();
-}
-
 void GraphicsSpriteItem::set_device(QIODevice *p_device)
 {
   m_player->set_device(p_device);
@@ -124,12 +115,6 @@ void GraphicsSpriteItem::start(ScalingMode scaling, double scale)
   RuntimeLoop::setPause(true);
   m_player->start(scaling, scale);
   RuntimeLoop::setPause(false);
-}
-
-void GraphicsSpriteItem::restart()
-{
-  stop();
-  start();
 }
 
 void GraphicsSpriteItem::setVerticalOffset(int t_offset)
@@ -179,11 +164,6 @@ bool GraphicsSpriteItem::setCharacterAnimation(QString name, QString character, 
 void GraphicsSpriteItem::stop()
 {
   m_player->stop();
-}
-
-void GraphicsSpriteItem::setFlipped(bool state)
-{
-  m_isFlipped = state;
 }
 
 void GraphicsSpriteItem::setMirrored(bool state)
@@ -240,31 +220,6 @@ void GraphicsSpriteItem::processOverlays(const QString &overlayString, const QSt
   }
 }
 
-void GraphicsSpriteItem::processOverlays(const QVector<EmoteLayer> &emoteLayers, const QString& character, const QString& emotePath, const QString& outfitName)
-{
-  clearImageLayers();
-
-  QString path = QFileInfo(emotePath).path();
-  if (!path.isEmpty()) path += "/";
-
-  for(const EmoteLayer &layer : emoteLayers)
-  {
-    QString filePath = AOApplication::getInstance()->get_character_sprite_idle_path(character, path + layer.spriteName);
-    if(!outfitName.isEmpty())
-    {
-      const QString currentOutfitName = AOApplication::getInstance()->get_character_sprite_idle_path(character, "outfits/" + outfitName +  "/" + layer.spriteName);
-      if(FS::Checks::FileExists(currentOutfitName)) filePath = currentOutfitName;
-    }
-    else
-    {
-      const QString currentOutfitName = AOApplication::getInstance()->get_character_sprite_idle_path(character, layer.spriteName);
-      if(FS::Checks::FileExists(currentOutfitName)) filePath = currentOutfitName;
-    }
-    createOverlay(layer, filePath);
-  }
-
-}
-
 void GraphicsSpriteItem::createOverlay(const QString &characterName, const QString &emoteName, const QString &outfitName, const QStringList &layerStrings)
 {
   m_LayersExist = true;
@@ -318,35 +273,6 @@ void GraphicsSpriteItem::createOverlay(const QString &characterName, const QStri
 
   update();
   m_player->scale_current_frame();
-}
-
-void GraphicsSpriteItem::createOverlay(const QString &imageName, const QString &imageOrder, QRectF rect, const QString &layerName, bool detatched)
-{
-  m_LayersExist = true;
-
-  if(detatched)
-  {
-    const QRectF &normRect = rect;
-    const QRectF sceneRect = scene()->sceneRect();
-    rect.setLeft((normRect.left()) * sceneRect.width() / 1000.0);
-    rect.setTop((normRect.top()) * sceneRect.height() / 1000.0);
-    rect.setWidth(normRect.width() * sceneRect.width() / 1000.0);
-    rect.setHeight(normRect.height() * sceneRect.height() / 1000.0);
-  }
-
-  SpriteLayer *layer = new SpriteLayer(imageName, rect);
-  layer->setName(layerName);
-  layer->setDetatch(detatched);
-
-  if(imageOrder.toLower() == "below")
-  {
-    m_spriteLayersBelow.append(layer);
-  }
-  else
-  {
-    m_spriteLayers.append(layer);
-  }
-  update();
 }
 
 void GraphicsSpriteItem::createOverlay(const EmoteLayer &layer, const QString &imagePath)
@@ -629,11 +555,6 @@ void GraphicsSpriteItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     painter->drawPixmap(drawPos, pixmap);
   }
   painter->restore();
-}
-
-void GraphicsSpriteItem::paintGL()
-{
-  qDebug() << QOpenGLContext::currentContext()->format();
 }
 
 void GraphicsSpriteItem::notify_size()

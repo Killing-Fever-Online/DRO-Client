@@ -23,8 +23,6 @@ signals:
   void message_queued();
 
 private:
-  AOConfig *dr_config = nullptr;
-
   class Message
   {
   public:

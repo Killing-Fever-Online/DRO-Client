@@ -14,7 +14,7 @@ AOMusicPlayer::AOMusicPlayer(QObject *p_parent)
   m_family->set_capacity(1); // a single song is needed
 }
 
-void AOMusicPlayer::play(QString p_song, BGMPlayback playbackType)
+void AOMusicPlayer::play(const QString &p_song, BGMPlayback playbackType, float pitch, float speed)
 {
   m_filename = p_song;
 
@@ -90,7 +90,8 @@ void AOMusicPlayer::play(QString p_song, BGMPlayback playbackType)
     if (newSong->is_playing())
       qDebug() << "playing" << newSong->get_file_name();
 
-    newSong->set_speed(0.0f);
+    newSong->set_speed(speed);
+    newSong->set_pitch(pitch);
     newSong->toggle_reverb(false);
 
     mLastSong = mCurrentSong;

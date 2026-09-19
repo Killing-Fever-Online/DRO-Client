@@ -19,7 +19,6 @@ signals:
 
 private:
   bool m_hide_when_done;
-  bool m_mirrored;
 
 private slots:
   void update_visibility();

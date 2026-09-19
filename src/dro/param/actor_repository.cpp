@@ -31,6 +31,8 @@ ActorData *dro::actor::user::load(QString folder)
   }
 
   s_currentFolder = folder;
+  delete s_currentActor;
+  s_currentActor = nullptr;
   QString l_jsonPath = AOApplication::getInstance()->get_character_path(folder, CHARACTER_CHAR_JSON);
 
   if(FS::Checks::FileExists(l_jsonPath))

@@ -42,8 +42,6 @@ public:
 
   QString get_file_name() const;
 
-  QIODevice *get_device() const;
-
   SpriteReader::ptr get_reader() const;
 
   SpritePlayer *get_player() const;

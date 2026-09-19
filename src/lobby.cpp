@@ -22,20 +22,14 @@
 #include <QCollator>
 #include <QDebug>
 #include <QFile>
-#include <QFontDatabase>
 #include <QIcon>
-#include <QInputDialog>
-#include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
-#include <QMessageBox>
 #include <QPixmap>
 #include <QProgressBar>
-#include <QScopedPointer>
 #include <QSettings>
 #include <QDesktopServices>
 
-#include <qfilesystemmodel.h>
 #include <qheaderview.h>
 #include <utility>
 #include "dro/fs/fs_reading.h"
@@ -55,7 +49,6 @@ Lobby::Lobby(AOApplication *p_ao_app)
   m_master_client = new DRMasterClient(this);
 
   setWindowTitle("Danganronpa Online (" + get_version_string() + ")");
-  Layout::ServerSelect::AssignLobby(this, ao_app);
 
   ui_background = new AOImageDisplay(this, ao_app);
 
@@ -63,16 +56,15 @@ Lobby::Lobby(AOApplication *p_ao_app)
   ui_gallery_background = new AOImageDisplay(this, ao_app);
   ui_gallery_preview = new AOImageDisplay(ui_gallery_background, ao_app);
 
-  \
   ui_public_server_filter = new RPButton(this);
 
   ui_favorite_server_filter = new RPButton(this);
 
-  ui_toggle_favorite = Layout::ServerSelect::CreateButton("add_to_fav", "addtofav", [this]() {this->on_add_to_fav_released();});
-  ui_refresh = Layout::ServerSelect::CreateButton("refresh", "refresh", [this]() {this->on_refresh_released();});
-  ui_connect = Layout::ServerSelect::CreateButton("connect", "connect", [this]() {this->on_connect_released();});
-  ui_gallery_toggle = Layout::ServerSelect::CreateButton("toggle_gallery", "toggle_gallery", [this]() {this->onGalleryToggle();});
-  ui_gallery_play = Layout::ServerSelect::CreateButton("play_replay", "play_replay", [this]() {this->onGalleryPlay();});
+  ui_toggle_favorite = Layout::ServerSelect::CreateButton(this, ao_app, "add_to_fav", "addtofav", [this]() {this->on_add_to_fav_released();});
+  ui_refresh = Layout::ServerSelect::CreateButton(this, ao_app, "refresh", "refresh", [this]() {this->on_refresh_released();});
+  ui_connect = Layout::ServerSelect::CreateButton(this, ao_app, "connect", "connect", [this]() {this->on_connect_released();});
+  ui_gallery_toggle = Layout::ServerSelect::CreateButton(this, ao_app, "toggle_gallery", "toggle_gallery", [this]() {this->onGalleryToggle();});
+  ui_gallery_play = Layout::ServerSelect::CreateButton(this, ao_app, "play_replay", "play_replay", [this]() {this->onGalleryPlay();});
   ui_gallery_play->setParent(ui_gallery_background);
 
   ui_config_panel = new RPButton(this);
@@ -120,7 +112,7 @@ Lobby::Lobby(AOApplication *p_ao_app)
 
   ui_cancel = new RPButton(ui_loading_background);
 
-  ui_replay_file_system_model = new QFileSystemModel;
+  ui_replay_file_system_model = new QFileSystemModel(this);
   ui_replay_file_system_model->setFilter(QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot);
   // Both replays and logs are available in the list
   ui_replay_file_system_model->setNameFilters(QStringList() << "*.json" << "*.txt");
@@ -182,11 +174,7 @@ Lobby::Lobby(AOApplication *p_ao_app)
 Lobby::~Lobby()
 {
   save_settings();
-}
-
-DRServerInfoList Lobby::get_combined_server_list()
-{
-  return m_combined_server_list;
+  delete m_replayWindow;
 }
 
 // sets images, position and size
@@ -373,7 +361,6 @@ void Lobby::load_favorite_server_list()
 
   DRServerInfoList l_server_list;
   QSettings l_ini(l_file_path, QSettings::IniFormat);
-  l_server_list.clear();
   QStringList l_group_list = l_ini.childGroups();
 
   {
@@ -455,7 +442,6 @@ void Lobby::update_server_list()
 {
   m_server_list = m_master_client->server_list();
   update_combined_server_list();
-  emit server_list_changed();
 }
 
 void Lobby::set_favorite_server_list(DRServerInfoList p_server_list)
@@ -463,7 +449,6 @@ void Lobby::set_favorite_server_list(DRServerInfoList p_server_list)
   m_favorite_server_list = p_server_list;
   save_favorite_server_list();
   update_combined_server_list();
-  emit favorite_server_list_changed();
 }
 
 void Lobby::update_combined_server_list()
@@ -524,22 +509,6 @@ void Lobby::select_current_server()
   }
 }
 
-void Lobby::onReplayRowChanged(int row)
-{
-  if (row == -1) return;
-
-  //QString lImagePath = ReplayManager::get().getReplayImagePath(mCurrentPackage, mCurrentCategory, pUiReplayList->item(row)->text());
-  //
-  //if(!file_exists(lImagePath))
-  //{
-  //  pUIReplayPreview->set_theme_image("replay_preview.png");
-  //}
-  //else
-  //{
-  //  pUIReplayPreview->set_image(lImagePath);
-  //}
-}
-
 void Lobby::onGalleryPackageChanged(int index)
 {
   m_currentPackage = "";
@@ -565,8 +534,6 @@ void Lobby::onGalleryCategoryChanged(int index)
   ui_replay_list->hideColumn(1);
   // Make sure the replay names are readable
   ui_replay_list->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-  // QStringList lReplays = dro::system::replays::io::packageContents(m_currentPackage, m_currentCategory);
-  // ui_replay_list->addItems(lReplays);
 }
 
 void Lobby::onGalleryToggle()

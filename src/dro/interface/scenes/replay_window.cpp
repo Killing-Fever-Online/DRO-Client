@@ -21,6 +21,12 @@ ReplayWindow::ReplayWindow()
   assignViewport(m_viewport);
 }
 
+ReplayWindow::~ReplayWindow()
+{
+  assignWindow(nullptr);
+  assignViewport(nullptr);
+}
+
 void ReplayWindow::setScrubberData(int length)
 {
   setState(ReplayState_Manual);

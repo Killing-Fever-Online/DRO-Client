@@ -41,26 +41,25 @@ public:
   void AssignDimensions(QWidget *t_widget, QString t_name, RPSceneType t_scene);
 
   //Widgets
-  void SetWidgetNames(QHash<QString, QWidget *> t_WidgetNames);
-  void addWidgetName(QString t_widgetName, QWidget *t_widget);
+  void SetWidgetNames(const QHash<QString, QWidget *> &t_WidgetNames);
+  void addWidgetName(const QString &t_widgetName, QWidget *t_widget);
 
   //Tabs
 
 
   //Data Management
-  bool getConfigBool(QString value);
-  bool getReloadPending();
+  bool getConfigBool(const QString &value);
+  bool getReloadPending() const;
   void toggleReload();
 
   //Widget Management
   pos_size_type resizePosition(pos_size_type t_position, double t_scale);
 
   void setResize(double size);
-  double getResize();
-  void setViewporResize(double size);
-  double getViewporResize();
+  double getResize() const;
+  double getViewporResize() const;
   void setFontResize(double size);
-  double getFontResize();
+  double getFontResize() const;
 
   void addComboBox(QString name, RPComboBox* lineEdit);
   void refreshComboBox();
@@ -101,8 +100,6 @@ private:
   QMap<QString, QWidget *> m_TabDeletionQueue = {};
 
   QHash<QString, QWidget *> m_WidgetNames = {};
-  QHash<QString, RPButton*> mButtonWidgets { };
-  QHash<QString, RPLineEdit*> mLineEditWidgets { };
   QHash<QString, RPComboBox*> mComboBoxWidgets { };
 
   bool mRequiresReload = true;

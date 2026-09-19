@@ -1,8 +1,5 @@
 #pragma once
 
-// std
-#include <functional>
-
 // qt
 #include <QObject>
 #include <QVariant>

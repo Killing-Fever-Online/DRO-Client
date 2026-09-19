@@ -50,7 +50,10 @@ namespace dro::network::metadata::user
 
   QString GetCharacterName()
   {
-    return IsSpectator() ? nullptr : CharacterManager::get().mServerCharacters.at(s_UserCharId).name;
+    const auto &characters = CharacterManager::get().mServerCharacters;
+    if (s_UserCharId < 0 || s_UserCharId >= characters.size())
+      return QString();
+    return characters.at(s_UserCharId).name;
   }
 
   bool ChangeCharacterId(int id)

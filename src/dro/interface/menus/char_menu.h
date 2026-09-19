@@ -22,16 +22,16 @@ public slots:
   void OnRandomizeIniswapTriggered();
 
 private:
-  QAction *p_UpdateCharacterFilesAction;
-  QAction *p_OpenDirectoryAction;
+  QAction *p_UpdateCharacterFilesAction = nullptr;
+  QAction *p_OpenDirectoryAction = nullptr;
 
 
-  QMenu* p_RandomizeMenu;
-  QAction *p_RandomServerAction;
-  QAction *p_RandomFavoritesAction;
-  QAction *p_RandomFilesAction;
+  QMenu* p_RandomizeMenu = nullptr;
+  QAction *p_RandomServerAction = nullptr;
+  QAction *p_RandomFavoritesAction = nullptr;
+  QAction *p_RandomFilesAction = nullptr;
 
-  Courtroom *parentCourtroom;
+  Courtroom *parentCourtroom = nullptr;
 };
 
 #endif // CHAR_MENU_H

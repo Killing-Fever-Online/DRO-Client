@@ -11,7 +11,7 @@ RPAmbiencePlayer::RPAmbiencePlayer(QObject *p_parent)
   m_family = DRAudioEngine::get_family(DRAudio::Family::FEffect);
 }
 
-void RPAmbiencePlayer::play(QString ambienceName)
+void RPAmbiencePlayer::play(const QString &ambienceName)
 {
   if(ambienceName == m_filename) return;
   m_filename = ambienceName;

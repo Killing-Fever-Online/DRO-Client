@@ -32,7 +32,6 @@ class AOCharButton;
 class AOConfig;
 class AOEmoteButton;
 class AOImageDisplay;
-class RPLabel;
 class AOMovie;
 class AOMusicPlayer;
 class AONoteArea;
@@ -49,7 +48,6 @@ class DRShoutMovie;
 class DRSplashMovie;
 class DRStickerViewer;
 class RPTextEdit;
-#include <QMainWindow>
 #include <QMap>
 #include <QModelIndex>
 #include <QQueue>
@@ -57,6 +55,7 @@ class RPTextEdit;
 #include <QSlider>
 #include <QStack>
 #include <QTextCharFormat>
+#include <QTextDocumentFragment>
 #include <QTreeWidget>
 #include <QRandomGenerator>
 
@@ -78,7 +77,6 @@ class QLabel;
 #include <mk2/drplayer.h>
 #include "dro/interface/widgets/emotion_selector.h"
 #include "dro/interface/widgets/choice_dialog.h"
-#include "dro/interface/widgets/viewport_overlay.h"
 
 using namespace dro::network;
 
@@ -128,39 +126,39 @@ public:
   Courtroom(AOApplication *p_ao_app, QWidget *parent = nullptr);
   ~Courtroom();
 
-  void set_area_list(QStringList area_list);
-  void set_music_list(QStringList music_list);
+  void set_area_list(const QStringList &area_list);
+  void set_music_list(const QStringList &music_list);
 
   // sets position of widgets based on theme ini files
   void set_widgets();
-  void setupWidgetElement(QWidget *widget, QString name, bool visible = true);
-  void setupWidgetElement(AOImageDisplay *widget, QString name, QString image, bool visible = true);
-  void setupWidgetElement(RPTextEdit *widget, QString name, QString defaultText, Qt::TextInteractionFlag flag = Qt::TextEditable, bool visible = true);
+  void setupWidgetElement(QWidget *widget, const QString &name, bool visible = true);
+  void setupWidgetElement(AOImageDisplay *widget, const QString &name, const QString &image, bool visible = true);
+  void setupWidgetElement(RPTextEdit *widget, const QString &name, const QString &defaultText, Qt::TextInteractionFlag flag = Qt::TextEditable, bool visible = true);
 
   // helper function that calls above function on the relevant widgets
   void set_fonts();
 
-  void set_window_title(QString p_title);
+  void set_window_title(const QString &p_title);
 
   // sets the current background to argument. also does some checks to see if
   // it's a legacy bg
-  DRAreaBackground get_background();
-  void set_background(DRAreaBackground p_area_bg, QString pos = "");
+  DRAreaBackground get_background() const;
+  void set_background(const DRAreaBackground &p_area_bg, const QString &pos = "");
 
   void set_tick_rate(const int tick_rate);
 
   // sets the character position
-  void set_character_position(QString p_pos);
+  void set_character_position(const QString &p_pos);
 
-  void send_ooc_packet(QString ooc_message);
+  void send_ooc_packet(const QString &ooc_message);
 
   void ignore_next_showname();
-  void send_showname_packet(QString p_showname);
+  void send_showname_packet(const QString &p_showname);
 
   // called when a DONE#% from the server was received
   void done_received();
 
-  void set_ambient(QString ambient_sfx);
+  void set_ambient(const QString &ambient_sfx);
   void play_ambient();
 
   QString get_current_background() const;
@@ -172,13 +170,13 @@ public:
   void update_background_scene();
 
   // Sets the positions dropdown to a list of positions provided
-  void set_pos_dropdown(QStringList pos_list);
+  void set_pos_dropdown(const QStringList &pos_list);
 
   // displays the current background
   void display_background_scene();
 
   // returns a position map based on legacy background implementation
-  DRPositionMap get_legacy_background(QString background);
+  DRPositionMap get_legacy_background(const QString &background);
 
   // sets text color based on text color in chatmessage
   void set_text_color();
@@ -189,26 +187,17 @@ public:
   // implementations in path_functions.cpp
   QString get_background_path(QString p_file);
 
-private:
-  QTimer* iniswapTimer;
-
-private slots:
-  void OnIniswapTimerTimeout();
-
 public:
   QHash<QString, QWidget *> widget_names;
 
   void SetChatboxFocus();
   QStringList currentIniswapList = {"Default"};
-  void SearchForCharacterListAsync();
+  QStringList SearchForCharacterListAsync();
   void UpdateIniswapList();
-  void UpdateIniswapIcons(bool reset, int batch_count, int starting_index = 0);
-  int currentIniswapIconIndex = 0;
 
-  QString get_character_ini();
-  QString get_character_content_url();
+  QString get_character_ini() const;
+  QString get_character_content_url() const;
   void update_iniswap_list();
-  QStringList SearchForCharacterList();
   void update_default_iniswap_item();
   void select_base_character_iniswap();
   void refresh_character_content_url();
@@ -220,7 +209,7 @@ public:
   void set_evidence_list(QVector<EvidenceData> &f_evidence_list);
 
   // Set the showname of the client
-  void set_showname(QString p_showname);
+  void set_showname(const QString &p_showname);
 
   // sets up widgets
   void setup_courtroom();
@@ -228,16 +217,16 @@ public:
   // properly sets up some varibles: resets user state
   void enter_courtroom(int p_cid);
 
-  void filter_list_widget(QListWidget *widget, QString filter);
-  void filter_tree_widget(QTreeWidget *widget, QString filter);
-  bool is_area_music_list_separated();
+  void filter_list_widget(QListWidget *widget, const QString &filter);
+  void filter_tree_widget(QTreeWidget *widget, const QString &filter);
+  bool is_area_music_list_separated() const;
   void list_music();
   void list_areas();
 
   void list_note_files();
   void set_note_files();
 
-  void move_widget(QWidget *p_widget, QString p_identifier);
+  void move_widget(QWidget *p_widget, const QString &p_identifier);
 
   void set_shouts();
 
@@ -248,7 +237,7 @@ public:
   void set_judge_enabled(bool p_enabled);
 
   // these are for OOC chat
-  void append_server_chatmessage(QString p_name, QString p_message);
+  void append_server_chatmessage(const QString &p_name, const QString &p_message);
 
   // handles resetting the UI after the server acknowledged the client sent an
   // message.
@@ -264,7 +253,7 @@ public:
   // Check if a shout is neccessary
   void attempt_shout();
   // If it is, show the provided character shout
-  void character_shout(QString l_shout_name);
+  void character_shout(const QString &l_shout_name);
   void handle_chatmessage_2();
   void handle_chatmessage_3();
 
@@ -290,7 +279,7 @@ public:
   // prints who played the song to IC chat and plays said song(if found on
   // local filesystem) takes in a list where the first element is the song
   // name and the second is the char id of who played it
-  void handle_song(QStringList p_contents);
+  void handle_song(const QStringList &p_contents);
 
   // sets the music playback type when you play a song
   void set_bgm_playback_type(BGMPlayback p_bgm_playback);
@@ -303,7 +292,7 @@ public:
   void update_music_text_anim();
 
   // handle server-side clock animation and display
-  void handle_clock(QString time);
+  void handle_clock(const QString &time);
 
   void play_preanim();
 
@@ -329,7 +318,7 @@ public:
   void pause_timer(int timer_id);
 
   template <typename T>
-  int adapt_numbered_items(QVector<T *> &item_vector, QString config_item_number, QString item_name);
+  int adapt_numbered_items(QVector<T *> &item_vector, const QString &config_item_number, const QString &item_name);
   ReportCardReason m_current_reportcard_reason = ReportCardReason::None;
   QString m_area_description = "";
 
@@ -400,6 +389,9 @@ private:
 
 
   ChatTypes m_current_chat_type = ChatTypes::Talk;
+
+  int m_blankpost_enter_count = 0;
+  qint64 m_blankpost_enter_time = 0;
 
   QTimer *m_loading_timer;
   mk2::SpriteReaderSynchronizer *m_preloader_sync;
@@ -498,8 +490,6 @@ private:
   AONoteArea *ui_note_area = nullptr;
 
 
-  ViewportOverlay *w_ViewportOverlay = nullptr;
-
   RPSlider *ui_slider_horizontal_axis = nullptr;
   RPSlider *ui_slider_vertical_axis = nullptr;
   RPSlider *ui_slider_scale = nullptr;
@@ -591,6 +581,7 @@ private:
   QLineEdit *ui_ic_chat_message_field = nullptr;
   RPLineEditFilter *ui_ic_chat_message_filter = nullptr;
   QLabel *ui_ic_chat_message_counter = nullptr;
+  QCheckBox *ui_additive = nullptr;
   int m_lastTypingPacket = 0;
 
 
@@ -662,9 +653,10 @@ private:
   QVector<bool> shouts_enabled;
   QVector<bool> effects_enabled;
   QVector<bool> wtce_enabled;
-  QVector<bool> free_blocks_enabled;
 
   QVector<DR::CommandData> message_components;
+  QTextDocumentFragment m_additive_previous;
+  int m_additive_base_position = 0;
 
   CharMenu *p_CharacterContextMenu;
   RPButton *ui_change_character = nullptr;
@@ -681,7 +673,6 @@ private:
   QCheckBox *ui_hide_character = nullptr;
 
   QVector<QCheckBox *> ui_checks; // 0 = pre, 1 = flip, 2 = hidden
-  QVector<RPLabel *> ui_labels;   // 0 = music, 1 = sfx, 2 = blip
   QVector<AOImageDisplay *> ui_label_images;
   QVector<QString> label_images = {"Pre", "Flip", "Hidden"};
 
@@ -751,15 +742,15 @@ private:
 
   void create_widgets();
 
-  QComboBox* setupComboBoxWidget(const QStringList& items, QString name, QString cssHeader);
+  QComboBox* setupComboBoxWidget(const QStringList& items, const QString &name, const QString &cssHeader);
 
   void connect_widgets();
   void set_widget_names();
   void reset_widget_names();
-  void insert_widget_name(QString p_widget_name, QWidget *p_widget);
-  void insert_widget_names(QVector<QString> &p_widget_names, QVector<QWidget *> &p_widgets);
+  void insert_widget_name(const QString &p_widget_name, QWidget *p_widget);
+  void insert_widget_names(const QVector<QString> &p_widget_names, const QVector<QWidget *> &p_widgets);
   template <typename T>
-  void insert_widget_names(QVector<QString> &p_widget_names, QVector<T *> &p_widgets);
+  void insert_widget_names(const QVector<QString> &p_widget_names, const QVector<T *> &p_widgets);
   void setupWidgetTabs();
   void set_widget_layers();
   void set_widget_layers_legacy();
@@ -776,15 +767,15 @@ private:
 
   void construct_playerlist();
 
-  QString get_current_position();
+  QString get_current_position() const;
 
   void load_note();
   void save_note();
-  void save_textlog(QString p_text);
+  void save_textlog(const QString &p_text);
 
 
-  QString get_shout_name(int shout_index);
-  QString get_effect_name(int effect_index);
+  QString get_shout_name(int shout_index) const;
+  QString get_effect_name(int effect_index) const;
 
   // Dequeue the chatmessage and return it
   MessageMetadata chatmessage_dequeue();
@@ -812,8 +803,8 @@ public slots:
   void hide_emote_tooltip(int id);
   void show_emote_tooltip(int id, QPoint global_pos);
 
-  void send_mc_packet(QString p_song, BGMPlayback playbackType = BGMPlayback_Standard);
-  void send_play_music(QString p_song, BGMPlayback playbackType = BGMPlayback_Standard);
+  void send_mc_packet(const QString &p_song, BGMPlayback playbackType = BGMPlayback_Standard);
+  void send_play_music(const QString &p_song, BGMPlayback playbackType = BGMPlayback_Standard);
   void send_play_random_music(QString category = "", BGMPlayback playbackType = BGMPlayback_Standard);
 
   void SwitchCharacterByName(const char* characterName);
@@ -828,7 +819,7 @@ private slots:
 
   void start_chat_timer();
   void stop_chat_timer();
-  int calculate_chat_tick_interval(int p_tickspeed = 0);
+  int calculate_chat_tick_interval(int p_tickspeed = 0) const;
   void precalculate_ic_message();
   void next_chat_letter();
   void post_chatmessage();
@@ -976,8 +967,8 @@ private:
   // sfx
 
 public:
-  std::optional<DRSfx> current_sfx();
-  QString current_sfx_file();
+  std::optional<DRSfx> current_sfx() const;
+  QString current_sfx_file() const;
   void load_current_character_sfx_list();
   void load_sfx_list_theme();
   void select_default_sfx();
@@ -1037,7 +1028,7 @@ private slots:
 };
 
 template <typename T>
-void Courtroom::insert_widget_names(QVector<QString> &p_widget_names, QVector<T *> &p_widgets)
+void Courtroom::insert_widget_names(const QVector<QString> &p_widget_names, const QVector<T *> &p_widgets)
 {
   QVector<QWidget *> widgets;
 

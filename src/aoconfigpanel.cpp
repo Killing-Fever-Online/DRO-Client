@@ -4,23 +4,19 @@
 #include "aoconfig.h"
 #include "aoguiloader.h"
 #include "datatypes.h"
-#include "drtheme.h"
-#include "mk2/spritedynamicreader.h"
 #include "version.h"
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDebug>
 #include <QDir>
+#include <QFileDialog>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QProcess>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSlider>
 #include <QSpinBox>
-#include <QStandardItemModel>
 #include <QStringListModel>
 #include <QTabWidget>
 
@@ -28,6 +24,7 @@
 
 #include "dro/system/localization.h"
 #include "dro/fs/fs_mounting.h"
+#include "dro/fs/fs_reading.h"
 
 using namespace dro::system;
 
@@ -81,7 +78,6 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   ui_discord_hide_character = AO_GUI_WIDGET(QCheckBox, "discord_hide_character");
 
   // game
-  //ui_themeModules = AO_GUI_WIDGET(QTreeView, "themeModules");
   ui_theme = AO_GUI_WIDGET(QComboBox, "theme");
   wSettingsLanguage = AO_GUI_WIDGET(QComboBox, "languageSelector");
   wLanguageCredits = AO_GUI_WIDGET(QLabel, "translationCredit");
@@ -102,6 +98,8 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   ui_message_queue_delay = AO_GUI_WIDGET(QSpinBox, "message_queue_delay");
   ui_emote_preview = AO_GUI_WIDGET(QCheckBox, "emote_preview");
   ui_sticky_sfx = AO_GUI_WIDGET(QCheckBox, "sticky_sfx");
+  ui_disable_blankpost = AO_GUI_WIDGET(QCheckBox, "disable_blankpost");
+  ui_soft_blankpost = AO_GUI_WIDGET(QCheckBox, "soft_blankpost");
 
 
   // IC message
@@ -147,7 +145,6 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
 
   // audio
   ui_device = AO_GUI_WIDGET(QComboBox, "device");
-  ui_favorite_device = AO_GUI_WIDGET(QCheckBox, "favorite_device");
   ui_master = AO_GUI_WIDGET(QSlider, "master");
   ui_master_value = AO_GUI_WIDGET(QLabel, "master_value");
   ui_suppress_background_audio = AO_GUI_WIDGET(QGroupBox, "suppress_background_audio");
@@ -169,6 +166,24 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   ui_blank_blips = AO_GUI_WIDGET(QCheckBox, "blank_blips");
   ui_punctuation_delay = AO_GUI_WIDGET(QSpinBox, "punctuation_delay");
   ui_reload_audiotracks = AO_GUI_WIDGET(QPushButton, "reload_audiotracks");
+  ui_master_pitch = AO_GUI_WIDGET(QSlider, "master_pitch");
+  ui_master_pitch_value = AO_GUI_WIDGET(QLabel, "master_pitch_value");
+  ui_master_tempo = AO_GUI_WIDGET(QSlider, "master_tempo");
+  ui_master_tempo_value = AO_GUI_WIDGET(QLabel, "master_tempo_value");
+  ui_effect_pitch = AO_GUI_WIDGET(QSlider, "effect_pitch");
+  ui_effect_pitch_value = AO_GUI_WIDGET(QLabel, "effect_pitch_value");
+  ui_effect_tempo = AO_GUI_WIDGET(QSlider, "effect_tempo");
+  ui_effect_tempo_value = AO_GUI_WIDGET(QLabel, "effect_tempo_value");
+  ui_music_pitch = AO_GUI_WIDGET(QSlider, "music_pitch");
+  ui_music_pitch_value = AO_GUI_WIDGET(QLabel, "music_pitch_value");
+  ui_music_tempo = AO_GUI_WIDGET(QSlider, "music_tempo");
+  ui_music_tempo_value = AO_GUI_WIDGET(QLabel, "music_tempo_value");
+  ui_blip_pitch = AO_GUI_WIDGET(QSlider, "blip_pitch");
+  ui_blip_pitch_value = AO_GUI_WIDGET(QLabel, "blip_pitch_value");
+  ui_blip_tempo = AO_GUI_WIDGET(QSlider, "blip_tempo");
+  ui_blip_tempo_value = AO_GUI_WIDGET(QLabel, "blip_tempo_value");
+  ui_independent_pitch_tempo = AO_GUI_WIDGET(QCheckBox, "independent_pitch_tempo");
+  ui_reset_pitch_tempo = AO_GUI_WIDGET(QPushButton, "reset_pitch_tempo");
   ui_theme_resize = AO_GUI_WIDGET(QDoubleSpinBox, "themeResizeSpinbox");
   ui_font_resize = AO_GUI_WIDGET(QDoubleSpinBox, "font_resize");
   ui_fade_duration = AO_GUI_WIDGET(QSpinBox, "FadeDurationBox");
@@ -184,10 +199,15 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
 
   // about
   ui_about = AO_GUI_WIDGET(QLabel, "about_label");
+  ui_about->setTextFormat(Qt::RichText);
+  ui_about->setOpenExternalLinks(true);
+  ui_about->setTextInteractionFlags(Qt::TextBrowserInteraction);
 
   // packages
   ui_packages_list = AO_GUI_WIDGET(QListWidget, "packages_list");
   ui_load_new_packages = AO_GUI_WIDGET(QPushButton, "load_new_packages");
+  ui_add_package_path = AO_GUI_WIDGET(QPushButton, "add_package_path");
+  ui_remove_package_path = AO_GUI_WIDGET(QPushButton, "remove_package_path");
   refresh_packages_list();
 
   // themes
@@ -231,6 +251,8 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   connect(m_config, &AOConfig::chat_ratelimit_changed, ui_chat_ratelimit, &QSpinBox::setValue);
   connect(m_config, &AOConfig::emote_preview_changed, ui_emote_preview, &QAbstractButton::setChecked);
   connect(m_config, &AOConfig::sticky_sfx_changed, ui_sticky_sfx, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::disable_blankpost_changed, ui_disable_blankpost, &QAbstractButton::setChecked);
+  connect(m_config, &AOConfig::soft_blankpost_changed, ui_soft_blankpost, &QAbstractButton::setChecked);
 
   // log
   connect(m_config, &AOConfig::log_max_lines_changed, ui_log_max_lines, &QSpinBox::setValue);
@@ -302,9 +324,13 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   connect(ui_message_queue_delay, &QSpinBox::valueChanged, m_config, &AOConfig::set_message_queue_delay);
   connect(ui_emote_preview, &QAbstractButton::toggled, m_config, &AOConfig::set_emote_preview);
   connect(ui_sticky_sfx, &QAbstractButton::toggled, m_config, &AOConfig::set_sticky_sfx);
+  connect(ui_disable_blankpost, &QAbstractButton::toggled, m_config, &AOConfig::set_disable_blankpost);
+  connect(ui_soft_blankpost, &QAbstractButton::toggled, m_config, &AOConfig::set_soft_blankpost);
 
   //packages
   connect(ui_load_new_packages, &QPushButton::clicked, this, &AOConfigPanel::on_load_packages_clicked);
+  connect(ui_add_package_path, &QPushButton::clicked, this, &AOConfigPanel::on_add_package_path_clicked);
+  connect(ui_remove_package_path, &QPushButton::clicked, this, &AOConfigPanel::on_remove_package_path_clicked);
 
   // ic message
   connect(m_config, &AOConfig::message_length_threshold_changed, ui_length_threshold, &QSlider::setValue);
@@ -346,6 +372,36 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   connect(ui_punctuation_delay, &QSpinBox::valueChanged, m_config, &AOConfig::set_punctuation_delay);
   connect(ui_blank_blips, &QAbstractButton::toggled, m_config, &AOConfig::set_blank_blips);
 
+  connect(m_config, &AOConfig::master_pitch_changed, ui_master_pitch, &QSlider::setValue);
+  connect(m_config, &AOConfig::master_speed_changed, ui_master_tempo, &QSlider::setValue);
+  connect(m_config, &AOConfig::effect_pitch_changed, ui_effect_pitch, &QSlider::setValue);
+  connect(m_config, &AOConfig::effect_speed_changed, ui_effect_tempo, &QSlider::setValue);
+  connect(m_config, &AOConfig::music_pitch_changed, ui_music_pitch, &QSlider::setValue);
+  connect(m_config, &AOConfig::music_speed_changed, ui_music_tempo, &QSlider::setValue);
+  connect(m_config, &AOConfig::blip_pitch_changed, ui_blip_pitch, &QSlider::setValue);
+  connect(m_config, &AOConfig::blip_speed_changed, ui_blip_tempo, &QSlider::setValue);
+  connect(m_config, &AOConfig::independent_pitch_tempo_changed, ui_independent_pitch_tempo, &QAbstractButton::setChecked);
+
+  connect(ui_master_pitch, &QSlider::valueChanged, m_config, &AOConfig::set_master_pitch);
+  connect(ui_master_tempo, &QSlider::valueChanged, m_config, &AOConfig::set_master_speed);
+  connect(ui_effect_pitch, &QSlider::valueChanged, m_config, &AOConfig::set_effect_pitch);
+  connect(ui_effect_tempo, &QSlider::valueChanged, m_config, &AOConfig::set_effect_speed);
+  connect(ui_music_pitch, &QSlider::valueChanged, m_config, &AOConfig::set_music_pitch);
+  connect(ui_music_tempo, &QSlider::valueChanged, m_config, &AOConfig::set_music_speed);
+  connect(ui_blip_pitch, &QSlider::valueChanged, m_config, &AOConfig::set_blip_pitch);
+  connect(ui_blip_tempo, &QSlider::valueChanged, m_config, &AOConfig::set_blip_speed);
+  connect(ui_independent_pitch_tempo, &QAbstractButton::toggled, m_config, &AOConfig::set_independent_pitch_tempo);
+  connect(ui_reset_pitch_tempo, &QPushButton::clicked, this, &AOConfigPanel::on_reset_pitch_tempo_clicked);
+
+  connect(ui_master_pitch, &QSlider::valueChanged, this, &AOConfigPanel::on_pitch_value_changed);
+  connect(ui_effect_pitch, &QSlider::valueChanged, this, &AOConfigPanel::on_pitch_value_changed);
+  connect(ui_music_pitch, &QSlider::valueChanged, this, &AOConfigPanel::on_pitch_value_changed);
+  connect(ui_blip_pitch, &QSlider::valueChanged, this, &AOConfigPanel::on_pitch_value_changed);
+  connect(ui_master_tempo, &QSlider::valueChanged, this, &AOConfigPanel::on_tempo_value_changed);
+  connect(ui_effect_tempo, &QSlider::valueChanged, this, &AOConfigPanel::on_tempo_value_changed);
+  connect(ui_music_tempo, &QSlider::valueChanged, this, &AOConfigPanel::on_tempo_value_changed);
+  connect(ui_blip_tempo, &QSlider::valueChanged, this, &AOConfigPanel::on_tempo_value_changed);
+
   connect(ui_theme_resize, &QDoubleSpinBox::valueChanged, m_config, &AOConfig::setThemeResize);
   connect(ui_font_resize, &QDoubleSpinBox::valueChanged, m_config, &AOConfig::setFontResize);
   connect(ui_fade_duration, &QSpinBox::valueChanged, m_config, &AOConfig::setFadeDuration);
@@ -377,6 +433,8 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   ui_message_queue_delay->setValue(m_config->message_queue_delay());
   ui_emote_preview->setChecked(m_config->emote_preview_enabled());
   ui_sticky_sfx->setChecked(m_config->sticky_sfx_enabled());
+  ui_disable_blankpost->setChecked(m_config->disable_blankpost_enabled());
+  ui_soft_blankpost->setChecked(m_config->soft_blankpost_enabled());
 
   // ic message
   ui_length_threshold->setValue(m_config->message_length_threshold());
@@ -453,6 +511,23 @@ AOConfigPanel::AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent)
   ui_blip_rate->setValue(m_config->blip_rate());
   ui_punctuation_delay->setValue(m_config->punctuation_delay());
   ui_blank_blips->setChecked(m_config->blank_blips_enabled());
+  ui_master_pitch->setValue(m_config->master_pitch());
+  ui_master_pitch_value->setText(QString::number(m_config->master_pitch()));
+  ui_master_tempo->setValue(m_config->master_speed());
+  ui_master_tempo_value->setText(QString::number(m_config->master_speed()) + "%");
+  ui_effect_pitch->setValue(m_config->effect_pitch());
+  ui_effect_pitch_value->setText(QString::number(m_config->effect_pitch()));
+  ui_effect_tempo->setValue(m_config->effect_speed());
+  ui_effect_tempo_value->setText(QString::number(m_config->effect_speed()) + "%");
+  ui_music_pitch->setValue(m_config->music_pitch());
+  ui_music_pitch_value->setText(QString::number(m_config->music_pitch()));
+  ui_music_tempo->setValue(m_config->music_speed());
+  ui_music_tempo_value->setText(QString::number(m_config->music_speed()) + "%");
+  ui_blip_pitch->setValue(m_config->blip_pitch());
+  ui_blip_pitch_value->setText(QString::number(m_config->blip_pitch()));
+  ui_blip_tempo->setValue(m_config->blip_speed());
+  ui_blip_tempo_value->setText(QString::number(m_config->blip_speed()) + "%");
+  ui_independent_pitch_tempo->setChecked(m_config->independent_pitch_tempo());
 
   ui_theme_resize->setValue(m_config->theme_resize());
   ui_font_resize->setValue(m_config->font_resize());
@@ -497,8 +572,18 @@ void AOConfigPanel::refresh_packages_list()
   for (const QString &package : packageNames)
   {
     QListWidgetItem* item = new QListWidgetItem(package, ui_packages_list);
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
     item->setCheckState(disabledPackages.contains(package) ? Qt::Unchecked : Qt::Checked);
+  }
+
+  //Custom folders whose directory is currently missing
+  for (const QString &mount : FS::Packages::MountPaths())
+  {
+    if (packageNames.contains(mount))
+      continue;
+    QListWidgetItem* item = new QListWidgetItem(mount, ui_packages_list);
+    item->setFlags(item->flags() & ~Qt::ItemIsUserCheckable);
+    item->setForeground(Qt::darkGray);
+    item->setToolTip("Folder not found. Select it and press Remove Folder to forget it.");
   }
 }
 
@@ -659,12 +744,34 @@ void AOConfigPanel::on_load_packages_clicked()
   for(int i = 0; i < ui_packages_list->count(); ++i)
   {
     QListWidgetItem* item = ui_packages_list->item(i);
-    if(item->checkState() == Qt::Unchecked)
+    if((item->flags() & Qt::ItemIsUserCheckable) && item->checkState() == Qt::Unchecked)
     {
       disabledList.append(item->text());
     }
   }
   FS::Packages::SetDisabled(disabledList);
+  ao_app->reload_packages();
+  refresh_packages_list();
+}
+
+void AOConfigPanel::on_add_package_path_clicked()
+{
+  QString path = QFileDialog::getExistingDirectory(this, tr("Select Asset Folder"), FS::Paths::ApplicationPath());
+  if (path.isEmpty())
+    return;
+  FS::Packages::AddMountPath(path);
+  ao_app->reload_packages();
+  refresh_packages_list();
+}
+
+void AOConfigPanel::on_remove_package_path_clicked()
+{
+  QListWidgetItem *item = ui_packages_list->currentItem();
+  if (!item)
+    return;
+  if (!FS::Packages::MountPaths().contains(item->text()))
+    return;
+  FS::Packages::RemoveMountPath(item->text());
   ao_app->reload_packages();
   refresh_packages_list();
 }
@@ -802,6 +909,44 @@ void AOConfigPanel::on_volume_value_changed(int p_num)
   }
 }
 
+void AOConfigPanel::on_pitch_value_changed(int p_num)
+{
+  QSlider *slider = qobject_cast<QSlider *>(sender());
+  if (slider == ui_master_pitch)
+    ui_master_pitch_value->setText(QString::number(p_num));
+  else if (slider == ui_effect_pitch)
+    ui_effect_pitch_value->setText(QString::number(p_num));
+  else if (slider == ui_music_pitch)
+    ui_music_pitch_value->setText(QString::number(p_num));
+  else if (slider == ui_blip_pitch)
+    ui_blip_pitch_value->setText(QString::number(p_num));
+}
+
+void AOConfigPanel::on_tempo_value_changed(int p_num)
+{
+  QSlider *slider = qobject_cast<QSlider *>(sender());
+  if (slider == ui_master_tempo)
+    ui_master_tempo_value->setText(QString::number(p_num) + "%");
+  else if (slider == ui_effect_tempo)
+    ui_effect_tempo_value->setText(QString::number(p_num) + "%");
+  else if (slider == ui_music_tempo)
+    ui_music_tempo_value->setText(QString::number(p_num) + "%");
+  else if (slider == ui_blip_tempo)
+    ui_blip_tempo_value->setText(QString::number(p_num) + "%");
+}
+
+void AOConfigPanel::on_reset_pitch_tempo_clicked()
+{
+  m_config->set_master_pitch(0);
+  m_config->set_master_speed(0);
+  m_config->set_effect_pitch(0);
+  m_config->set_effect_speed(0);
+  m_config->set_music_pitch(0);
+  m_config->set_music_speed(0);
+  m_config->set_blip_pitch(0);
+  m_config->set_blip_speed(0);
+}
+
 void AOConfigPanel::on_length_threshold_value_changed(int p_number)
 {
   ui_length_threshold_label->setText(QString::number(p_number) + "%");
@@ -849,13 +994,6 @@ void AOConfigPanel::updateTabsVisibility(const QModelIndex &current)
   QString selected = current.data(Qt::DisplayRole).toString();
 
   //Create a structure to store which tabs are used for each category
-  struct TabInfo
-  {
-    QVector<int> indices;
-    bool visible;
-    bool enabled;
-  };
-
   std::map<QString, QVector<int>> tabInfoMap = {
       {"General", {0, 1}},
       {"Audio", {2}},
@@ -902,11 +1040,4 @@ void AOConfigPanel::advertiser_editing_finished()
 void AOConfigPanel::callwords_editing_finished()
 {
   m_config->set_callwords(ui_callwords->text());
-}
-
-void AOConfigPanel::on_config_reload_theme_requested()
-{
-  refresh_theme_list();
-  refresh_gamemode_list();
-  refresh_timeofday_list();
 }

@@ -247,7 +247,7 @@ void DrPlayerListEntry::setMod(QString ipid, QString hdid)
   mHDID = hdid;
 }
 
-int DrPlayerListEntry::clientId()
+int DrPlayerListEntry::clientId() const
 {
   return m_clientId;
 }

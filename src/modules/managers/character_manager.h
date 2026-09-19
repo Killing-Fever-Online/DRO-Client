@@ -13,8 +13,8 @@ class CharacterManager
 public:
   CharacterManager(const CharacterManager&) = delete;
 
-  ActorData *ReadCharacter(QString t_folder);
-  ActorData *SwitchCharacter(QString t_folder);
+  ActorData *ReadCharacter(const QString &t_folder);
+  ActorData *SwitchCharacter(const QString &t_folder);
 
 
   static CharacterManager& get()
@@ -22,32 +22,31 @@ public:
     return s_Instance;
   }
 
-  void setOutfitList(QStringList t_outfits);
-  void setOutfitIndex(int t_index);
+  void setOutfitList(const QStringList &t_outfits);
 
   QString lastCharList = "Server Characters";
-  QVector<char_type> GetCharList();
-  QVector<char_type> GetCharList(QString package);
-  QVector<char_type> GetLastCharList();
+  QVector<char_type> GetCharList() const;
+  QVector<char_type> GetCharList(const QString &package);
+  QVector<char_type> GetLastCharList() const;
   QVector<char_type> GetServerCharList();
 
-  QString GetFilteredCharaName(int id);
-  QString GetServerCharaName(int id);
+  QString GetFilteredCharaName(int id) const;
+  QString GetServerCharaName(int id) const;
 
   void ResetPackages();
-  void SetCharList(QVector<char_type> charList);
-  void SetCharList(QString package, QVector<char_type> charList);
+  void SetCharList(const QVector<char_type> &charList);
+  void SetCharList(const QString &package, const QVector<char_type> &charList);
 
   void SetCharaTaken(int id, bool status);
 
-  void AddToFavorites(QString chara);
-  void RemoveFromFavorites(QString chara);
+  void AddToFavorites(const QString &chara);
+  void RemoveFromFavorites(const QString &chara);
   void LoadFavoritesList();
   void SaveFavoritesList();
 
-  int GetAvaliablePersona();
+  int GetAvaliablePersona() const;
 
-  QStringList GetCharacterPackages();
+  QStringList GetCharacterPackages() const;
 
   QVector<char_type> mFilteredChrList;
 
@@ -56,10 +55,10 @@ public:
 
   QHash<QString, QVector<char_type>> mPackageCharacters;
 
-  bool GetCharacterInServer(QString name);
-  bool GetCharacterInServer(int filterID);
-  int GetFilteredId(int Id);
-  int GetFilteredId(QString name);
+  bool GetCharacterInServer(const QString &name) const;
+  bool GetCharacterInServer(int filterID) const;
+  int GetFilteredId(int Id) const;
+  int GetFilteredId(const QString &name) const;
 
 private:
   CharacterManager()
@@ -69,7 +68,6 @@ private:
   static CharacterManager s_Instance;
   QHash<QString, bool>CharacterTaken = {};
   QStringList mCharacterPackages = {"Server Characters", "Favorites", "All"};
-  QStringList mCharacterOutfits = {};
 
 };
 

@@ -1,6 +1,12 @@
 name: Build
 
-on: [workflow_dispatch, push]
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -21,7 +27,7 @@ jobs:
           git_branch=${GITHUB_REF##*/}
           echo "$git_hash" >> ./res/git/git_hash.txt
           echo "$git_branch" >> ./res/git/git_branch.txt
-      
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -45,16 +51,13 @@ jobs:
         with:
           path: |
             ./3rd/discord-rpc
-            ./3rd/bass
             ./3rd/sol
             ./3rd/lua
-            ./3rd/stb_image_resize2.h
+            ./3rd/miniaudio
+            ./3rd/soundtouch
             ./bin/discord-rpc.dll
-            ./bin/bass.dll
-            ./bin/bassopus.dll
-            ./bin/bass_fx.dll
             ./bin/lua54.dll
-          key: ${{ runner.os }}-3rd-v1
+          key: ${{ runner.os }}-3rd-v5
 
       - name: Install Windows Discord RPC
         if: steps.cache-3rd.outputs.cache-hit != 'true'
@@ -65,28 +68,12 @@ jobs:
           cp ./discord-rpc/win64-dynamic/lib/discord-rpc.lib ./3rd/discord-rpc/
           cp ./discord-rpc/win64-dynamic/include/discord*.h ./3rd/discord-rpc/
           cp ./discord-rpc/win64-dynamic/bin/discord-rpc.dll ./bin/
-          
-      - name: Install Windows BASS
-        if: steps.cache-3rd.outputs.cache-hit != 'true'
+
+      - name: Install audio codecs
         shell: bash
         run: |
-          curl http://www.un4seen.com/files/bass24.zip -o bass.zip
-          unzip -d bass -o bass.zip
-          cp ./bass/c/bass.h ./3rd/bass
-          cp ./bass/c/x64/bass.lib ./3rd/bass
-          cp ./bass/x64/bass.dll ./bin/
-
-          curl http://www.un4seen.com/files/bassopus24.zip -o bassopus.zip
-          unzip -d bass -o bassopus.zip
-          cp ./bass/c/bassopus.h ./3rd/bass
-          cp ./bass/c/x64/bassopus.lib ./3rd/bass
-          cp ./bass/x64/bassopus.dll ./bin/
-
-          curl https://www.un4seen.com/files/z/0/bass_fx24.zip -o bassfx.zip
-          unzip -d bass -o bassfx.zip
-          cp ./bass/c/bass_fx.h ./3rd/bass
-          cp ./bass/c/x64/bass_fx.lib ./3rd/bass
-          cp ./bass/x64/bass_fx.dll ./bin/
+          vcpkg install libogg:x64-windows libvorbis:x64-windows opus:x64-windows opusfile:x64-windows
+          cp "$VCPKG_INSTALLATION_ROOT/installed/x64-windows/bin/"*.dll ./bin/
 
       - name: Install sol2
         if: steps.cache-3rd.outputs.cache-hit != 'true'
@@ -100,17 +87,32 @@ jobs:
         if: steps.cache-3rd.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          curl https://master.dl.sourceforge.net/project/luabinaries/5.4.2/Windows%20Libraries/Dynamic/lua-5.4.2_Win64_dll16_lib.zip?viasf=1 -o lua.zip
+          curl -L https://master.dl.sourceforge.net/project/luabinaries/5.4.2/Windows%20Libraries/Dynamic/lua-5.4.2_Win64_dll16_lib.zip?viasf=1 -o lua.zip
           unzip -d lua -o lua.zip
           cp ./lua/lua54.dll ./bin/
           cp ./lua/lua54.lib ./3rd/lua
-          cp ./lua/include/* ./3rd/lua 
+          cp ./lua/include/* ./3rd/lua
 
-      - name: Install stb_image_resize
+      - name: Install miniaudio
         if: steps.cache-3rd.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          curl https://raw.githubusercontent.com/nothings/stb/refs/heads/master/stb_image_resize2.h -o ./3rd/stb_image_resize2.h
+          mkdir -p ./3rd/miniaudio/extras/decoders/libvorbis
+          mkdir -p ./3rd/miniaudio/extras/decoders/libopus
+          BASE=https://raw.githubusercontent.com/mackron/miniaudio/master
+          curl -L $BASE/miniaudio.h -o ./3rd/miniaudio/miniaudio.h
+          curl -L $BASE/extras/decoders/libvorbis/miniaudio_libvorbis.h -o ./3rd/miniaudio/extras/decoders/libvorbis/miniaudio_libvorbis.h
+          curl -L $BASE/extras/decoders/libvorbis/miniaudio_libvorbis.c -o ./3rd/miniaudio/extras/decoders/libvorbis/miniaudio_libvorbis.c
+          curl -L $BASE/extras/decoders/libopus/miniaudio_libopus.h -o ./3rd/miniaudio/extras/decoders/libopus/miniaudio_libopus.h
+          curl -L $BASE/extras/decoders/libopus/miniaudio_libopus.c -o ./3rd/miniaudio/extras/decoders/libopus/miniaudio_libopus.c
+
+      - name: Install SoundTouch
+        if: steps.cache-3rd.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          rm -rf ./3rd/soundtouch
+          git clone --depth 1 --branch 2.3.3 https://codeberg.org/soundtouch/soundtouch.git ./3rd/soundtouch
+          rm -rf ./3rd/soundtouch/.git
 
       - name: Cache QtApng
         id: cache-qtapng
@@ -139,7 +141,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake . -D CMAKE_BUILD_TYPE=Release
+          cmake . -D CMAKE_BUILD_TYPE=Release -D CMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" -D VCPKG_TARGET_TRIPLET=x64-windows
           cmake --build . --config Release
           mv ./bin/dro-client.exe ./bin/DanganronpaOnline.exe
 
@@ -149,8 +151,313 @@ jobs:
         run: |
           windeployqt --no-quick-import --no-translations --no-compiler-runtime --no-opengl-sw ./DanganronpaOnline.exe
 
+      - name: Package Windows
+        shell: bash
+        run: 7z a DRO-Client-Windows.zip ./bin/*
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v6
         with:
           name: DRO-Client-Windows
-          path: ${{github.workspace}}/bin
+          path: DRO-Client-Windows.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Fetch Git Info
+        shell: bash
+        run: |
+          mkdir -p ./res/git
+          git_hash=$(git rev-parse --short "$GITHUB_SHA")
+          git_branch=${GITHUB_REF##*/}
+          echo "$git_hash" >> ./res/git/git_hash.txt
+          echo "$git_branch" >> ./res/git/git_branch.txt
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libgl1-mesa-dev libogg-dev libvorbis-dev libopus-dev libopusfile-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libxcb-cursor0 patchelf file
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.8.3
+          target: desktop
+          arch: linux_gcc_64
+          modules: 'qtimageformats qtwebsockets qtmultimedia'
+
+      - name: Install sol2
+        shell: bash
+        run: |
+          mkdir -p ./3rd/sol
+          curl -L https://github.com/ThePhD/sol2/releases/download/v3.3.0/config.hpp -o ./3rd/sol/config.hpp
+          curl -L https://github.com/ThePhD/sol2/releases/download/v3.3.0/forward.hpp -o ./3rd/sol/forward.hpp
+          curl -L https://github.com/ThePhD/sol2/releases/download/v3.3.0/sol.hpp -o ./3rd/sol/sol.hpp
+
+      - name: Install Lua 5.4
+        shell: bash
+        run: |
+          curl -L https://www.lua.org/ftp/lua-5.4.7.tar.gz -o lua.tar.gz
+          tar -xzf lua.tar.gz
+          make -C lua-5.4.7/src liblua.a CC=cc
+          mkdir -p ./3rd/lua
+          cp lua-5.4.7/src/liblua.a ./3rd/lua/liblua54.a
+          cp lua-5.4.7/src/lua.h lua-5.4.7/src/luaconf.h lua-5.4.7/src/lualib.h lua-5.4.7/src/lauxlib.h ./3rd/lua/
+
+      - name: Install Discord RPC
+        shell: bash
+        run: |
+          mkdir -p ./3rd/discord-rpc
+          curl -L https://github.com/discordapp/discord-rpc/releases/download/v3.4.0/discord-rpc-linux.zip -o discord-rpc.zip
+          unzip -q discord-rpc.zip
+          cp discord-rpc/linux-static/include/discord_rpc.h discord-rpc/linux-static/include/discord_register.h ./3rd/discord-rpc/
+          cp discord-rpc/linux-static/lib/libdiscord-rpc.a ./3rd/discord-rpc/libdiscord-rpc.a
+
+      - name: Install miniaudio
+        shell: bash
+        run: |
+          mkdir -p ./3rd/miniaudio/extras/decoders/libvorbis
+          mkdir -p ./3rd/miniaudio/extras/decoders/libopus
+          BASE=https://raw.githubusercontent.com/mackron/miniaudio/master
+          curl -L $BASE/miniaudio.h -o ./3rd/miniaudio/miniaudio.h
+          curl -L $BASE/extras/decoders/libvorbis/miniaudio_libvorbis.h -o ./3rd/miniaudio/extras/decoders/libvorbis/miniaudio_libvorbis.h
+          curl -L $BASE/extras/decoders/libvorbis/miniaudio_libvorbis.c -o ./3rd/miniaudio/extras/decoders/libvorbis/miniaudio_libvorbis.c
+          curl -L $BASE/extras/decoders/libopus/miniaudio_libopus.h -o ./3rd/miniaudio/extras/decoders/libopus/miniaudio_libopus.h
+          curl -L $BASE/extras/decoders/libopus/miniaudio_libopus.c -o ./3rd/miniaudio/extras/decoders/libopus/miniaudio_libopus.c
+
+      - name: Install SoundTouch
+        shell: bash
+        run: |
+          rm -rf ./3rd/soundtouch
+          git clone --depth 1 --branch 2.3.3 https://codeberg.org/soundtouch/soundtouch.git ./3rd/soundtouch
+          rm -rf ./3rd/soundtouch/.git
+
+      - name: Clone Apng plugin
+        uses: actions/checkout@v6
+        with:
+          repository: jurplel/QtApng
+          path: ./qtapng
+
+      - name: Build Apng plugin
+        shell: bash
+        run: |
+          cd ./qtapng
+          cmake . -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE="${{ github.workspace }}/bin/imageformats/" -DAPNG_QT6=ON -DCMAKE_PREFIX_PATH="$QT_ROOT_DIR"
+          cmake --build . --config Release
+
+      - name: Build
+        shell: bash
+        run: |
+          cmake . -D CMAKE_BUILD_TYPE=Release -D CMAKE_PREFIX_PATH="$QT_ROOT_DIR" -DCMAKE_EXE_LINKER_FLAGS=-no-pie
+          cmake --build . --config Release
+
+      - name: Package Linux
+        shell: bash
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy*.AppImage
+          mkdir -p AppDir/usr/bin AppDir/usr/plugins/imageformats
+          cp bin/dro-client AppDir/usr/bin/
+          cp bin/imageformats/* AppDir/usr/plugins/imageformats/ 2>/dev/null || true
+          cp icons/icon.png AppDir/dro-client.png
+          printf '[Desktop Entry]\nType=Application\nName=Danganronpa Online\nExec=dro-client\nIcon=dro-client\nCategories=Game;\n' > AppDir/dro-client.desktop
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --executable AppDir/usr/bin/dro-client --plugin qt --output appimage
+          OUT=$(ls *.AppImage | grep -v 'linuxdeploy' | head -n1)
+          mv "$OUT" DRO-Client-Linux-x86_64.AppImage
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: DRO-Client-Linux
+          path: DRO-Client-Linux-x86_64.AppImage
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Fetch Git Info
+        shell: bash
+        run: |
+          mkdir -p ./res/git
+          git_hash=$(git rev-parse --short "$GITHUB_SHA")
+          git_branch=${GITHUB_REF##*/}
+          echo "$git_hash" >> ./res/git/git_hash.txt
+          echo "$git_branch" >> ./res/git/git_branch.txt
+
+      - name: Install system dependencies
+        run: |
+          brew install libogg libvorbis opus opusfile
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.8.3
+          target: desktop
+          arch: clang_64
+          modules: 'qtimageformats qtwebsockets qtmultimedia'
+
+      - name: Install sol2
+        shell: bash
+        run: |
+          mkdir -p ./3rd/sol
+          curl -L https://github.com/ThePhD/sol2/releases/download/v3.3.0/config.hpp -o ./3rd/sol/config.hpp
+          curl -L https://github.com/ThePhD/sol2/releases/download/v3.3.0/forward.hpp -o ./3rd/sol/forward.hpp
+          curl -L https://github.com/ThePhD/sol2/releases/download/v3.3.0/sol.hpp -o ./3rd/sol/sol.hpp
+
+      - name: Install Lua 5.4
+        shell: bash
+        run: |
+          curl -L https://www.lua.org/ftp/lua-5.4.7.tar.gz -o lua.tar.gz
+          tar -xzf lua.tar.gz
+          make -C lua-5.4.7/src liblua.a CC=cc
+          mkdir -p ./3rd/lua
+          cp lua-5.4.7/src/liblua.a ./3rd/lua/liblua54.a
+          cp lua-5.4.7/src/lua.h lua-5.4.7/src/luaconf.h lua-5.4.7/src/lualib.h lua-5.4.7/src/lauxlib.h ./3rd/lua/
+
+      - name: Install Discord RPC
+        shell: bash
+        run: |
+          git clone --depth 1 --branch v3.4.0 https://github.com/discord/discord-rpc.git /tmp/discord-rpc
+          cmake -S /tmp/discord-rpc -B /tmp/discord-rpc/build -DBUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          cmake --build /tmp/discord-rpc/build --config Release
+          mkdir -p ./3rd/discord-rpc
+          cp /tmp/discord-rpc/build/src/libdiscord-rpc.a ./3rd/discord-rpc/libdiscord-rpc.a
+          cp /tmp/discord-rpc/include/discord_rpc.h /tmp/discord-rpc/include/discord_register.h ./3rd/discord-rpc/
+
+      - name: Install miniaudio
+        shell: bash
+        run: |
+          mkdir -p ./3rd/miniaudio/extras/decoders/libvorbis
+          mkdir -p ./3rd/miniaudio/extras/decoders/libopus
+          BASE=https://raw.githubusercontent.com/mackron/miniaudio/master
+          curl -L $BASE/miniaudio.h -o ./3rd/miniaudio/miniaudio.h
+          curl -L $BASE/extras/decoders/libvorbis/miniaudio_libvorbis.h -o ./3rd/miniaudio/extras/decoders/libvorbis/miniaudio_libvorbis.h
+          curl -L $BASE/extras/decoders/libvorbis/miniaudio_libvorbis.c -o ./3rd/miniaudio/extras/decoders/libvorbis/miniaudio_libvorbis.c
+          curl -L $BASE/extras/decoders/libopus/miniaudio_libopus.h -o ./3rd/miniaudio/extras/decoders/libopus/miniaudio_libopus.h
+          curl -L $BASE/extras/decoders/libopus/miniaudio_libopus.c -o ./3rd/miniaudio/extras/decoders/libopus/miniaudio_libopus.c
+
+      - name: Install SoundTouch
+        shell: bash
+        run: |
+          rm -rf ./3rd/soundtouch
+          git clone --depth 1 --branch 2.3.3 https://codeberg.org/soundtouch/soundtouch.git ./3rd/soundtouch
+          rm -rf ./3rd/soundtouch/.git
+
+
+      - name: Create AGL stub
+        shell: bash
+        run: |
+          mkdir -p AGLStub/AGL.framework
+          printf 'void agl_stub(void) {}\n' > /tmp/agl_stub.c
+          clang -dynamiclib -o AGLStub/AGL.framework/AGL /tmp/agl_stub.c
+
+      - name: Patch sol2 for AppleClang
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          p = pathlib.Path('3rd/sol/sol.hpp')
+          s = p.read_text()
+          old = ("template <class... Args>\n"
+                 "\t\tT& emplace(Args&&... args) noexcept {\n"
+                 "\t\t\tstatic_assert(std::is_constructible<T, Args&&...>::value, \"T must be constructible with Args\");\n"
+                 "\n"
+                 "\t\t\t*this = nullopt;\n"
+                 "\t\t\tthis->construct(std::forward<Args>(args)...);\n"
+                 "\t\t}")
+          new = ("\t\tT& emplace(T& arg) noexcept {\n"
+                 "\t\t\t*this = nullopt;\n"
+                 "\t\t\tm_value = &arg;\n"
+                 "\t\t\treturn **this;\n"
+                 "\t\t}")
+          assert s.count(old) == 1
+          p.write_text(s.replace(old, new))
+          PY
+
+      - name: Build
+        shell: bash
+        run: |
+          cmake . -D CMAKE_BUILD_TYPE=Release -D CMAKE_PREFIX_PATH="$QT_ROOT_DIR;$(brew --prefix)" -DCMAKE_EXE_LINKER_FLAGS="-F$GITHUB_WORKSPACE/AGLStub"
+          cmake --build . --config Release
+
+      - name: Deploy macOS
+        shell: bash
+        run: |
+          mkdir -p DanganronpaOnline.app/Contents/MacOS
+          mkdir -p DanganronpaOnline.app/Contents/Resources
+          cp bin/dro-client DanganronpaOnline.app/Contents/MacOS/DanganronpaOnline
+          cp icons/icon.icns DanganronpaOnline.app/Contents/Resources/icon.icns
+          printf '%s\n' \
+            '<?xml version="1.0" encoding="UTF-8"?>' \
+            '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+            '<plist version="1.0">' \
+            '<dict>' \
+            '  <key>CFBundleName</key>' \
+            '  <string>Danganronpa Online</string>' \
+            '  <key>CFBundleDisplayName</key>' \
+            '  <string>Danganronpa Online</string>' \
+            '  <key>CFBundleIdentifier</key>' \
+            '  <string>com.dro.client</string>' \
+            '  <key>CFBundleVersion</key>' \
+            '  <string>1.8.5</string>' \
+            '  <key>CFBundleShortVersionString</key>' \
+            '  <string>1.8.5</string>' \
+            '  <key>CFBundleExecutable</key>' \
+            '  <string>DanganronpaOnline</string>' \
+            '  <key>CFBundleIconFile</key>' \
+            '  <string>icon</string>' \
+            '  <key>CFBundlePackageType</key>' \
+            '  <string>APPL</string>' \
+            '  <key>LSMinimumSystemVersion</key>' \
+            '  <string>11.0</string>' \
+            '  <key>NSHighResolutionCapable</key>' \
+            '  <true/>' \
+            '</dict>' \
+            '</plist>' > DanganronpaOnline.app/Contents/Info.plist
+          macdeployqt DanganronpaOnline.app -dmg -verbose=2
+          mv DanganronpaOnline.dmg DRO-Client-MacOS.dmg
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: DRO-Client-MacOS
+          path: DRO-Client-MacOS.dmg
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-linux, build-macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          path: artifacts
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: V1.8.5
+          files: |
+            artifacts/DRO-Client-Windows/DRO-Client-Windows.zip
+            artifacts/DRO-Client-Linux/DRO-Client-Linux-x86_64.AppImage
+            artifacts/DRO-Client-MacOS/DRO-Client-MacOS.dmg
+          prerelease: false
+          body: |
+            Cleaned and fixed additive text!
+            Make the additive text function a UI element a check box of sorts a tiny check box, so people dont have to type everytime they want to use additive, its one tiny check box then all messages are treated as additive. A clean option just like how AO2 client does it. This basically allows you to use additive without constantly typing everytime like a checkbox.
+            You can now set custom asset/base paths.
+            Changed the reload button to "change theme" to be more clear and user friendly.
+            A toggle to disable blankposts so if you press ENTER, nothing sends.
+            Softer toggle called soft blankpost option where u have to press ENTER at least three times on an empty message to send a BLANKPOST. Purpose is to prevent accidental blankposts.
+            Added a new library called SoundTouch which lets you adjust pitch and tempo. Also fixed music streaming was broken in 1.8.4. You can also stream opus and ogg files now. WAV OPUS MP3 OGG

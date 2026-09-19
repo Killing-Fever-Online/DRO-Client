@@ -21,6 +21,7 @@ QString get_hdid()
 }
 #elif defined(Q_OS_LINUX)
 #include <QFile>
+#include <QRegularExpression>
 #include <QTextStream>
 
 QString get_hdid()

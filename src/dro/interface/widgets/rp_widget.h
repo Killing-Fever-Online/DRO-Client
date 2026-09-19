@@ -28,8 +28,6 @@ private:
   DRStickerViewer *m_backgroundImage = nullptr;
   QPoint m_dragStartPosition;
   bool m_dragEnabled = false;
-
-signals:
 };
 
 #endif // RP_WIDGET_H

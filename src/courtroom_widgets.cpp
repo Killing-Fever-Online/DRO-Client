@@ -29,13 +29,9 @@
 #include <QComboBox>
 #include <QDebug>
 #include <QFile>
-#include <QGraphicsBlurEffect>
 #include <QHBoxLayout>
-#include <QInputDialog>
 #include <QListWidget>
 #include <QMenu>
-#include <QOpenGLContext>
-#include <QOpenGLWidget>
 #include <QPropertyAnimation>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -52,7 +48,6 @@
 #include "dro/system/debug/time_debugger.h"
 #include "dro/system/localization.h"
 
-#include "dro/fs/fs_reading.h"
 #include "dro/interface/courtroom_layout.h"
 
 using namespace dro::system;
@@ -83,11 +78,6 @@ void Courtroom::create_widgets()
   ThemeManager::get().setCourtroomBackground(ui_background);
 
   ui_viewport = new DRGraphicsView(this);
-  if(ao_config->opengl_enabled())
-  {
-    //ui_opengl_viewport = new QOpenGLWidget();
-    //ui_viewport->setViewport(ui_opengl_viewport);
-  }
 
   SceneManager::get().CreateTransition(this, ao_app, ui_viewport);
 
@@ -146,8 +136,6 @@ void Courtroom::create_widgets()
   ui_vp_objection->setZValue(ViewportLayers_Objection);
   ui_vp_evidence->setZValue(ViewportLayers_Objection);
   ui_video->setZValue(ViewportLayers_Video);
-
-  w_ViewportOverlay = new ViewportOverlay(ui_viewport);
 
   ui_vp_music_display_a = new AOImageDisplay(this, ao_app);
   ui_vp_music_display_b = new AOImageDisplay(this, ao_app);
@@ -275,12 +263,19 @@ void Courtroom::create_widgets()
   ui_ic_chat_message_counter->setAlignment(Qt::AlignVCenter | Qt::AlignRight);
   ui_ic_chat_message_counter->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
 
+  ui_additive = new QCheckBox(ui_ic_chat_message);
+  ui_additive->setToolTip(localization::getText("TOOLTIP_ADDITIVE"));
+  ui_additive->setChecked(ao_config->additive_enabled());
+
   {
     auto l_layout = new QHBoxLayout(ui_ic_chat_message);
-    ui_ic_chat_message_counter->setIndent(l_layout->contentsMargins().right());
-    l_layout->setContentsMargins(0, 0, 0, 0);
+    const int l_edge = l_layout->contentsMargins().right();
+    ui_ic_chat_message_counter->setIndent(l_edge);
+    // keep the additive box tucked inside the bar's right edge
+    l_layout->setContentsMargins(0, 0, l_edge, 0);
     l_layout->addWidget(ui_ic_chat_message_field);
     l_layout->addWidget(ui_ic_chat_message_counter);
+    l_layout->addWidget(ui_additive);
   }
 
   ui_ic_chat_message_counter->hide();
@@ -431,7 +426,7 @@ void Courtroom::create_widgets()
   TimeDebugger::get().EndTimer("Theme Widgets");
 }
 
-QComboBox *Courtroom::setupComboBoxWidget(const QStringList& items, QString name, QString cssHeader)
+QComboBox *Courtroom::setupComboBoxWidget(const QStringList& items, const QString &name, const QString &cssHeader)
 {
   RPComboBox *comboBox = new RPComboBox(this, ao_app);
   comboBox->addItems(items);
@@ -481,6 +476,7 @@ void Courtroom::connect_widgets()
 
   connect(ao_config, &AOConfig::message_length_threshold_changed, this, &Courtroom::handle_ic_message_length);
   connect(ui_ic_chat_message_field, &QLineEdit::textChanged, this, &Courtroom::handle_ic_message_length);
+  connect(ui_ic_chat_message_field, &QLineEdit::textChanged, this, [this] { m_blankpost_enter_count = 0; });
   connect(ui_ic_chatlog->verticalScrollBar(), &QScrollBar::valueChanged, this, &Courtroom::on_ic_chatlog_scroll_changed);
   connect(ui_ic_chatlog_scroll_topdown, &RPButton::clicked, this, &Courtroom::on_ic_chatlog_scroll_topdown_clicked);
   connect(ui_ic_chatlog_scroll_bottomup, &RPButton::clicked, this, &Courtroom::on_ic_chatlog_scroll_bottomup_clicked);
@@ -553,6 +549,10 @@ void Courtroom::connect_widgets()
   connect(ui_flip, &QCheckBox::clicked, this, &Courtroom::on_flip_clicked);
   connect(ui_hide_character, &QCheckBox::clicked, this, &Courtroom::on_hidden_clicked);
 
+  connect(ui_additive, &QCheckBox::toggled, ao_config, &AOConfig::set_additive);
+  connect(ui_additive, &QCheckBox::clicked, this, [this] { ui_ic_chat_message_field->setFocus(); });
+  connect(ao_config, &AOConfig::additive_changed, ui_additive, &QCheckBox::setChecked);
+
   connect(ui_sfx_list, &QListWidget::currentItemChanged, this, &Courtroom::on_sfx_list_current_item_changed);
   connect(ui_sfx_list, &QWidget::customContextMenuRequested, this, &Courtroom::on_sfx_list_context_menu_requested);
   connect(animList, &QListWidget::currentItemChanged, this, &Courtroom::onAnimListItemChanged);
@@ -600,8 +600,6 @@ void Courtroom::reset_widget_toggles()
 
     if(ao_app->current_theme->m_jsonLoaded)
     {
-      QString l_parent_name = "Chat";
-
       QStringList chat_tab = ao_app->current_theme->get_tab_widgets("Chat");
       QStringList area_tab = ao_app->current_theme->get_tab_widgets("Area");
       QStringList gm_tab = ao_app->current_theme->get_tab_widgets("GM");
@@ -754,7 +752,6 @@ void Courtroom::reset_widget_names()
       {"vertical_offset", ui_slider_vertical_axis},
       {"scale_offset", ui_slider_scale},
       {"viewport_transition", SceneManager::get().GetTransition()},
-      {"viewport_overlay", w_ViewportOverlay},
       {"outfit_selector", wOutfitDropdown},
       {"screenshot", p_ScreenshotBtn},
       {"chara_animations", animList}
@@ -768,7 +765,7 @@ void Courtroom::reset_widget_names()
     ThemeManager::get().SetWidgetNames(widget_names);
 }
 
-void Courtroom::insert_widget_name(QString p_widget_name, QWidget *p_widget)
+void Courtroom::insert_widget_name(const QString &p_widget_name, QWidget *p_widget)
 {
   if (widget_names.contains(p_widget_name))
     qWarning() << QString("[WARNING] Widget <%1> is already defined").arg(p_widget_name);
@@ -776,7 +773,7 @@ void Courtroom::insert_widget_name(QString p_widget_name, QWidget *p_widget)
   p_widget->setObjectName(p_widget_name);
 }
 
-void Courtroom::insert_widget_names(QVector<QString> &p_name_list, QVector<QWidget *> &p_widget_list)
+void Courtroom::insert_widget_names(const QVector<QString> &p_name_list, const QVector<QWidget *> &p_widget_list)
 {
   if (p_name_list.length() != p_widget_list.length())
     qFatal("[WARNING] Length of names and widgets differs!");
@@ -1092,9 +1089,6 @@ void Courtroom::set_widgets()
   ui_vp_music_area->show();
   set_size_and_pos(ui_vp_music_name, "music_name", COURTROOM_DESIGN_INI, ao_app);
 
-  setupWidgetElement(w_ViewportOverlay, "viewport", true);
-  w_ViewportOverlay->move(0, 0);
-
   setupWidgetElement(ui_vp_music_display_a, "music_display_a", "music_display_a.png", true);
   setupWidgetElement(ui_vp_music_display_b, "music_display_b", "music_display_b.png", true);
 
@@ -1280,18 +1274,6 @@ void Courtroom::set_widgets()
       else
         ui_checks[i]->setText(label_images[i]);
     }
-
-    for (int i = 0; i < ui_labels.size(); ++i) // now through labels..........
-    {
-      int j = i + ui_checks.size();
-      QString image = label_images[j].toLower() + ".png";
-      ui_label_images[j]->set_theme_image(image);
-
-      if (!ui_label_images[j]->get_image().isEmpty())
-        ui_labels[i]->setText("");
-      else
-        ui_labels[i]->setText(label_images[j]);
-    }
   }
   else
   {
@@ -1299,13 +1281,6 @@ void Courtroom::set_widgets()
     {
       ui_checks[i]->setText(label_images[i]);
       ui_label_images[i]->set_theme_image("");
-    }
-
-    for (int i = 0; i < ui_labels.size(); ++i) // same thing
-    {
-      int j = i + ui_checks.size();
-      ui_labels[i]->setText(label_images[j]);
-      ui_label_images[j]->set_theme_image("");
     }
   }
 
@@ -1372,14 +1347,14 @@ void Courtroom::set_widgets()
 
 }
 
-void Courtroom::setupWidgetElement(QWidget *widget, QString name, bool visible)
+void Courtroom::setupWidgetElement(QWidget *widget, const QString &name, bool visible)
 {
   set_size_and_pos(widget, name, COURTROOM_DESIGN_INI, ao_app);
   if(!visible) widget->hide();
 }
 
 
-void Courtroom::setupWidgetElement(AOImageDisplay *widget, QString name, QString image, bool visible)
+void Courtroom::setupWidgetElement(AOImageDisplay *widget, const QString &name, const QString &image, bool visible)
 {
   set_size_and_pos(widget, name, COURTROOM_DESIGN_INI, ao_app);
 
@@ -1388,7 +1363,7 @@ void Courtroom::setupWidgetElement(AOImageDisplay *widget, QString name, QString
   if(!visible) widget->hide();
 }
 
-void Courtroom::setupWidgetElement(RPTextEdit *widget, QString name, QString defaultText, Qt::TextInteractionFlag flag, bool visible)
+void Courtroom::setupWidgetElement(RPTextEdit *widget, const QString &name, const QString &defaultText, Qt::TextInteractionFlag flag, bool visible)
 {
   set_size_and_pos(widget, name, COURTROOM_DESIGN_INI, ao_app);
 
@@ -1398,7 +1373,7 @@ void Courtroom::setupWidgetElement(RPTextEdit *widget, QString name, QString def
   if(!visible) widget->hide();
 }
 
-void Courtroom::move_widget(QWidget *p_widget, QString p_identifier)
+void Courtroom::move_widget(QWidget *p_widget, const QString &p_identifier)
 {
   QString filename = COURTROOM_DESIGN_INI;
 
@@ -1418,7 +1393,7 @@ void Courtroom::move_widget(QWidget *p_widget, QString p_identifier)
 }
 
 template <typename T>
-int Courtroom::adapt_numbered_items(QVector<T *> &item_vector, QString config_item_number, QString item_name)
+int Courtroom::adapt_numbered_items(QVector<T *> &item_vector, const QString &config_item_number, const QString &item_name)
 {
   // &item_vector must be a vector of size at least 1!
 
@@ -1584,10 +1559,10 @@ void Courtroom::load_effects()
   for (int i = 1; i <= ui_effects.size(); ++i)
   {
     QStringList names = ao_app->get_effect(i);
-    if (!names.isEmpty())
+    const QString l_name = names.isEmpty() ? QString() : names.at(0).trimmed();
+    effect_names.append(l_name);
+    if (!l_name.isEmpty())
     {
-      const QString l_name = names.at(0).trimmed();
-      effect_names.append(l_name);
       RPButton *l_button = ui_effects.at(i - 1);
       l_button->setProperty("effect_name", l_name);
       Q_EMIT l_button->toggled(l_button->isChecked());
@@ -1654,9 +1629,9 @@ void Courtroom::load_shouts()
     connect(l_button, &RPButton::toggled, this, &Courtroom::on_shout_button_toggled);
 
 
+    shout_names.append(shout_name);
     if(!shout_name.isEmpty())
     {
-      shout_names.append(shout_name);
       RPButton *l_button = ui_shouts.at(i);
       widget_names.insert(shout_name, l_button);
       l_button->setObjectName(shout_name);
@@ -1689,9 +1664,9 @@ void Courtroom::load_wtce()
 
     QString wtce_name = ao_app->current_theme->get_wtce(i + 1);
 
+    wtce_names.append(wtce_name);
     if(!wtce_name.isEmpty())
     {
-      wtce_names.append(wtce_name);
       widget_names[wtce_name] = ui_wtce[i];
       ui_wtce[i]->setObjectName(wtce_name);
     }

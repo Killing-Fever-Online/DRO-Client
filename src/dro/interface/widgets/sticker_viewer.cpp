@@ -3,7 +3,6 @@
 #include "aoapplication.h"
 #include "drtheme.h"
 #include "dro/fs/fs_reading.h"
-#include "dro/fs/fs_reading.h"
 
 DRStickerViewer::DRStickerViewer(AOApplication *ao_app, QWidget *parent)
     : mk2::SpriteViewer(parent)
@@ -16,19 +15,6 @@ DRStickerViewer::DRStickerViewer(AOApplication *ao_app, QWidget *parent)
 
 DRStickerViewer::~DRStickerViewer()
 {}
-
-void DRStickerViewer::set_hide_when_done(bool p_enabled)
-{
-  if (m_hide_when_done == p_enabled)
-  {
-    return;
-  }
-  m_hide_when_done = p_enabled;
-  if (!is_running())
-  {
-    maybe_hide();
-  }
-}
 
 void DRStickerViewer::set_theme_image(QString p_file_name)
 {
@@ -88,7 +74,6 @@ void DRStickerViewer::set_chatbox_image(QString p_chatbox_name, bool p_is_self, 
   {
     qWarning() << "warning: could not retrieve any chatbox image, will display blank";
   }
-  QString old_filename = get_file_name();
   int current_frame = get_frame();
   set_file_name(l_target_file);
   restart(current_frame);

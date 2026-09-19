@@ -8,7 +8,7 @@ public:
   DRAudioError();
   DRAudioError(QString p_error);
 
-  QString what();
+  QString what() const;
 
 private:
   QString m_error;

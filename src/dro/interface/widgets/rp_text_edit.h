@@ -39,10 +39,8 @@ private:
     InProgress,
   };
   Status m_status = Status::Done;
-  int m_current_document_blocks = 0;
   int m_current_document_height = 0;
 
-  void refresh_horizontal_alignment();
   void refresh_vertical_alignment();
 
   QString m_friendlyName = "";

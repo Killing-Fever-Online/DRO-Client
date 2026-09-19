@@ -3,7 +3,6 @@
 DRMovie::DRMovie(QGraphicsItem *parent)
     : mk2::GraphicsSpriteItem{parent}
     , m_hide_when_done{false}
-    , m_mirrored{false}
 {
   connect(this, &DRMovie::started, this, &DRMovie::update_visibility);
   connect(this, &DRMovie::finished, this, &DRMovie::done);

@@ -17,12 +17,12 @@ AOImageDisplay::AOImageDisplay(QWidget *parent, AOApplication *p_ao_app)
   ao_app = p_ao_app;
 }
 
-QString AOImageDisplay::get_image()
+QString AOImageDisplay::get_image() const
 {
   return m_image;
 }
 
-void AOImageDisplay::set_image(QString p_image)
+void AOImageDisplay::set_image(const QString &p_image)
 {
   m_image = p_image;
   refreshImage();

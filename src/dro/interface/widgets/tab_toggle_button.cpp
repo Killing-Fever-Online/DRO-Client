@@ -49,10 +49,3 @@ void TabToggleButton::on_clicked()
     ThemeManager::get().toggleTab(mTabName, mTabGroup);
   }
 }
-
-void TabToggleButton::detatchTab()
-{
-  if(mIsDetatched) return;
-  ThemeManager::get().detatchTab(mTabName);
-  mIsDetatched = true;
-}

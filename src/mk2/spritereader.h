@@ -20,9 +20,13 @@
 
 #pragma once
 
+#include <QIODevice>
 #include <QObject>
 #include <QPixmap>
 #include <QSharedPointer>
+#include <QVector>
+
+#include <atomic>
 
 namespace mk2
 {
@@ -74,8 +78,6 @@ public:
   virtual int get_frame_count() const;
 
   virtual SpriteFrame get_frame(int number);
-
-  virtual QVector<SpriteFrame> get_frame_list();
 
   mk2::SpriteReader::State get_state() const;
 

@@ -38,6 +38,7 @@ DRServerInfo DRServerInfoEditor::get_server_info()
   l_server_info.address = ui_address->text();
   l_server_info.port = ui_port->value();
   l_server_info.ws_port = ui_ws_port->value();
+  l_server_info.protocol = l_server_info.ws_port ? DRServerProtocolType::WEBSOCKET : DRServerProtocolType::TCP;
 
   return l_server_info;
 }

@@ -13,6 +13,8 @@ class AONoteArea : public AOImageDisplay
   Q_OBJECT
 
 public:
+  static constexpr int MAX_NOTE_SLOTS = 7;
+
   RPButton *add_button = nullptr;
   QVBoxLayout *m_layout = nullptr;
 

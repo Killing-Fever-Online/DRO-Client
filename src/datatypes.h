@@ -84,7 +84,7 @@ struct EmoteLayer
   QString spriteOrder;
   QRect layerOffset;
 
-  bool detachLayer;
+  bool detachLayer = false;
 
   QString blendMode;
   QString toggleName;
@@ -200,7 +200,7 @@ public:
 
   QString name;
   QString file;
-  bool is_found;
+  bool is_found = false;
 };
 
 enum class DRServerProtocolType
@@ -216,9 +216,9 @@ public:
   QString name;
   QString description;
   QString address;
-  int port;
-  int ws_port;
-  DRServerProtocolType protocol;
+  int port = 0;
+  int ws_port = 0;
+  DRServerProtocolType protocol = DRServerProtocolType::TCP;
 
   QString to_info() const;
   QString to_address() const;
@@ -397,11 +397,7 @@ enum EmoteMod
 namespace DR
 {
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-using SplitBehavior = QString::SplitBehavior;
-#else
 using SplitBehavior = Qt::SplitBehaviorFlags;
-#endif
 
 enum VAlign : int32_t
 {
@@ -462,9 +458,9 @@ public:
       : type(p_type)
         , chara(p_chara)
   {}
-  MidLineCommand type;
+  MidLineCommand type = MidLineCommand::Chara;
   QColor color;
-  int interval;
+  int interval = 0;
   QChar chara;
 };
 

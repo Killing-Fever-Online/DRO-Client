@@ -12,8 +12,11 @@ class DRDiscord;
 class DRTheme;
 class DRMasterClient;
 class Lobby;
+class QTimer;
 
 #include <QApplication>
+#include <QDateTime>
+#include <QQueue>
 #include <QVector>
 
 #include <optional>
@@ -42,8 +45,8 @@ public:
   void leave_server();
   void connect_to_server(DRServerInfo server);
   void send_server_packet(DRPacket packet);
-  ServerStatus last_server_status();
-  bool joined_server();
+  ServerStatus last_server_status() const;
+  bool joined_server() const;
 
   Lobby *get_lobby() const;
   void construct_lobby();
@@ -182,9 +185,6 @@ public:
 
   QStringList get_char_include_tree(QString character);
 
-  // Returns p_char's gender
-  QString get_gender(QString p_char);
-
   QVector<DREmote> get_emote_list(QString p_chr);
 
   // Returns x,y offset for effect p_effect
@@ -220,6 +220,10 @@ private:
   DRServerSocket *m_server_socket = nullptr;
   ServerStatus m_server_status = NotConnected;
 
+  QQueue<DRPacket> m_packet_backlog;
+  QTimer *m_packet_drain_timer = nullptr;
+  bool m_processing_packets = false;
+
   Lobby *m_lobby = nullptr;
   bool is_lobby_constructed = false;
 
@@ -242,9 +246,12 @@ private:
   bool m_loaded_music_list = false;
   bool m_loaded_area_list = false;
 
+  void _p_process_server_packet(DRPacket);
+
 private slots:
   void _p_handle_server_state_update(DRServerSocket::ConnectionState);
   void _p_handle_server_packet(DRPacket);
+  void _p_drain_packet_backlog();
   void on_courtroom_closing();
   void on_courtroom_destroyed();
   void resolve_current_theme();

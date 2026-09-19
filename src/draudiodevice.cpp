@@ -1,21 +1,30 @@
 #include "draudiodevice.h"
 
-#include <QMap>
-
-#include <bass/bass.h>
+#include "dro/system/audio/audio_backend.h"
 
 QVector<DRAudioDevice> DRAudioDevice::get_device_list()
 {
   QVector<DRAudioDevice> r_device_list;
 
-  BASS_DEVICEINFO l_device_info;
-  for (int i = 0; BASS_GetDeviceInfo(i, &l_device_info); ++i)
+  const QVector<audio_backend::DeviceEntry> l_entry_list = audio_backend::enumerate_devices();
+  const QByteArray l_selected = audio_backend::selected_device();
+
+  for (const audio_backend::DeviceEntry &i_entry : l_entry_list)
   {
     DRAudioDevice l_device;
-    l_device.m_id = i;
-    l_device.m_name = l_device_info.name;
-    l_device.m_driver = l_device_info.driver;
-    l_device.m_states = State(l_device_info.flags);
+    l_device.m_id = i_entry.index;
+    l_device.m_name = i_entry.name;
+    l_device.m_driver = i_entry.driver;
+    l_device.m_native_id = i_entry.native_id;
+    l_device.m_states = SEnabled;
+    if (i_entry.is_default)
+    {
+      l_device.m_states |= SDefault;
+    }
+    if (!l_selected.isEmpty() && l_selected == i_entry.native_id)
+    {
+      l_device.m_states |= SInit;
+    }
     r_device_list.append(l_device);
   }
 
@@ -30,7 +39,7 @@ DRAudioDevice::DRAudioDevice()
 DRAudioDevice::~DRAudioDevice()
 {}
 
-DWORD DRAudioDevice::get_id() const
+uint32_t DRAudioDevice::get_id() const
 {
   return m_id;
 }
@@ -43,6 +52,11 @@ QString DRAudioDevice::get_name() const
 QString DRAudioDevice::get_driver() const
 {
   return m_driver.isEmpty() ? "NOSOUND" : m_driver;
+}
+
+QByteArray DRAudioDevice::get_native_id() const
+{
+  return m_native_id;
 }
 
 DRAudioDevice::States DRAudioDevice::get_states() const
@@ -68,6 +82,11 @@ bool DRAudioDevice::is_default() const
 bool DRAudioDevice::is_init() const
 {
   return is_state(SInit);
+}
+
+void DRAudioDevice::set_init(bool p_enabled)
+{
+  m_states.setFlag(SInit, p_enabled);
 }
 
 bool DRAudioDevice::operator==(const DRAudioDevice &other) const

@@ -203,19 +203,6 @@ QVector<QStringList>DRTheme::get_highlight_characters()
   return ThemeManager::get().mCurrentThemeReader.GetColorsHighlights();
 }
 
-pos_size_type DRTheme::get_element_dimensions(QString p_identifier, QString p_scene)
-{
-  if(p_scene == "courtroom")
-  {
-    return ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(COURTROOM, p_identifier);
-  }
-  else
-  {
-    return ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(LOBBY, p_identifier);
-  }
-
-}
-
 QString DRTheme::get_widget_image(QString p_identifier, QString p_fallback, QString p_scene)
 {
   if(!m_jsonLoaded)
@@ -247,48 +234,6 @@ QString DRTheme::get_widget_font_string_setting(QString p_identifier, QString p_
   RPSceneType sceneType = COURTROOM;
   if(p_scene == LOBBY_FONTS_INI) sceneType = LOBBY;
   return ThemeManager::get().mCurrentThemeReader.GetFontData(sceneType, p_identifier).align;
-}
-
-bool DRTheme::get_widget_font_bool(QString p_identifier, QString p_scene, QString p_param, QString p_type)
-{
-  if(!m_jsonLoaded)
-  {
-    return false;
-  }
-
-  QJsonValue value = m_currentThemeObject.value(QString(p_scene));
-  QJsonObject item = value.toObject();
-  QJsonObject element_font = item[p_identifier].toObject();
-
-  bool l_font_bool = element_font["font"].toObject()[p_type + "_" + p_param].toBool();
-
-  return l_font_bool;
-
-}
-
-
-QColor DRTheme::get_widget_font_color(QString p_identifier, QString p_scene, QString p_type)
-{
-  QColor return_value = QColor(0,0,0);
-  if(!m_jsonLoaded)
-  {
-    return return_value;
-  }
-
-  QJsonValue value = m_currentThemeObject.value(QString(p_scene));
-  QJsonObject item = value.toObject();
-  QJsonObject element_font = item[p_identifier].toObject();
-
-
-  if(!element_font["font"].toObject().contains(p_type + "_color"))
-  {
-    return return_value;
-  }
-
-  return_value = QColor(element_font["font"].toObject()[p_type + "_color"].toString());
-
-  return return_value;
-
 }
 
 int DRTheme::get_widget_settings_int(QString p_identifier, QString p_scene, QString p_setting)
@@ -371,11 +316,6 @@ QPoint DRTheme::get_widget_settings_spacing(QString p_identifier, QString p_scen
   QVector2D spacing = ThemeManager::get().mCurrentThemeReader.GetWidgetSpacing(p_identifier);
   QPoint return_value = QPoint(spacing.x(),spacing.y());
   return return_value;
-}
-
-QJsonObject *DRTheme::get_font_json_object(QString p_identifier, QString p_scene)
-{
-  return nullptr;
 }
 
 QMap<DR::Color, DR::ColorInfo> DRTheme::get_chat_colors()

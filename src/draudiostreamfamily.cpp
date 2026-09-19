@@ -1,11 +1,10 @@
-#include "draudiostream.h"
-#define NOMINMAX
-
 #include "draudiostreamfamily.h"
 
 #include "draudioengine.h"
 
 #include <QDebug>
+
+#include <algorithm>
 
 DRAudioStreamFamily::DRAudioStreamFamily(DRAudio::Family p_family)
     : m_family(p_family)
@@ -115,6 +114,8 @@ DRAudioStream::ptr DRAudioStreamFamily::create_stream(QString p_filename)
   update_capacity();
 
   l_stream->set_volume(calculate_volume());
+  l_stream->set_family_pitch(m_pitch);
+  l_stream->set_family_speed(m_speed);
 
   return l_stream;
 }
@@ -135,6 +136,8 @@ DRAudioStream::ptr DRAudioStreamFamily::create_url_stream(QString t_url)
   update_capacity();
 
   l_stream->set_volume(calculate_volume());
+  l_stream->set_family_pitch(m_pitch);
+  l_stream->set_family_speed(m_speed);
 
   return l_stream;
 }
@@ -161,7 +164,7 @@ int32_t DRAudioStreamFamily::get_volume() const
   return m_volume;
 }
 
-float DRAudioStreamFamily::calculate_volume()
+float DRAudioStreamFamily::calculate_volume() const
 {
   float volume = float(m_volume) * 0.01f;
 
@@ -202,18 +205,24 @@ void DRAudioStreamFamily::update_volume()
 void DRAudioStreamFamily::update_pitch()
 {
   for (auto &stream : m_stream_list)
-    stream->set_pitch(m_pitch);
+    stream->set_family_pitch(m_pitch);
 }
 
 void DRAudioStreamFamily::update_speed()
 {
   for (auto &stream : m_stream_list)
-    stream->set_speed(m_speed);
+    stream->set_family_speed(m_speed);
+}
+
+void DRAudioStreamFamily::update_rate_mode()
+{
+  for (auto &stream : m_stream_list)
+    stream->refresh_rate_mode();
 }
 
 void DRAudioStreamFamily::on_stream_finished()
 {
-  DRAudioStream *invoker = dynamic_cast<DRAudioStream *>(sender());
+  DRAudioStream *invoker = qobject_cast<DRAudioStream *>(sender());
   if (invoker == nullptr)
     return;
 

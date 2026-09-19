@@ -15,8 +15,6 @@ void ThemeManager::ResetWidgetLists()
   m_TabWidgets.clear();
   m_TabDeletionQueue.clear();
   m_WidgetNames.clear();
-  mButtonWidgets.clear();
-  mLineEditWidgets.clear();
   mComboBoxWidgets.clear();
   m_DetatchedTabList.clear();
 }
@@ -63,8 +61,6 @@ void ThemeManager::createTabParent()
     l_newTab->resize(l_panelPosition.width, l_panelPosition.height);
     l_newTab->setBackgroundImage(r_tabInfo.m_Name + "_panel");
     l_newTab->setDragable(r_tabInfo.m_DragEnabled);
-
-    addWidgetName(l_panelName, l_newTab);
 
     if(m_TabWidgets.contains(r_tabInfo.m_Name))delete m_TabWidgets[r_tabInfo.m_Name];
 
@@ -246,21 +242,17 @@ void ThemeManager::setWidgetDimensions(QWidget *t_widget, int t_width, int t_hei
 void ThemeManager::AssignDimensions(QWidget *t_widget, QString t_name, RPSceneType t_scene)
 {
   pos_size_type lPositionData = mCurrentThemeReader.GetWidgetTransform(t_scene, t_name);
-  lPositionData.width = static_cast<int>(lPositionData.width);
-  lPositionData.height = static_cast<int>(lPositionData.height);
-  lPositionData.x = static_cast<int>(lPositionData.x);
-  lPositionData.y = static_cast<int>(lPositionData.y);
 
   t_widget->move(lPositionData.x, lPositionData.y);
   t_widget->resize(lPositionData.width, lPositionData.height);
 }
 
-void ThemeManager::SetWidgetNames(QHash<QString, QWidget *> t_WidgetNames)
+void ThemeManager::SetWidgetNames(const QHash<QString, QWidget *> &t_WidgetNames)
 {
   m_WidgetNames = t_WidgetNames;
 }
 
-void ThemeManager::addWidgetName(QString t_widgetName, QWidget *t_widget)
+void ThemeManager::addWidgetName(const QString &t_widgetName, QWidget *t_widget)
 {
   courtroom::layout::addWidget(t_widgetName, t_widget);
   m_WidgetNames[t_widgetName] = t_widget;
@@ -271,12 +263,12 @@ QVector<ThemeTabInfo> ThemeManager::getTabsInfo()
   return ThemeManager::get().mCurrentThemeReader.getTabs();
 }
 
-bool ThemeManager::getConfigBool(QString value)
+bool ThemeManager::getConfigBool(const QString &value)
 {
   return mCurrentThemeReader.GetConfigBool(value);
 }
 
-bool ThemeManager::getReloadPending()
+bool ThemeManager::getReloadPending() const
 {
   return mRequiresReload;
 }
@@ -301,17 +293,12 @@ void ThemeManager::setResize(double size)
   mClientResize = size;
 }
 
-double ThemeManager::getResize()
+double ThemeManager::getResize() const
 {
   return mClientResize;
 }
 
-void ThemeManager::setViewporResize(double size)
-{
-  mViewportResize = size;
-}
-
-double ThemeManager::getViewporResize()
+double ThemeManager::getViewporResize() const
 {
   return mViewportResize;
 }
@@ -321,7 +308,7 @@ void ThemeManager::setFontResize(double size)
   mFontResize = size;
 }
 
-double ThemeManager::getFontResize()
+double ThemeManager::getFontResize() const
 {
   return mFontResize;
 }

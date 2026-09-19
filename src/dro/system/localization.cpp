@@ -18,6 +18,7 @@ QMap<QString, QString> s_fallbackText =
   {"TOOLTIP_PRE", "Enables pre-animations and sound effects."},
   {"TOOLTIP_FLIP", "Flips the character sprite when you send a message."},
   {"TOOLTIP_HIDE", "Hides the character sprite when you send a message."},
+  {"TOOLTIP_ADDITIVE", "Additive text. Appends your messages onto your previous one, no <a> needed."},
   {"CHATBOX_IC", "Say something in-character."},
   {"CHATBOX_OOC", "Say something out-of-character."},
   {"TEXTBOX_OOC_NAME", "Name"},

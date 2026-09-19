@@ -14,41 +14,37 @@ public:
   void ParseModuleConfig();
   void ParseLayers();
   void ParseTabs();
-  ThemeScene *ParseScene(QString t_scene);
+  ThemeScene *ParseScene(const QString &t_scene);
 
-  void ParseSubFont(QJsonObject t_fontObject, QString t_fontType, ThemeScene *t_scene);
+  void ParseSubFont(const QJsonObject &t_fontObject, const QString &t_fontType, ThemeScene *t_scene);
 
 
-  void SwitchModuleTarget(QString t_target);
+  void SwitchModuleTarget(const QString &t_target);
 
-  ThemeScene *getThemeScene(RPSceneType t_scene);
+  ThemeScene *getThemeScene(RPSceneType t_scene) const;
 
-  bool getContainsSceneWidget(RPSceneType t_scene, QString t_name);
+  bool getContainsSceneWidget(RPSceneType t_scene, const QString &t_name) const;
 
   //layers
-  bool getContainsLayers();
-  QVector<QStringList> getWidgetLayers();
+  bool getContainsLayers() const;
+  QVector<QStringList> getWidgetLayers() const;
 
   //Tabs
-  QVector<ThemeTabInfo> getTabs();
+  QVector<ThemeTabInfo> getTabs() const;
 
   //Config
-  bool getContainsBool(QString t_setting);
-  bool getSettingBool(QString t_setting);
+  bool getContainsBool(const QString &t_setting) const;
+  bool getSettingBool(const QString &t_setting) const;
 
   //Config - Sounds
-  bool getContainsSound(QString t_sfxName);
-  QString getSoundFile(QString t_sfxName);
+  bool getContainsSound(const QString &t_sfxName) const;
+  QString getSoundFile(const QString &t_sfxName) const;
 
-  QString getDirectoryPath();
+  QString getDirectoryPath() const;
 private:
   //Config
-  int m_configMusicSpeed = -1;
-  int m_configTimer = -1;
   QHash<QString, bool> m_configBooleans = {};
   QHash<QString, QString> m_configSounds = {};
-  QMap<QString, DR::ColorInfo> m_configColors = {};
-  QHash<QString, dialogueHighlights> m_configHighlights = {};
 
   //Scenes
   ThemeScene *m_CourtroomScene = nullptr;
@@ -57,7 +53,6 @@ private:
   ThemeScene *m_ViewportScene = nullptr;
 
   //Other
-  QHash<QString, widgetFontStruct*> m_ChatlogColours = {};
   QVector<ThemeTabInfo> m_themeTabs = {};
   QVector<QStringList> m_WidgetLayers = {};
 

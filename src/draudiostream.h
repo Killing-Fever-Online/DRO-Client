@@ -4,25 +4,22 @@
 #include "draudiodevice.h"
 #include "draudioerror.h"
 
-#include <bass/bass.h>
-
+#include <QEnableSharedFromThis>
 #include <QObject>
-#include <QStack>
+#include <QSharedPointer>
 
+#include <memory>
 #include <optional>
 
 class DRAudioEngine;
 class DRAudioEnginePrivate;
 class DRAudioStreamFamily;
+class DRAudioStreamPrivate;
+class QTimer;
 
-class DRAudioStreamSync
-{
-public:
-  HSYNC sync;
-  DWORD type;
-};
-
-class DRAudioStream : public QObject
+class DRAudioStream
+    : public QObject
+    , public QEnableSharedFromThis<DRAudioStream>
 {
   Q_OBJECT
 
@@ -55,6 +52,8 @@ public slots:
 
   void set_pitch(float pitch);
   void set_speed(float speed);
+  void set_family_pitch(float pitch);
+  void set_family_speed(float speed);
 
   void toggle_reverb(bool reverb);
   void set_volume(float volume);
@@ -73,22 +72,19 @@ public slots:
   void fadeOut(int duration);
 
   void play();
-  void playSynced(const DRAudioStream* reference);
+  void playSynced(const DRAudioStream *reference);
   void stop();
+  void refresh_rate_mode();
 
 signals:
   void file_name_changed(QString file);
-
-  void faded(DRAudioStream::Fade type);
 
   void looped();
 
   void finished();
 
 public:
-  static void CALLBACK end_sync(HSYNC hsync, DWORD ch, DWORD data, void *userdata);
-  static void CALLBACK loop_sync(HSYNC hsync, DWORD ch, DWORD data, void *userdata);
-  static void CALLBACK fade_sync(HSYNC hsync, DWORD ch, DWORD data, void *userdata);
+  void handle_end();
 
 private:
   friend class DRAudioStreamFamily;
@@ -109,29 +105,29 @@ private:
   int m_fade_duration = 0;
   bool m_fade_running = false;
   bool m_reverb = false;
-  HFX m_reverb_effect;
-  HSTREAM m_hstream = 0;
   float m_volume = 0.0f;
   float m_pitch = 0.0f;
   float m_speed = 0.0f;
+  float m_family_pitch = 0.0f;
+  float m_family_speed = 0.0f;
   bool m_repeatable = false;
-  QWORD m_loop_start = 0;
-  QWORD m_loop_start_pos = 0;
-  QWORD m_loop_end = 0;
-  QWORD m_loop_end_pos = 0;
-  HSYNC m_loop_sync = 0;
+  quint64 m_loop_start = 0;
+  quint64 m_loop_end = 0;
+  QTimer *m_fade_timer = nullptr;
+  QTimer *m_drain_timer = nullptr;
+  int m_drain_ticks = 0;
+  std::unique_ptr<DRAudioStreamPrivate> d;
 
   bool ensure_init();
   bool ensure_init() const;
   void update_device(DRAudioDevice);
   void init_loop();
-  void seek_loop_start();
+  void apply_rate();
+  void rewire();
+  void release_sound();
 
 private slots:
   void update_volume();
-  void update_pitch();
-  void update_speed();
-
-signals:
-  void device_error(QPrivateSignal);
+  void handle_fade_finished();
+  void check_drain();
 };

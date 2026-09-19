@@ -203,7 +203,7 @@ QString EvidenceList::getIconPath(QString f_path)
   return evidence_image_path;
 }
 
-int EvidenceList::getCurrentSelection()
+int EvidenceList::getCurrentSelection() const
 {
   QListWidgetItem *l_item = evidence_list_widget->currentItem();
   if (l_item != nullptr)

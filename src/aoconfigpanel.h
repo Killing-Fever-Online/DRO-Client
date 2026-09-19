@@ -10,8 +10,6 @@ class AOConfig;
 #include <QDoubleSpinBox>
 #include <QMap>
 #include <QWidget>
-#include <qtableview.h>
-#include <qtreeview.h>
 
 class QCheckBox;
 class QComboBox;
@@ -29,9 +27,6 @@ class AOConfigPanel : public QWidget
 
 public:
   AOConfigPanel(AOApplication *p_ao_app, QWidget *p_parent = nullptr);
-
-public slots:
-  void on_config_reload_theme_requested();
 
 signals:
   void reload_theme();
@@ -59,6 +54,8 @@ private slots:
   void on_reload_character_clicked();
   void on_reload_audiotracks_clicked();
   void on_load_packages_clicked();
+  void on_add_package_path_clicked();
+  void on_remove_package_path_clicked();
   void on_theme_changed(QString);
   void on_gamemode_changed(QString);
   void on_manual_gamemode_selection_changed(bool);
@@ -76,6 +73,9 @@ private slots:
   void on_audio_device_list_changed(QVector<DRAudioDevice> p_device_list);
 
   void on_volume_value_changed(int p_num);
+  void on_pitch_value_changed(int p_num);
+  void on_tempo_value_changed(int p_num);
+  void on_reset_pitch_tempo_clicked();
 
   void on_length_threshold_value_changed(int p_number);
 
@@ -95,7 +95,7 @@ private:
 
   //tabs
   QListView *pTabFilters = nullptr;
-  QTabWidget *tab_widget;
+  QTabWidget *tab_widget = nullptr;
 
   // behaviour
   QPushButton *ui_save = nullptr;
@@ -128,6 +128,8 @@ private:
   QSpinBox *ui_chat_tick_interval = nullptr;
   QSpinBox *ui_chat_ratelimit = nullptr;
   QSpinBox *ui_message_queue_delay = nullptr;
+  QCheckBox *ui_disable_blankpost = nullptr;
+  QCheckBox *ui_soft_blankpost = nullptr;
   QSpinBox *ui_blip_rate = nullptr;
   QCheckBox *ui_blank_blips = nullptr;
   QSpinBox *ui_punctuation_delay = nullptr;
@@ -139,7 +141,6 @@ private:
 
   QPushButton *ui_switch_theme = nullptr;
   QPushButton *ui_reload_theme = nullptr;
-  QTreeView *ui_themeModules = nullptr;
   QLineEdit *ui_gamemode = nullptr;
   QComboBox *ui_manual_gamemode = nullptr;
   QCheckBox *ui_manual_gamemode_selection = nullptr;
@@ -164,26 +165,25 @@ private:
   QCheckBox *ui_log_is_recording = nullptr;
 
   // performance
-  QCheckBox *ui_enable_opengl;
-  QCheckBox *ui_focus_performance_mode;
-  QCheckBox *ui_cache_backgrounds;
-  QCheckBox *ui_cache_characters;
-  QCheckBox *ui_cache_effects;
-  QCheckBox *ui_cache_shouts;
-  QCheckBox *ui_cache_gui;
-  QCheckBox *ui_cache_stickers;
+  QCheckBox *ui_enable_opengl = nullptr;
+  QCheckBox *ui_focus_performance_mode = nullptr;
+  QCheckBox *ui_cache_backgrounds = nullptr;
+  QCheckBox *ui_cache_characters = nullptr;
+  QCheckBox *ui_cache_effects = nullptr;
+  QCheckBox *ui_cache_shouts = nullptr;
+  QCheckBox *ui_cache_gui = nullptr;
+  QCheckBox *ui_cache_stickers = nullptr;
   QMap<int, QCheckBox *> m_cache_checkbox_map;
 
-  QSlider *ui_system_memory_threshold;
-  QLabel *ui_system_memory_threshold_label;
-  QSlider *ui_loading_bar_delay;
-  QLabel *ui_loading_bar_delay_label;
-  QSlider *ui_caching_threshold;
-  QLabel *ui_caching_threshold_label;
+  QSlider *ui_system_memory_threshold = nullptr;
+  QLabel *ui_system_memory_threshold_label = nullptr;
+  QSlider *ui_loading_bar_delay = nullptr;
+  QLabel *ui_loading_bar_delay_label = nullptr;
+  QSlider *ui_caching_threshold = nullptr;
+  QLabel *ui_caching_threshold_label = nullptr;
 
   // audio
   QComboBox *ui_device = nullptr;
-  QCheckBox *ui_favorite_device = nullptr;
 
   //Audio Sliders
   QMap<QSlider*, QLabel*> volumeSliderMap = {};
@@ -205,6 +205,24 @@ private:
   QCheckBox *ui_blip_ignore_suppression = nullptr;
   QLabel *ui_blip_value = nullptr;
   QPushButton *ui_reload_audiotracks = nullptr;
+  QSlider *ui_master_pitch = nullptr;
+  QLabel *ui_master_pitch_value = nullptr;
+  QSlider *ui_master_tempo = nullptr;
+  QLabel *ui_master_tempo_value = nullptr;
+  QSlider *ui_effect_pitch = nullptr;
+  QLabel *ui_effect_pitch_value = nullptr;
+  QSlider *ui_effect_tempo = nullptr;
+  QLabel *ui_effect_tempo_value = nullptr;
+  QSlider *ui_music_pitch = nullptr;
+  QLabel *ui_music_pitch_value = nullptr;
+  QSlider *ui_music_tempo = nullptr;
+  QLabel *ui_music_tempo_value = nullptr;
+  QSlider *ui_blip_pitch = nullptr;
+  QLabel *ui_blip_pitch_value = nullptr;
+  QSlider *ui_blip_tempo = nullptr;
+  QLabel *ui_blip_tempo_value = nullptr;
+  QCheckBox *ui_independent_pitch_tempo = nullptr;
+  QPushButton *ui_reset_pitch_tempo = nullptr;
 
   // about
   QLabel *ui_about = nullptr;
@@ -212,10 +230,8 @@ private:
   // packages
   QListWidget *ui_packages_list = nullptr;
   QPushButton *ui_load_new_packages = nullptr;
-
-  //Updates
-  QCheckBox *ui_beta_updates = nullptr;
-  QPushButton *ui_check_updates = nullptr;
+  QPushButton *ui_add_package_path = nullptr;
+  QPushButton *ui_remove_package_path = nullptr;
 
   //Theme
   QDoubleSpinBox *ui_theme_resize = nullptr;

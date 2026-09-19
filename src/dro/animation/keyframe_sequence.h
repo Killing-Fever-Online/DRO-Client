@@ -34,7 +34,6 @@ private:
   bool m_RenderProcessed = false;
   QString m_SoundEffect = "";
 
-  float m_LastTimestamp = 0.0f;
   float m_Timestamp = 0.0f;
 
   int m_ViewportTimestamp = 0;

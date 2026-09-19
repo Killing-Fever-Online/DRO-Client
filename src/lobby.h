@@ -32,8 +32,6 @@ public:
   Lobby(AOApplication *p_ao_app);
   ~Lobby();
 
-  DRServerInfoList get_combined_server_list();
-
   void set_choose_a_server();
   void set_player_count(int players_online, int max_players);
   void set_loading_text(QString p_text);
@@ -45,13 +43,7 @@ public:
   DRServerInfo get_selected_server();
   void set_loading_value(int p_value);
 
-signals:
-  void server_list_changed();
-  void favorite_server_list_changed();
-  void combined_server_list_changed();
-
 private:
-  QString m_currentCategory = "";
   QString m_currentPackage = "";
 
   AOApplication *ao_app = nullptr;
@@ -111,7 +103,6 @@ private:
   QAction *ui_create_server;
   QAction *ui_modify_server;
   QAction *ui_delete_server;
-  QMenu *ui_swap_with;
   QAction *ui_move_up_server;
   QAction *ui_move_down_server;
 
@@ -139,7 +130,6 @@ private slots:
   void filter_server_listing();
   void select_current_server();
 
-  void onReplayRowChanged(int row);
   void onGalleryPackageChanged(int index);
   void onGalleryCategoryChanged(int index);
   void onGalleryToggle();

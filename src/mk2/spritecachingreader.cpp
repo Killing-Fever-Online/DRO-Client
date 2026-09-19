@@ -65,14 +65,6 @@ SpriteFrame SpriteCachingReader::get_frame(int p_number)
   return m_frame_list.at(p_number);
 }
 
-QVector<SpriteFrame> SpriteCachingReader::get_frame_list()
-{
-  m_available_frames.acquire(get_frame_count());
-  QSemaphoreReleaser l_releaser(m_available_frames, get_frame_count());
-  QMutexLocker l_locker(&m_lock);
-  return m_frame_list;
-}
-
 void SpriteCachingReader::load()
 {
   _p_stop_preload();

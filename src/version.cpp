@@ -3,8 +3,7 @@
 #include <QFile>
 #include <QImageReader>
 #include <QString>
-#include <qprocess.h>
-#include <bass/bass.h>
+#include <miniaudio/miniaudio.h>
 #include "datatypes.h"
 
 int get_release_version()
@@ -19,7 +18,7 @@ int get_major_version()
 
 int get_minor_version()
 {
-  return 2;
+  return 5;
 }
 
 VersionNumber get_version_number(int baseVersion)
@@ -73,19 +72,38 @@ QString build_about_message()
   QString msg = QString("<h2>Danganronpa Online</h2>"
                         "version: %1"
                         "<p><b>Source code:</b> "
-                        "<a href='https://github.com/Killing-Fever-Online/DRO-Client'>"
-                        "https://github.com/Killing-Fever-Online/DRO-Client</a>"
+                        "<a href='https://github.com/NyanOnline/DRO-Client-Fork'>"
+                        "https://github.com/NyanOnline/DRO-Client-Fork</a>"
                         "<p><b>Development:</b><br>"
-                        "Cerapter, Elf, Iuvee, Tricky Leifa, Keightiie, Crystalwarrior"
+                        "Cerapter, Elf, Iuvee, Tricky Leifa, Keightiie, Crystalwarrior, SyntaxNyah"
+                        "<p><b>Fork:</b><br>"
+                        "This is the a forked version of the offical DRO client last updated by Crystal Warrior. "
+                        "it is a derivative of Attorney-Online-Client-Remake. Created by SyntaxNyah not a replacement "
+                        "all credits to the upstream forks from each interation for laying the ground work. "
+                        "Not a replacement for DRO client, just a fork intended to clean-up some legacy crust "
+                        "and fix some issues."
                         "<p>Based on Attorney Online 2:<br>"
                         "<a href='https://github.com/AttorneyOnline/AO2-Client'>"
                         "https://github.com/AttorneyOnline/AO2-Client</a>"
-                        "<p>Running on Qt version %2 with the BASS %3 audio engine.<br>"
+                        "<p>Running on Qt version %2 with the miniaudio %3 audio engine.<br>"
                         "APNG plugin loaded: %4"
+                        "<p><b>Libraries:</b><br>"
+                        "<a href='https://www.qt.io/'>Qt 6.8.3</a>, "
+                        "<a href='https://github.com/mackron/miniaudio'>miniaudio 0.11.25</a>, "
+                        "<a href='https://codeberg.org/soundtouch/soundtouch'>SoundTouch 2.3.3</a>, "
+                        "<a href='https://xiph.org/ogg/'>libogg</a>, "
+                        "<a href='https://xiph.org/vorbis/'>libvorbis</a>, "
+                        "<a href='https://xiph.org/vorbis/'>libvorbisfile</a>, "
+                        "<a href='https://opus-codec.org/'>opus</a>, "
+                        "<a href='https://opus-codec.org/'>opusfile</a>, "
+                        "<a href='https://www.lua.org/'>Lua 5.4.2</a>, "
+                        "<a href='https://github.com/ThePhD/sol2'>sol2 3.3.0</a>, "
+                        "<a href='https://github.com/discord/discord-rpc'>discord-rpc 3.4.0</a>, "
+                        "<a href='https://github.com/jurplel/QtApng'>QtApng plugin</a>"
                         "<p>Built on %5 %6<br>")
                     .arg(get_version_string())
                     .arg(QLatin1String(QT_VERSION_STR))
-                    .arg(QLatin1String(BASSVERSIONTEXT))
+                    .arg(QLatin1String(MA_VERSION_STRING))
                     .arg(hasApng ? "Yes" : "No")
                     .arg(QLatin1String(__DATE__))
                     .arg(QLatin1String(__TIME__));

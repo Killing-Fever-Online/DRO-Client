@@ -30,8 +30,7 @@ void AOApplication::reload_packages()
 {
   CharacterManager::get().ResetPackages();
   dro::system::replays::io::resetCache();
-  QVector<QString> packageNames = FS::Packages::Scan();
-  QString packagesPath = FS::Paths::ApplicationPath() + "/packages/";
+  FS::Packages::Scan();
 
   QDir baseCharactersDir (FS::Paths::BasePath() + "/characters");
   if (baseCharactersDir.exists())
@@ -47,9 +46,10 @@ void AOApplication::reload_packages()
     CharacterManager::get().SetCharList("base", baseCharacters);
   }
 
-  for(QString packageName : packageNames)
+  for(QString packageName : FS::Packages::CachedNames())
   {
-    QDir charactersPath (packagesPath + packageName + "/characters");
+    QString packageRoot = FS::Paths::Package(packageName);
+    QDir charactersPath (packageRoot + "characters");
     if (charactersPath.exists())
     {
       QVector<char_type> packageCharacters;
@@ -63,10 +63,9 @@ void AOApplication::reload_packages()
       CharacterManager::get().SetCharList(packageName, packageCharacters);
     }
 
-    QDir replaysDirectory(packagesPath + packageName + "/replays");
+    QDir replaysDirectory(packageRoot + "replays");
     if (replaysDirectory.exists())
     {
-      QVector<QString> l_replayGroups;
       QStringList l_folderGroups = replaysDirectory.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
       dro::system::replays::io::cachePackage(packageName, l_folderGroups);
     }
@@ -167,11 +166,12 @@ QString AOApplication::get_case_sensitive_path(QString p_file)
 
   const QDir l_dir(l_dir_path);
   const auto l_file_list = l_dir.entryList(QDir::Files);
-  const auto l_regex = QRegularExpression(p_file, Qt::CaseInsensitive, QRegularExpression::FixedString);
+  const auto l_regex = QRegularExpression(QRegularExpression::anchoredPattern(QRegularExpression::escape(p_file)),
+                                          QRegularExpression::CaseInsensitiveOption);
   for (auto &i_file : l_file_list)
   {
     const QString l_file_path = l_dir.absoluteFilePath(i_file);
-    if (l_regex.exactMatch(l_file_path))
+    if (l_regex.match(l_file_path).hasMatch())
     {
       p_file = l_file_path;
       break;

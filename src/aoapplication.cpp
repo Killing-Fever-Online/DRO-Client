@@ -19,10 +19,10 @@
 #include <QFileInfo>
 #include <QFontDatabase>
 #include <QRegularExpression>
+#include <QTimer>
 
 #include <modules/managers/character_manager.h>
 #include "dro/system/localization.h"
-#include "dro/fs/fs_reading.h"
 #include "dro/system/runtime_loop.h"
 #include "dro/system/effects.h"
 
@@ -78,6 +78,10 @@ AOApplication::AOApplication(int &argc, char **argv)
   connect(m_server_socket, &DRServerSocket::connection_state_changed, this, &AOApplication::_p_handle_server_state_update);
   connect(m_server_socket, &DRServerSocket::packet_received, this, &AOApplication::_p_handle_server_packet);
 
+  m_packet_drain_timer = new QTimer(this);
+  m_packet_drain_timer->setInterval(25);
+  connect(m_packet_drain_timer, &QTimer::timeout, this, &AOApplication::_p_drain_packet_backlog);
+
   CharacterManager::get().LoadFavoritesList();
   reload_packages();
   resolve_current_theme();
@@ -99,6 +103,7 @@ AOApplication::~AOApplication()
 void AOApplication::leave_server()
 {
   m_server_status = NotConnected;
+  m_packet_backlog.clear();
   m_server_socket->disconnect_from_server();
 }
 
@@ -132,8 +137,11 @@ void AOApplication::destruct_lobby()
     return;
   }
 
-  delete m_lobby;
+  // null first so the guards hold during teardown
+  Lobby *l_lobby = m_lobby;
+  m_lobby = nullptr;
   is_lobby_constructed = false;
+  delete l_lobby;
 }
 
 Courtroom *AOApplication::get_courtroom() const
@@ -161,9 +169,11 @@ void AOApplication::destruct_courtroom()
   // destruct courtroom
   if (is_courtroom_constructed)
   {
-    delete m_courtroom;
+    // null first so the guards hold during teardown
+    Courtroom *l_courtroom = m_courtroom;
     m_courtroom = nullptr;
     is_courtroom_constructed = false;
+    delete l_courtroom;
     ao_config->set_gamemode(nullptr);
     ao_config->set_timeofday(nullptr);
   }
@@ -512,7 +522,8 @@ void AOApplication::loading_cancelled()
 {
   destruct_courtroom();
 
-  m_lobby->hide_loading_overlay();
+  if (is_lobby_constructed)
+    m_lobby->hide_loading_overlay();
 }
 
 void AOApplication::on_courtroom_closing()

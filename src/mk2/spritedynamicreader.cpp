@@ -160,11 +160,6 @@ SpriteFrame SpriteDynamicReader::get_frame(int number)
   return m_reader->get_frame(number);
 }
 
-QVector<SpriteFrame> SpriteDynamicReader::get_frame_list()
-{
-  return m_reader->get_frame_list();
-}
-
 void SpriteDynamicReader::load()
 {
   _p_free_memory();

@@ -19,7 +19,6 @@ void KeyframeSequence::Cleanup()
   m_Loop = false;
   m_SequenceLength = 0;
   m_Timestamp = 0;
-  m_LastTimestamp = 0;
   m_Channels.clear();
 
   m_TimedSounds.clear();
@@ -106,7 +105,6 @@ void KeyframeSequence::RunSequence(float deltaTime)
     }
   }
 
-  m_LastTimestamp = m_Timestamp;
   m_Timestamp = newTimestamp;
 }
 

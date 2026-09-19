@@ -5,7 +5,7 @@ QMap<QString, QStringList> s_musicList = {};
 QStringList s_musicCategories = {};
 QStringList s_pinnedMusic = {};
 
-QStringList TracklistMetadata::Parse(QStringList musicList)
+QStringList TracklistMetadata::Parse(const QStringList &musicList)
 {
   s_musicList.clear();
   s_musicCategories.clear();
@@ -14,7 +14,7 @@ QStringList TracklistMetadata::Parse(QStringList musicList)
   QString m_CurrentCategory = "-- No Category --";
 
   bool m_CategoryNext = false;
-  for(QString r_MusicTrack : musicList)
+  for(const QString &r_MusicTrack : musicList)
   {
     if(r_MusicTrack == "category")
     {
@@ -42,10 +42,10 @@ QStringList TracklistMetadata::GetEverything()
 {
   QStringList l_returnValue = {};
 
-  for(QString rMusicCategory : s_musicCategories)
+  for(const QString &rMusicCategory : s_musicCategories)
   {
     l_returnValue.append(rMusicCategory);
-    for(QString r_MusicTrack : s_musicList[rMusicCategory])
+    for(const QString &r_MusicTrack : s_musicList[rMusicCategory])
     {
       l_returnValue.append(r_MusicTrack);
     }
@@ -53,7 +53,7 @@ QStringList TracklistMetadata::GetEverything()
   return l_returnValue;
 }
 
-QStringList TracklistMetadata::GetCategory(QString categoryName)
+QStringList TracklistMetadata::GetCategory(const QString &categoryName)
 {
   if(categoryName == "Pinned") return s_pinnedMusic;
   QStringList l_List = {};
@@ -70,7 +70,7 @@ QStringList TracklistMetadata::GetCategories()
   return s_musicCategories;
 }
 
-void TracklistMetadata::PinTrack(QString musicPath)
+void TracklistMetadata::PinTrack(const QString &musicPath)
 {
   if(s_pinnedMusic.contains(musicPath))
   {

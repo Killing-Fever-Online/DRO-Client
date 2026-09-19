@@ -105,7 +105,6 @@ void ButtonMaker::SetEmote(DREmote emote)
   DREmote currentEmote = m_Emotes.at(m_EmoteIndex);
   if(emote.comment == currentEmote.comment && emote.outfitName == currentEmote.outfitName)
   {
-    m_EmoteIndex = m_EmoteIndex;
     m_CharacterSprite->play_idle(currentEmote.character, currentEmote.dialog);
     m_CharacterSprite->setVerticalOffset(courtroom::sliders::getValue("vertical_offset"));
 

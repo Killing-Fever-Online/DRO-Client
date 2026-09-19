@@ -45,8 +45,6 @@ private:
   int m_senderId = -1;
   ChoiceEvent m_choiceEvent = ChoiceEvent_Invalid;
 
-signals:
-
 };
 
 #endif // CHOICE_DIALOG_H

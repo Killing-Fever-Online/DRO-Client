@@ -159,18 +159,20 @@ pos_size_type AOApplication::get_element_dimensions(QString p_identifier, QStrin
 
   if(current_theme->m_jsonLoaded)
   {
-    pos_size_type json_pos;
+    RPSceneType l_scene = COURTROOM;
+    bool l_known_file = true;
 
-    if(p_file == COURTROOM_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(COURTROOM, p_identifier, ignore_resize);
-    else if(p_file == LOBBY_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(LOBBY, p_identifier, ignore_resize);
-    else if(p_file == REPLAY_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(SceneType_Replay, p_identifier, ignore_resize);
-    else if(p_file == VIEWPORT_DESIGN_INI) json_pos = ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(SceneType_Viewport, p_identifier, ignore_resize);
+    if(p_file == COURTROOM_DESIGN_INI) l_scene = COURTROOM;
+    else if(p_file == LOBBY_DESIGN_INI) l_scene = LOBBY;
+    else if(p_file == REPLAY_DESIGN_INI) l_scene = SceneType_Replay;
+    else if(p_file == VIEWPORT_DESIGN_INI) l_scene = SceneType_Viewport;
+    else l_known_file = false;
 
-    if(json_pos.width != -1)
+    // a missing widget used to come back as {0,0,0,0} and mask the legacy fallback below
+    if(l_known_file && ThemeManager::get().mCurrentThemeReader.ContainsWidgetTransform(l_scene, p_identifier))
     {
-      return json_pos;
+      return ThemeManager::get().mCurrentThemeReader.GetWidgetTransform(l_scene, p_identifier, ignore_resize);
     }
-
   }
   pos_size_type return_value;
   return_value.x = 0;
@@ -533,11 +535,6 @@ QStringList AOApplication::get_char_include_tree(QString p_chr)
 QString AOApplication::get_showname(QString p_chr)
 {
   return read_char_ini(p_chr, "options", "showname", p_chr).toString();
-}
-
-QString AOApplication::get_gender(QString p_chr)
-{
-  return read_char_ini(p_chr, "options", "gender", "male").toString();
 }
 
 QString AOApplication::get_chat(QString p_chr)

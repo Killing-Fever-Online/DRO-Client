@@ -33,7 +33,7 @@ public:
   void setQUrl(const QUrl &newQUrl);
 
 public:
-  int clientId();
+  int clientId() const;
 
 
 private slots:

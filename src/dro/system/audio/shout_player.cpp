@@ -3,7 +3,6 @@
 #include "aoapplication.h"
 #include "draudioengine.h"
 #include "dro/fs/fs_reading.h"
-#include "dro/fs/fs_reading.h"
 
 AOShoutPlayer::AOShoutPlayer(QObject *p_parent)
     : AOObject(p_parent)

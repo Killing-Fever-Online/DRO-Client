@@ -22,36 +22,36 @@ public:
   void setInfoWindowData(EvidenceData f_evidence);
   void setEvidenceList(QVector<EvidenceData> *evi_list);
   void setPresenting(bool toggle);
-  int getCurrentSelection();
+  int getCurrentSelection() const;
 
   QString getIconPath(QString f_path);
 
-  QWidget *info_window;
+  QWidget *info_window = nullptr;
 
   int current_index = -1;
 
   bool presenting = false;
 private:
-  AOApplication *m_app;
+  AOApplication *m_app = nullptr;
 
-  QPushButton *close_button;
-  QPushButton *create_button;
-  QCheckBox *present_checkbox;
+  QPushButton *close_button = nullptr;
+  QPushButton *create_button = nullptr;
+  QCheckBox *present_checkbox = nullptr;
 
-  QVector<EvidenceData> *current_evi_list;
+  QVector<EvidenceData> *current_evi_list = nullptr;
 
   // Info Window vars
-  QLabel *icon_label;
-  QLineEdit *name_edit;
-  QTextEdit *desc;
-  QLineEdit *image_path;
-  QCheckBox *edit_checkbox;
-  QPushButton *image_browse_button;
-  QPushButton *info_close_button;
-  QPushButton *info_apply_button;
-  QPushButton *info_delete_button;
+  QLabel *icon_label = nullptr;
+  QLineEdit *name_edit = nullptr;
+  QTextEdit *desc = nullptr;
+  QLineEdit *image_path = nullptr;
+  QCheckBox *edit_checkbox = nullptr;
+  QPushButton *image_browse_button = nullptr;
+  QPushButton *info_close_button = nullptr;
+  QPushButton *info_apply_button = nullptr;
+  QPushButton *info_delete_button = nullptr;
 
-  QListWidget *evidence_list_widget;
+  QListWidget *evidence_list_widget = nullptr;
 
   EvidenceData edited_evidence_data;
 

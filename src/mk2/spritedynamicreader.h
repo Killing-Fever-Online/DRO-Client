@@ -44,8 +44,6 @@ public:
 
   SpriteFrame get_frame(int number) final;
 
-  QVector<SpriteFrame> get_frame_list() final;
-
 protected:
   void load() final;
 

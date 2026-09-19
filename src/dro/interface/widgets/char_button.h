@@ -29,8 +29,8 @@ private slots:
   void clearIniswap();
 
 protected:
-  void enterEvent(QEnterEvent *e);
-  void leaveEvent(QEvent *e);
+  void enterEvent(QEnterEvent *e) override;
+  void leaveEvent(QEvent *e) override;
 
 private:
   AOApplication *ao_app = nullptr;

@@ -10,7 +10,7 @@
 
 SceneManager SceneManager::s_Instance;
 
-void SceneManager::execLoadPlayerBackground(QString t_backgroundName)
+void SceneManager::execLoadPlayerBackground(const QString &t_backgroundName)
 {
   mBackgroundName = t_backgroundName;
   const QString l_backgroundJSONPath = AOApplication::getInstance()->find_asset_path(AOApplication::getInstance()->get_background_path(t_backgroundName) + "/" + "background.json");
@@ -26,27 +26,45 @@ void SceneManager::execLoadPlayerBackground(QString t_backgroundName)
   pCurrentBackground->execLoadBackground(t_backgroundName);
 }
 
-QString SceneManager::getBackgroundPath(QString t_position)
+QString SceneManager::resolvePosition(const QString &t_position) const
 {
   if(pCurrentBackground == nullptr) return "";
-  QString l_filename = pCurrentBackground->getBackgroundFilename(t_position);
-  return AOApplication::getInstance()->get_background_sprite_path(mBackgroundName, l_filename);
+  if(!pCurrentBackground->getBackgroundFilename(t_position).isEmpty()) return t_position;
+  if(!pCurrentBackground->getBackgroundFilename(t_position.toLower()).isEmpty()) return t_position.toLower();
+  if(!pCurrentBackground->getBackgroundFilename("wit").isEmpty()) return "wit";
+  const QMap<QString, DRBackgroundPosition> l_positions = pCurrentBackground->getPositions();
+  for(auto it = l_positions.constBegin(); it != l_positions.constEnd(); ++it)
+  {
+    if(!it.value().mBackground.isEmpty()) return it.key();
+  }
+  return "";
 }
 
-QString SceneManager::getForegroundPath(QString t_position)
+QString SceneManager::getBackgroundPath(const QString &t_position) const
 {
   if(pCurrentBackground == nullptr) return "";
-  QString l_filename = pCurrentBackground->getForegroundFilename(t_position);
-  return AOApplication::getInstance()->get_background_sprite_path(mBackgroundName, l_filename);
+  const QString l_position = resolvePosition(t_position);
+  const QString l_filename = pCurrentBackground->getBackgroundFilename(l_position);
+  if(l_filename.isEmpty()) return "";
+  return AOApplication::getInstance()->find_asset_path(AOApplication::getInstance()->get_background_path(mBackgroundName) + "/" + l_filename, QStringList{""} + FS::Formats::SupportedImages());
 }
 
-DRBackgroundSettings SceneManager::getBackgroundSettings()
+QString SceneManager::getForegroundPath(const QString &t_position) const
+{
+  if(pCurrentBackground == nullptr) return "";
+  const QString l_position = resolvePosition(t_position);
+  const QString l_filename = pCurrentBackground->getForegroundFilename(l_position);
+  if(l_filename.isEmpty()) return "";
+  return AOApplication::getInstance()->find_asset_path(AOApplication::getInstance()->get_background_path(mBackgroundName) + "/" + l_filename, QStringList{""} + FS::Formats::SupportedImages());
+}
+
+DRBackgroundSettings SceneManager::getBackgroundSettings() const
 {
   if(pCurrentBackground == nullptr) return DRBackgroundSettings();
   return pCurrentBackground->getSettings();
 }
 
-BackgroundData *SceneManager::getCurrentBackground()
+BackgroundData *SceneManager::getCurrentBackground() const
 {
   return pCurrentBackground;
 }
@@ -58,7 +76,7 @@ RPLabel *SceneManager::CreateTransition(QWidget *parents, AOApplication *ao_app,
   return pUiTransition;
 }
 
-RPLabel *SceneManager::GetTransition()
+RPLabel *SceneManager::GetTransition() const
 {
   return pUiTransition;
 }

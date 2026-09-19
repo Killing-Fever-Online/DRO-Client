@@ -19,14 +19,14 @@ public:
     return s_Instance;
   }
 
-  void execLoadPlayerBackground(QString t_backgroundName);
-  QString getBackgroundPath(QString t_position);
-  QString getForegroundPath(QString t_position);
-  DRBackgroundSettings getBackgroundSettings();
-  BackgroundData *getCurrentBackground();
+  void execLoadPlayerBackground(const QString &t_backgroundName);
+  QString getBackgroundPath(const QString &t_position) const;
+  QString getForegroundPath(const QString &t_position) const;
+  DRBackgroundSettings getBackgroundSettings() const;
+  BackgroundData *getCurrentBackground() const;
 
   RPLabel *CreateTransition(QWidget *parents, AOApplication* ao_app, DRGraphicsView *viewport);
-  RPLabel *GetTransition();
+  RPLabel *GetTransition() const;
 
   void RenderTransition();
   void AnimateTransition();
@@ -40,6 +40,8 @@ public:
 private:
   SceneManager() {}
   static SceneManager s_Instance;
+
+  QString resolvePosition(const QString &t_position) const;
 
   int mFadeDuration = 200;
   RPLabel *pUiTransition = nullptr;

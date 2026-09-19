@@ -1,6 +1,6 @@
 #include "pair_manager.h"
 #include "commondefs.h"
-#include <AOApplication.h>
+#include <aoapplication.h>
 #include <modules/theme/thememanager.h>
 
 PairManager PairManager::s_Instance;
@@ -17,7 +17,7 @@ void PairManager::ThemeReload()
     {
       QString fullName = elementname + elementalighn;
       pos_size_type sizing = AOApplication::getInstance()->get_element_dimensions(fullName, COURTROOM_DESIGN_INI);
-      if(sizing.height != 0 && sizing.width != 0)
+      if(sizing.height > 0 && sizing.width > 0)
       {
         m_chatboxOffsetTransforms[fullName] = sizing;
       }

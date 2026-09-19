@@ -45,8 +45,8 @@ private:
 
   QAction *p_ResetOffsetsAction = nullptr;
 
-  QMenu* m_presetsMenu;
-  QMenu* m_layersMenu;
+  QMenu* m_presetsMenu = nullptr;
+  QMenu* m_layersMenu = nullptr;
 
 
   DREmote m_currentEmote;

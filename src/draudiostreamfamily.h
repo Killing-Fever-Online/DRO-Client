@@ -55,8 +55,8 @@ private:
   friend class DRAudioEnginePrivate;
 
   DRAudio::Family m_family;
-  float m_speed = 1;
-  float m_pitch = 1;
+  float m_speed = 0;
+  float m_pitch = 0;
   int32_t m_volume = 0;
   int32_t m_capacity = 0;
   DRAudio::Options m_options;
@@ -64,13 +64,14 @@ private:
 
   DRAudioStreamFamily(DRAudio::Family p_family);
 
-  float calculate_volume();
+  float calculate_volume() const;
 
   void update_capacity();
   void update_options();
   void update_volume();
   void update_pitch();
   void update_speed();
+  void update_rate_mode();
 
 private slots:
   void on_stream_finished();

@@ -11,11 +11,11 @@ public:
   DRAudiotrackMetadata(QString file_name);
   ~DRAudiotrackMetadata();
 
-  QString filename();
-  QString title();
-  bool play_once();
-  quint64 loop_start();
-  quint64 loop_end();
+  QString filename() const;
+  QString title() const;
+  bool play_once() const;
+  quint64 loop_start() const;
+  quint64 loop_end() const;
 
 private:
   QString m_filename;

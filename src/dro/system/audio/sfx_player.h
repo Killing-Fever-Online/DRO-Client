@@ -16,12 +16,12 @@ public:
 
   AOSfxPlayer(QObject *parent = nullptr);
 
-  void play(QString filename);
-  void play_effect(QString effect);
-  void play_character_effect(QString character, QString effect);
+  void play(const QString &filename);
+  void play_effect(const QString &effect);
+  void play_character_effect(const QString &character, const QString &effect);
   void stop_all();
 
-  void play_ambient(QString filename);
+  void play_ambient(const QString &filename);
 
 private:
   DRAudioStreamFamily::ptr m_player;
@@ -29,9 +29,8 @@ private:
   QMap<QString, DRAudioStream::ptr> m_ambient_map;
   DRAudioStream::ptr m_current_ambient;
 
-  DRAudioStream::ptr get_stream_by_qobject(QObject *object);
+  DRAudioStream::ptr get_stream_by_qobject(QObject *object) const;
 
 private slots:
   void remove_ambient();
-  void handle_ambient_fade(DRAudioStream::Fade fade);
 };

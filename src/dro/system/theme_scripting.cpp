@@ -8,8 +8,6 @@
 #include "courtroom.h"
 #include <lobby.h>
 
-#pragma comment(lib, "lua54.lib")
-
 static sol::state s_themeScript;
 static QMap<std::string, sol::function> s_registeredFunctions;
 
@@ -105,9 +103,9 @@ namespace ThemeScripting
       tabTable.set_function("Change", &LuaFunctions::ChangeTab);
 
       sol::table serverTable = s_themeScript.create_named_table("Server");
-      tabTable.set_function("GetClientId", &metadata::user::getClientId);
-      tabTable.set_function("GetCharacterId", &metadata::user::GetCharacterId);
-      tabTable.set_function("GetCurrentCharacter", &metadata::user::GetCharacterName);
+      serverTable.set_function("GetClientId", &metadata::user::getClientId);
+      serverTable.set_function("GetCharacterId", &metadata::user::GetCharacterId);
+      serverTable.set_function("GetCurrentCharacter", [] { return metadata::user::GetCharacterName().toStdString(); });
 
       {
         sol::table ic = s_themeScript.create_named_table("IC");
@@ -139,7 +137,7 @@ namespace ThemeScripting
       systemTable.set_function("Alert", &LuaFunctions::AlertUser);
 
       sol::table areaTable = s_themeScript.create_named_table("Area");
-      areaTable.set_function("SetDescription", &AreaMetadata::SetDescription);
+      areaTable.set_function("SetDescription", [](const char* description) { AreaMetadata::SetDescription(description); });
 
       s_themeScript.safe_script_file(filePath.toUtf8().constData());
     }

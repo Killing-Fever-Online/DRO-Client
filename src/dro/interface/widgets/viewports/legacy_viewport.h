@@ -22,6 +22,7 @@ class LegacyViewport : public RPViewport
   Q_OBJECT
 public:
   LegacyViewport(QWidget *parent = nullptr);
+  ~LegacyViewport();
 
 public:
   void update() override;
